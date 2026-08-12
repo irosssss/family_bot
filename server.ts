@@ -17,6 +17,11 @@ import { users as usersTable } from './src/db/schema';
 import { getWeekKey, getTodayStr, getNowTimestamp } from './src/lib/dateUtils';
 import { appState } from './src/services/stateService';
 import { sendTelegramPushNotification } from './src/services/notificationService';
+import { processReferral } from './src/services/referralService';
+import { checkAchievements } from './src/services/achievementService';
+import { applyTaskCompletion } from './src/services/taskService';
+import { applySkill } from './src/services/skillService';
+import { persistProfile } from './src/services/userService';
 import { createServer as createViteServer } from 'vite';
 
 // Initialize Sentry Node SDK if DSN is provided
@@ -29,392 +34,9 @@ if (process.env.SENTRY_DSN) {
   console.log('⚡ Server Sentry initialized successfully');
 }
 
-import { AppState, Boss, Challenge, Completion, FeedEntry, Pet, Reward, ShopItem, Task, User } from './src/types';
+import { Completion, FeedEntry, Reward, ShopItem, Task, User } from './src/types';
 
 const PORT = 3000;
-
-function processReferral(refereeUser: User, rawRefCode: string) {
-  if (!rawRefCode || !refereeUser) {
-    return { success: false, message: 'Укажите верный реферальный код' };
-  }
-
-  let cleanCode = rawRefCode.trim().toLowerCase();
-  if (cleanCode.startsWith('/start ')) {
-    cleanCode = cleanCode.replace('/start ', '').trim();
-  }
-  if (cleanCode.startsWith('ref_')) {
-    cleanCode = cleanCode.replace('ref_', '');
-  }
-
-  const referrerUser = appState.users.find(
-    (u) =>
-      u.id === Number(cleanCode) ||
-      (u.referral_code && u.referral_code.toLowerCase().replace('ref_', '') === cleanCode) ||
-      u.display_name.trim().toLowerCase() === cleanCode
-  );
-
-  if (!referrerUser) {
-    return { success: false, message: 'Реферальный код не найден' };
-  }
-
-  if (referrerUser.id === refereeUser.id) {
-    return { success: false, message: 'Вы не можете использовать собственный реферальный код' };
-  }
-
-  if (refereeUser.referred_by) {
-    return { success: false, message: 'Вы уже активировали реферальный код ранее' };
-  }
-
-  if (!appState.referrals) {
-    appState.referrals = [];
-  }
-
-  const alreadyRecorded = appState.referrals.some(
-    (r) => r.referrer_id === referrerUser.id && r.referee_id === refereeUser.id
-  );
-  if (alreadyRecorded) {
-    return { success: false, message: 'Реферальный бонус уже был начислен' };
-  }
-
-  const REFERRER_GOLD = 100;
-  const REFERRER_CRYSTALS = 25;
-  const REFEREE_GOLD = 50;
-  const REFEREE_CRYSTALS = 15;
-
-  refereeUser.referred_by = referrerUser.id;
-  refereeUser.gold += REFEREE_GOLD;
-  refereeUser.crystals = (refereeUser.crystals || 0) + REFEREE_CRYSTALS;
-
-  referrerUser.gold += REFERRER_GOLD;
-  referrerUser.crystals = (referrerUser.crystals || 0) + REFERRER_CRYSTALS;
-  referrerUser.referrals_count = (referrerUser.referrals_count || 0) + 1;
-  referrerUser.referral_earnings_gold = (referrerUser.referral_earnings_gold || 0) + REFERRER_GOLD;
-  referrerUser.referral_earnings_crystals = (referrerUser.referral_earnings_crystals || 0) + REFERRER_CRYSTALS;
-
-  const record = {
-    id: appState.referrals.length + 1,
-    referrer_id: referrerUser.id,
-    referee_id: refereeUser.id,
-    referee_name: refereeUser.display_name,
-    created_at: getTodayStr(),
-    bonus_gold: REFERRER_GOLD,
-    bonus_crystals: REFERRER_CRYSTALS,
-  };
-  appState.referrals.push(record);
-
-  return {
-    success: true,
-    message: `🎉 Реферальный код активирован! Герой ${referrerUser.display_name} получил +${REFERRER_GOLD}💰 и +${REFERRER_CRYSTALS}💎. Вам начислено +${REFEREE_GOLD}💰 и +${REFEREE_CRYSTALS}💎!`,
-    referrer: referrerUser,
-    referee: refereeUser,
-  };
-}
-
-function checkAchievements(userId: number) {
-  const user = appState.users.find((u) => u.id === userId);
-  if (!user) return [];
-
-  const userCompletions = appState.completions.filter((c) => c.user_id === userId);
-  const userPurchases = appState.purchases.filter((p) => p.user_id === userId);
-  const userPetCount = appState.userPets.filter((p) => p.user_id === userId).length;
-  const bossesDefeated = appState.boss.defeated ? 1 : 0;
-  const level = Math.floor(user.xp / 100) + 1;
-
-  const conditions: Record<string, boolean> = {
-    first_task: userCompletions.length >= 1,
-    tasks_10: userCompletions.length >= 10,
-    tasks_50: userCompletions.length >= 50,
-    streak_3: user.streak >= 3,
-    streak_7: user.streak >= 7,
-    level_3: level >= 3,
-    level_5: level >= 5,
-    first_buy: userPurchases.length >= 1,
-    boss_1: bossesDefeated >= 1,
-    pet_1: userPetCount >= 1,
-  };
-
-  const newUnlocked: any[] = [];
-
-  for (const ach of appState.achievements) {
-    const already = appState.userAchievements.some(
-      (ua) => ua.user_id === userId && ua.achievement_id === ach.id
-    );
-    if (conditions[ach.code] && !already) {
-      appState.userAchievements.push({ user_id: userId, achievement_id: ach.id });
-      user.gold += ach.bonus;
-      newUnlocked.push(ach);
-    }
-  }
-
-  return newUnlocked;
-}
-
-function checkChallenge(userId: number) {
-  const user = appState.users.find((u) => u.id === userId);
-  if (!user) return null;
-
-  const currentChallenge = appState.challenge;
-  if (currentChallenge.completed) return null;
-
-  const todayStr = getTodayStr();
-  const thisWeekCompletions = appState.completions.filter((c) => c.user_id === userId);
-  const perfectDaysCount = appState.perfectDays.filter((p) => p.user_id === userId).length;
-  const teamTasksDone = appState.completions.filter((c) => {
-    const task = appState.tasks.find((t) => t.id === c.task_id);
-    return task?.assignee === 'both';
-  }).length;
-
-  let progress = 0;
-  if (currentChallenge.code === 'summer_dragon_15') {
-    progress = teamTasksDone;
-  } else if (currentChallenge.code === 'marathon_12') {
-    progress = thisWeekCompletions.length;
-  } else if (currentChallenge.code === 'perfect_2') {
-    progress = perfectDaysCount;
-  } else if (currentChallenge.code === 'team_3') {
-    progress = teamTasksDone;
-  }
-
-  currentChallenge.progress = progress;
-
-  if (progress >= currentChallenge.target) {
-    currentChallenge.completed = true;
-    user.gold += currentChallenge.bonus;
-
-    // Grant special Gold Dragon Pet if dragon challenge!
-    if (currentChallenge.code === 'summer_dragon_15') {
-      const dragonPet = appState.pets.find((p) => p.code === 'gold_dragon');
-      if (dragonPet) {
-        for (const u of appState.users) {
-          const already = appState.userPets.some((up) => up.user_id === u.id && up.pet_id === dragonPet.id);
-          if (!already) {
-            appState.userPets.push({ user_id: u.id, pet_id: dragonPet.id });
-          }
-        }
-      }
-    }
-
-    sendTelegramPushNotification(
-      `🏆 <b>СЕМЕЙНЫЙ ЧЕЛЛЕНДЖ ВЫПОЛНЕН!</b> 🎉\nСемейный квест <b>"${currentChallenge.title}"</b> полностью завершен! Герой <b>${user.display_name}</b> принес в семейную казну +${currentChallenge.bonus}💰!`
-    );
-
-    return { title: currentChallenge.title, bonus: currentChallenge.bonus };
-  }
-
-  return null;
-}
-
-function renderToday(user: User) {
-  const todayStr = getTodayStr();
-  const currentWeekday = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
-  const tasks = appState.tasks.filter(
-    (t) =>
-      (t.assignee === user.assignee || t.assignee === 'both') &&
-      (t.task_type === 'daily' || (t.task_type === 'weekly' && t.day_of_week === currentWeekday))
-  );
-
-  const doneCount = tasks.filter((t) =>
-    appState.completions.some(
-      (c) => c.task_id === t.id && c.user_id === user.id && c.completed_at === todayStr
-    )
-  ).length;
-
-  let text = `📋 <b>Задачи на сегодня</b> для <b>${user.display_name}</b>\nВыполнено: ${doneCount}/${tasks.length}\n\n`;
-  tasks.forEach((t) => {
-    const isDone = appState.completions.some(
-      (c) => c.task_id === t.id && c.user_id === user.id && c.completed_at === todayStr
-    );
-    text += `${isDone ? '✅' : '☐'} ${t.title} — <b>${t.points}💰</b>\n`;
-  });
-
-  const keyboard = tasks.map((t) => [
-    {
-      text: `${t.title} (${t.points}💰)`,
-      action: `/complete_${t.id}`,
-    },
-  ]);
-
-  return { text, keyboard };
-}
-
-function applyTaskCompletion(user: User, task: Task) {
-  const todayStr = getTodayStr();
-  const existing = appState.completions.find(
-    (c) => c.user_id === user.id && c.task_id === task.id && c.completed_at === todayStr
-  );
-
-  if (existing) {
-    return { error: 'Task already completed today' };
-  }
-
-  const firstToday = !appState.completions.some(
-    (c) => c.user_id === user.id && c.completed_at === todayStr
-  );
-
-  const completion: Completion = {
-    id: Date.now(),
-    user_id: user.id,
-    task_id: task.id,
-    completed_at: todayStr,
-    completed_at_ts: getNowTimestamp(),
-  };
-  appState.completions.push(completion);
-
-  // Streaks
-  if (firstToday) {
-    user.streak += 1;
-  }
-
-  // Class Bonuses
-  const goldGain = task.points + (user.class === 'warrior' && task.points >= 4 ? 1 : 0);
-  const xpGain = user.class === 'mage' ? Math.round(task.points * 1.2 * 10) : task.points * 10;
-
-  const oldLevel = Math.floor(user.xp / 100) + 1;
-  user.xp += xpGain;
-  user.gold += goldGain;
-  const newLevel = Math.floor(user.xp / 100) + 1;
-  const levelUp = newLevel > oldLevel;
-
-  // Boss Damage
-  let bossDefeated = null;
-  if (!appState.boss.defeated) {
-    appState.boss.damage += task.points;
-    if (appState.boss.damage >= appState.boss.hp) {
-      appState.boss.defeated = 1;
-      // Award +20 gold to both players!
-      for (const u of appState.users) {
-        u.gold += 20;
-      }
-      bossDefeated = { ...appState.boss };
-    }
-  }
-
-  // Check Perfect Day: all scheduled tasks for user done today
-  const currentWeekday = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
-  const userScheduledTasks = appState.tasks.filter(
-    (t) =>
-      (t.assignee === user.assignee || t.assignee === 'both') &&
-      (t.task_type === 'daily' || (t.task_type === 'weekly' && t.day_of_week === currentWeekday))
-  );
-
-  const userCompletedIds = appState.completions
-    .filter((c) => c.user_id === user.id && c.completed_at === todayStr)
-    .map((c) => c.task_id);
-
-  let perfect = false;
-  if (
-    userScheduledTasks.length > 0 &&
-    userScheduledTasks.every((t) => userCompletedIds.includes(t.id))
-  ) {
-    const alreadyPerfect = appState.perfectDays.some(
-      (p) => p.user_id === user.id && p.day === todayStr
-    );
-    if (!alreadyPerfect) {
-      appState.perfectDays.push({ user_id: user.id, day: todayStr });
-      user.gold += 5;
-      perfect = true;
-    }
-  }
-
-  // Regenerate +5 MP and +2 HP per task completion
-  user.mp = Math.min(user.max_mp || 50, (user.mp || 30) + 5);
-  user.hp = Math.min(user.max_hp || 50, (user.hp || 50) + 2);
-
-  // 25% Chance Pet Drop
-  let foundPet: Pet | null = null;
-  if (Math.random() < 0.25) {
-    const ownedPetIds = appState.userPets
-      .filter((up) => up.user_id === user.id)
-      .map((up) => up.pet_id);
-    const unownedPets = appState.pets.filter((p) => !ownedPetIds.includes(p.id));
-    if (unownedPets.length > 0) {
-      foundPet = unownedPets[Math.floor(Math.random() * unownedPets.length)];
-      appState.userPets.push({ user_id: user.id, pet_id: foundPet.id });
-    }
-  }
-
-  // Check Achievements & Challenges
-  const newAchievements = checkAchievements(user.id);
-  const challengeResult = checkChallenge(user.id);
-
-  // Send Telegram Push Notification
-  sendTelegramPushNotification(
-    `✅ <b>${user.display_name}</b> выполнил(а) задачу <b>"${task.title}"</b> (+${goldGain}💰, +${xpGain}⭐)!`
-  );
-
-  if (bossDefeated) {
-    sendTelegramPushNotification(
-      `🎉 <b>СЕМЕЙНЫЙ БОСС ПОВЕРЖЕН!</b> 👾\nГерои ${appState.users.map((u) => u.display_name).join(' и ')} разгромили босса <b>${bossDefeated.emoji} ${bossDefeated.name}</b>! Вся семья получает по +20💰!`
-    );
-  }
-
-  return {
-    goldGain,
-    xpGain,
-    levelUp,
-    newLevel,
-    perfect,
-    pet: foundPet,
-    bossDefeated,
-    achievements: newAchievements,
-    challengeCompleted: challengeResult,
-  };
-}
-
-function applySkill(user: User) {
-  const todayStr = getTodayStr();
-  if (user.skill_date === todayStr) {
-    return { error: 'Скилл уже использован сегодня! ⏳' };
-  }
-
-  let manaCost = 10;
-  if (user.class === 'mage') manaCost = 15;
-  if (user.class === 'rogue') manaCost = 12;
-  if (user.class === 'healer') manaCost = 15;
-
-  if ((user.mp ?? 30) < manaCost) {
-    return { error: `Недостаточно маны MP (требуется ${manaCost} MP)! Выполняйте задачи для восстановления` };
-  }
-
-  user.mp = (user.mp ?? 30) - manaCost;
-  user.skill_date = todayStr;
-  let message = '';
-  let bossDefeated = null;
-
-  if (user.class === 'warrior') {
-    if (!appState.boss.defeated) {
-      appState.boss.damage += 15;
-      if (appState.boss.damage >= appState.boss.hp) {
-        appState.boss.defeated = 1;
-        for (const u of appState.users) {
-          u.gold += 20;
-        }
-        bossDefeated = { ...appState.boss };
-        message = `⚔️ Мощный удар Воина! Нанесено 15 урона (-10 MP). БОСС ${appState.boss.emoji} ПОВЕРЖЕН! 🎉 Вся семья получила +20💰!`;
-      } else {
-        message = `⚔️ Мощный удар Воина! Босс получил 15 урона (${appState.boss.damage}/${appState.boss.hp} HP) [-10 MP].`;
-      }
-    } else {
-      message = '⚔️ Босс уже повержен на этой неделе! Вы нанесли красивый рассекающий удар!';
-    }
-  } else if (user.class === 'mage') {
-    user.xp += 25;
-    message = '🔮 Взрыв магии! Персонаж получил +25 ⭐ опыта за -15 MP.';
-  } else if (user.class === 'rogue') {
-    user.gold += 15;
-    message = '🗡️ Карманная кража Разбойника! Добыто +15 💰 золота за -12 MP.';
-  } else if (user.class === 'healer') {
-    for (const u of appState.users) {
-      u.hp = Math.min(u.max_hp || 50, (u.hp || 50) + 20);
-    }
-    message = '💚 Исцеляющий свет Целителя! Вся семья восстановила +20 HP за -15 MP.';
-  } else {
-    user.gold += 5;
-    message = '⚡ Базовое заклинание применено: +5 💰';
-  }
-
-  return { message, bossDefeated };
-}
 
 async function startServer() {
   const app = express();
@@ -834,17 +456,8 @@ async function startServer() {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     user.class = className;
-    // Update DB (async)
-    db.update(schema.users).set({
-      class_type: user.class,
-      gender: user.gender,
-      custom_avatar_url: user.custom_avatar_url,
-      character_color: user.character_color,
-      skin_tone: user.skin_tone,
-      hair_style: user.hair_style,
-      hair_color: user.hair_color,
-      eye_color: user.eye_color,
-    }).where(eq(schema.users.id, user.id)).execute().catch(e => console.error('DB Update error:', e));
+    // Сохранить профиль в БД
+    persistProfile(user);
 
     res.json({ success: true, user });
   });
@@ -856,17 +469,8 @@ async function startServer() {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     user.gender = gender === 'female' ? 'female' : 'male';
-    // Update DB (async)
-    db.update(schema.users).set({
-      class_type: user.class,
-      gender: user.gender,
-      custom_avatar_url: user.custom_avatar_url,
-      character_color: user.character_color,
-      skin_tone: user.skin_tone,
-      hair_style: user.hair_style,
-      hair_color: user.hair_color,
-      eye_color: user.eye_color,
-    }).where(eq(schema.users.id, user.id)).execute().catch(e => console.error('DB Update error:', e));
+    // Сохранить профиль в БД
+    persistProfile(user);
 
     res.json({ success: true, user });
   });
@@ -884,17 +488,8 @@ async function startServer() {
     if (hair_color) user.hair_color = hair_color;
     if (eye_color) user.eye_color = eye_color;
     if (custom_avatar_url !== undefined) user.custom_avatar_url = custom_avatar_url;
-    // Update DB (async)
-    db.update(schema.users).set({
-      class_type: user.class,
-      gender: user.gender,
-      custom_avatar_url: user.custom_avatar_url,
-      character_color: user.character_color,
-      skin_tone: user.skin_tone,
-      hair_style: user.hair_style,
-      hair_color: user.hair_color,
-      eye_color: user.eye_color,
-    }).where(eq(schema.users.id, user.id)).execute().catch(e => console.error('DB Update error:', e));
+    // Сохранить профиль в БД
+    persistProfile(user);
 
 
     res.json({ success: true, user });
@@ -1122,17 +717,8 @@ async function startServer() {
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
     user.custom_avatar_url = avatarUrl;
-    // Update DB (async)
-    db.update(schema.users).set({
-      class_type: user.class,
-      gender: user.gender,
-      custom_avatar_url: user.custom_avatar_url,
-      character_color: user.character_color,
-      skin_tone: user.skin_tone,
-      hair_style: user.hair_style,
-      hair_color: user.hair_color,
-      eye_color: user.eye_color,
-    }).where(eq(schema.users.id, user.id)).execute().catch(e => console.error('DB Update error:', e));
+    // Сохранить профиль в БД
+    persistProfile(user);
 
     res.json({ success: true, message: 'Аватар успешно обновлён!' });
   });
@@ -1311,108 +897,6 @@ async function startServer() {
   });
 
   // Telegram Bot Simulator Command Execution
-
-  // PixelLab AI Integration State
-
-function generatePixelArtSVG(promptText: string): string {
-  const p = (promptText || '').toLowerCase();
-
-  let bgTop = '#0f172a';
-  let bgBottom = '#1e1b4b';
-  let mountainColor = '#312e81';
-  let groundColor = '#065f46';
-  let accentColor = '#34d399';
-  let skyObj = `<circle cx="200" cy="45" r="16" fill="#fef08a" opacity="0.9" />`;
-  let elements = `
-    <path d="M20 180 L35 150 L50 180 Z M25 165 L35 140 L45 165 Z" fill="#047857" />
-    <path d="M180 190 L200 155 L220 190 Z M188 175 L200 145 L212 175 Z" fill="#065f46" />
-    <path d="M100 195 L115 165 L130 195 Z" fill="#047857" />
-    <circle cx="80" cy="170" r="3" fill="#a7f3d0" opacity="0.8" />
-    <circle cx="150" cy="160" r="2.5" fill="#fde047" opacity="0.8" />
-  `;
-
-  if (p.includes('castle') || p.includes('замок') || p.includes('dungeon') || p.includes('крепость')) {
-    bgTop = '#1e1b4b';
-    bgBottom = '#0f172a';
-    mountainColor = '#334155';
-    groundColor = '#1e293b';
-    accentColor = '#64748b';
-    skyObj = `<circle cx="50" cy="50" r="16" fill="#e2e8f0" opacity="0.85" />`;
-    elements = `
-      <rect x="70" y="100" width="30" height="95" fill="#334155"/>
-      <rect x="65" y="90" width="40" height="15" fill="#475569"/>
-      <rect x="68" y="80" width="8" height="10" fill="#334155"/>
-      <rect x="81" y="80" width="8" height="10" fill="#334155"/>
-      <rect x="94" y="80" width="8" height="10" fill="#334155"/>
-      <rect x="150" y="80" width="45" height="115" fill="#1e293b"/>
-      <rect x="145" y="70" width="55" height="18" fill="#334155"/>
-      <rect x="165" y="110" width="15" height="25" rx="7" fill="#fbbf24"/>
-    `;
-  } else if (p.includes('sunset') || p.includes('закат') || p.includes('beach') || p.includes('пляж')) {
-    bgTop = '#ea580c';
-    bgBottom = '#312e81';
-    mountainColor = '#431407';
-    groundColor = '#1e1b4b';
-    accentColor = '#f59e0b';
-    skyObj = `<circle cx="128" cy="100" r="28" fill="#fef08a" />`;
-    elements = `
-      <path d="M30 200 Q 40 140 60 110" stroke="#431407" stroke-width="6" fill="none" />
-      <path d="M60 110 Q 30 90 10 100 M60 110 Q 80 85 100 100 M60 110 Q 40 130 20 140" stroke="#15803d" stroke-width="4" fill="none" />
-    `;
-  } else if (p.includes('space') || p.includes('космос') || p.includes('cyber') || p.includes('neon') || p.includes('галактика')) {
-    bgTop = '#2e1065';
-    bgBottom = '#020617';
-    mountainColor = '#581c87';
-    groundColor = '#0f172a';
-    accentColor = '#06b6d4';
-    skyObj = `
-      <circle cx="190" cy="65" r="22" fill="#06b6d4" opacity="0.8" />
-      <ellipse cx="190" cy="65" rx="36" ry="8" fill="none" stroke="#67e8f9" stroke-width="3" transform="rotate(-20 190 65)" />
-    `;
-    elements = `
-      <line x1="0" y1="195" x2="256" y2="195" stroke="#a855f7" stroke-width="2" />
-      <line x1="0" y1="215" x2="256" y2="215" stroke="#ec4899" stroke-width="2" />
-      <line x1="0" y1="238" x2="256" y2="238" stroke="#06b6d4" stroke-width="2" />
-    `;
-  } else if (p.includes('cave') || p.includes('пещера') || p.includes('crystal') || p.includes('кристалл')) {
-    bgTop = '#083344';
-    bgBottom = '#020617';
-    mountainColor = '#164e63';
-    groundColor = '#0f172a';
-    accentColor = '#22d3ee';
-    skyObj = `<circle cx="128" cy="40" r="10" fill="#67e8f9" opacity="0.5" />`;
-    elements = `
-      <polygon points="30,195 40,160 50,195" fill="#22d3ee" />
-      <polygon points="180,195 195,150 210,195" fill="#a855f7" />
-      <polygon points="110,195 120,165 130,195" fill="#38bdf8" />
-    `;
-  }
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" shape-rendering="crispEdges">
-    <defs>
-      <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${bgTop}" />
-        <stop offset="100%" stop-color="${bgBottom}" />
-      </linearGradient>
-    </defs>
-    <rect width="256" height="256" fill="url(#skyGrad)" />
-    <rect x="20" y="25" width="3" height="3" fill="#ffffff" opacity="0.8" />
-    <rect x="80" y="15" width="2" height="2" fill="#fde047" opacity="0.9" />
-    <rect x="140" y="35" width="3" height="3" fill="#ffffff" opacity="0.7" />
-    <rect x="220" y="20" width="2" height="2" fill="#a7f3d0" opacity="0.8" />
-    <rect x="170" y="55" width="2" height="2" fill="#ffffff" opacity="0.6" />
-    <rect x="45" y="65" width="3" height="3" fill="#fde047" opacity="0.8" />
-    ${skyObj}
-    <path d="M0 200 L40 140 L90 180 L160 120 L220 170 L256 130 L256 256 L0 256 Z" fill="${mountainColor}" />
-    ${elements}
-    <rect x="0" y="195" width="256" height="61" fill="${groundColor}" />
-    <rect x="0" y="192" width="256" height="4" fill="${accentColor}" opacity="0.5" />
-  </svg>`;
-
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-}
-
-  // POST Generate Pixel Art via PixelLab API
 
   app.get('/api/health', (req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
