@@ -14,6 +14,7 @@ import { db } from './src/db/index';
 import * as schema from './src/db/schema';
 import { eq } from 'drizzle-orm';
 import { users as usersTable } from './src/db/schema';
+import { getWeekKey, getTodayStr, getNowTimestamp } from './src/lib/dateUtils';
 import { createServer as createViteServer } from 'vite';
 
 // Initialize Sentry Node SDK if DSN is provided
@@ -39,30 +40,6 @@ import {
 import { AppState, Boss, Challenge, Completion, FeedEntry, Pet, Reward, ShopItem, Task, User } from './src/types';
 
 const PORT = 3000;
-
-function getWeekKey(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const onejan = new Date(year, 0, 1);
-  const millisecsInDay = 86400000;
-  const dayOfYear = Math.ceil((d.getTime() - onejan.getTime()) / millisecsInDay);
-  const weekNum = Math.ceil((dayOfYear + onejan.getDay() + 1) / 7);
-  return `${year}-W${String(weekNum).padStart(2, '0')}`;
-}
-
-function getTodayStr(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function getNowTimestamp(): string {
-  const d = new Date();
-  const time = d.toTimeString().slice(0, 5);
-  return `${getTodayStr()} ${time}`;
-}
 
 // In-Memory Telegram Push Config
 
