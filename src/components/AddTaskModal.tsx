@@ -1,0 +1,247 @@
+import React, { useState } from 'react';
+import { X, Plus, Sparkles, Check } from 'lucide-react';
+import { triggerHaptic } from '../utils/haptics';
+
+interface AddTaskModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddTask: (task: { title: string; points: number; assignee: 'misha' | 'regina' | 'both'; task_type: 'daily' | 'weekly' | 'todo' }) => void;
+}
+
+export const AddTaskModal: React.FC<AddTaskModalProps> = ({ isOpen, onClose, onAddTask }) => {
+  const [title, setTitle] = useState('');
+  const [points, setPoints] = useState(2);
+  const [assignee, setAssignee] = useState<'misha' | 'regina' | 'both'>('misha');
+  const [taskType, setTaskType] = useState<'daily' | 'weekly' | 'todo'>('todo');
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    triggerHaptic('notification', 'success');
+    onAddTask({
+      title: title.trim(),
+      points: Number(points),
+      assignee,
+      task_type: taskType,
+    });
+    setTitle('');
+    onClose();
+  };
+
+  const pointOptions = [
+    { value: 1, label: '1 💰 Легкая', desc: 'мусор / посуда' },
+    { value: 2, label: '2 💰 Средняя', desc: 'пылесос / полки' },
+    { value: 3, label: '3 💰 Обычная', desc: 'ужин / кошачий лоток' },
+    { value: 4, label: '4 💰 Важная', desc: 'покупки / стирка' },
+    { value: 5, label: '5 💰 Крупная', desc: 'уборка кухни / глажка' },
+    { value: 6, label: '6 💰 Генеральная', desc: 'прогулка / генеральная' },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+      <div className="bg-[#171c28] border border-white/15 rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl space-y-4 max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:rounded-b-none max-sm:rounded-t-3xl max-sm:max-h-[90vh] overflow-y-auto">
+        
+        {/* Mobile Grab Handle Bar (Checklist Design Mobile Pattern) */}
+        <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-1 sm:hidden" />
+
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30">
+              <Plus className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white tracking-tight">Новая задача</h3>
+              <p className="text-[11px] text-slate-400">Создать задачу для семейного кооператива</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Title Input with Character Counter */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-300">
+                Название дела <span className="text-red-400">*</span>
+              </label>
+              <span className={`text-[10px] ${title.length > 50 ? 'text-amber-400 font-bold' : 'text-slate-500'}`}>
+                {title.length} / 60
+              </span>
+            </div>
+            <input
+              type="text"
+              required
+              maxLength={60}
+              placeholder="Например: Помыть коляску, Протереть полки..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:bg-white/10 outline-none transition"
+            />
+          </div>
+
+          {/* Assignee Selection (Visual Chips) */}
+          <div>
+            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+              Исполнитель задачи
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('impact', 'light');
+                  setAssignee('misha');
+                }}
+                className={`py-2 px-2 rounded-xl text-xs font-semibold border transition flex items-center justify-center gap-1 ${
+                  assignee === 'misha'
+                    ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-500/20'
+                    : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <span>Миша ⚔️</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('impact', 'light');
+                  setAssignee('regina');
+                }}
+                className={`py-2 px-2 rounded-xl text-xs font-semibold border transition flex items-center justify-center gap-1 ${
+                  assignee === 'regina'
+                    ? 'bg-pink-600 border-pink-500 text-white shadow-md shadow-pink-500/20'
+                    : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <span>Регина 🔮</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('impact', 'light');
+                  setAssignee('both');
+                }}
+                className={`py-2 px-2 rounded-xl text-xs font-semibold border transition flex items-center justify-center gap-1 ${
+                  assignee === 'both'
+                    ? 'bg-amber-600 border-amber-500 text-white shadow-md shadow-amber-500/20'
+                    : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <span>Вместе 🤝</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Points Reward Options (Visual Chip Selector) */}
+          <div>
+            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+              Награда за выполнение (Золото 💰)
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {pointOptions.map((opt) => {
+                const isSelected = points === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic('impact', 'light');
+                      setPoints(opt.value);
+                    }}
+                    className={`p-2 rounded-xl text-left border transition relative ${
+                      isSelected
+                        ? 'bg-amber-500/20 border-amber-400 text-amber-200 font-bold'
+                        : 'bg-white/5 border-white/10 text-slate-400 hover:text-slate-200 hover:bg-white/10'
+                    }`}
+                  >
+                    <div className="text-xs flex items-center justify-between">
+                      <span>{opt.label}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                    </div>
+                    <span className="text-[10px] text-slate-400 block mt-0.5 truncate">
+                      {opt.desc}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Task Type Options */}
+          <div>
+            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+              Периодичность задачи
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('impact', 'light');
+                  setTaskType('todo');
+                }}
+                className={`py-2 rounded-xl text-xs font-semibold border transition ${
+                  taskType === 'todo'
+                    ? 'bg-blue-600 border-blue-500 text-white shadow-sm'
+                    : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                }`}
+              >
+                Разовая
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('impact', 'light');
+                  setTaskType('daily');
+                }}
+                className={`py-2 rounded-xl text-xs font-semibold border transition ${
+                  taskType === 'daily'
+                    ? 'bg-blue-600 border-blue-500 text-white shadow-sm'
+                    : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                }`}
+              >
+                Ежедневная
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic('impact', 'light');
+                  setTaskType('weekly');
+                }}
+                className={`py-2 rounded-xl text-xs font-semibold border transition ${
+                  taskType === 'weekly'
+                    ? 'bg-blue-600 border-blue-500 text-white shadow-sm'
+                    : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                }`}
+              >
+                Еженедельная
+              </button>
+            </div>
+          </div>
+
+          {/* Sticky CTA Action Footer */}
+          <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 rounded-xl text-xs text-slate-400 hover:text-white bg-white/5 transition"
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              disabled={!title.trim()}
+              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-md shadow-blue-500/20 disabled:opacity-50 transition"
+            >
+              + Создать задачу
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};

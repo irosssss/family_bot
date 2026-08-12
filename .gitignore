@@ -1,0 +1,27 @@
+# Секреты
+.env
+.env.local
+.env.*.local
+
+# База, логи, бэкапы
+chores.db
+bot.log
+*.log
+backups/
+
+# Node.js
+node_modules/
+dist/
+npm-debug.log*
+
+# Python (устаревшие артефакты от прежней версии)
+__pycache__/
+*.pyc
+venv/
+
+# Системное
+.DS_Store
+Thumbs.db
+
+# ZCode CLI (служебные файлы сессий/планов)
+.zcode/

@@ -1,0 +1,6 @@
+{
+  "name": "Family Chores",
+  "description": "Семейная RPG-игра в стиле Habitica для Telegram Mini App с выбором класса, пола, предметами и питомцами.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

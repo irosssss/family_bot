@@ -1,0 +1,7 @@
+{
+  "reviewers": [
+    "google/gemini-2.0-flash@high",
+    "google/gemini-1.5-pro@high"
+  ],
+  "judge": "google/gemini-2.0-flash@high"
+}
