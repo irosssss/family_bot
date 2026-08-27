@@ -20,7 +20,6 @@ export const BossBattle: React.FC<BossBattleProps> = ({ boss, onUseSkill }) => {
   const damage = boss.damage;
   const percent = Math.min(100, Math.round((damage / hp) * 100));
   const isDefeated = !!boss.defeated;
-
   const prevDamageRef = useRef(damage);
   const [damageNumbers, setDamageNumbers] = useState<DamageNumber[]>([]);
   const [isHit, setIsHit] = useState(false);
@@ -28,40 +27,48 @@ export const BossBattle: React.FC<BossBattleProps> = ({ boss, onUseSkill }) => {
   useEffect(() => {
     if (damage > prevDamageRef.current) {
       const amount = damage - prevDamageRef.current;
-      
       const newNum: DamageNumber = {
         id: Date.now() + Math.random(),
         amount,
-        x: Math.random() * 60 - 30, // Random X offset
-        y: Math.random() * 20 - 10, // Random Y offset
+        x: Math.random() * 60 - 30,
+        y: Math.random() * 20 - 10,
       };
-      
       setDamageNumbers(prev => [...prev, newNum]);
       setIsHit(true);
-      
       setTimeout(() => {
         setDamageNumbers(prev => prev.filter(n => n.id !== newNum.id));
-      }, 1000); // Remove after 1 second
-      
-      setTimeout(() => {
-        setIsHit(false);
-      }, 300);
+      }, 1000);
+      setTimeout(() => { setIsHit(false); }, 300);
     }
     prevDamageRef.current = damage;
   }, [damage]);
 
   return (
-    <div className={`bg-gradient-to-br from-red-950/40 via-slate-900/90 to-purple-950/40 border-2 border-red-500/30 rounded-2xl p-5 backdrop-blur-md relative overflow-hidden shadow-xl transition-all duration-75 ${isHit ? 'translate-x-1 translate-y-1 brightness-150 border-red-400' : ''}`}>
+    <div
+      className={`bg-gradient-to-br from-red-950/40 via-slate-900/90 to-purple-950/40 border-2 border-red-500/30 rounded-2xl p-5 backdrop-blur-md relative overflow-hidden shadow-xl transition-all duration-75 ${
+        isHit ? 'translate-x-1 translate-y-1 brightness-150 border-red-400' : ''
+      }`}
+    >
       {/* Glow Effect */}
-      <div className={`absolute -top-10 -right-10 w-36 h-36 rounded-full blur-2xl pointer-events-none transition-all ${isHit ? 'bg-red-500/60 scale-150' : 'bg-red-500/20'}`} />
-      
+      <div
+        className={`absolute -top-10 -right-10 w-36 h-36 rounded-full blur-2xl pointer-events-none transition-all ${
+          isHit ? 'bg-red-500/60 scale-150' : 'bg-red-500/20'
+        }`}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-4 relative">
         <div className="flex items-center gap-3 relative">
           <div className={`transition-transform duration-75 ${isHit ? 'scale-110 -rotate-6' : ''}`}>
-            <PixelAvatar type="boss" imageUrl={boss.imageUrl} fallbackEmoji={boss.emoji} size="md" />
+            <PixelAvatar
+              type="boss"
+              imageUrl={boss.imageUrl}
+              icon={(boss as any).icon}
+              fallbackEmoji={boss.emoji}
+              size="md"
+            />
           </div>
-          
+
           {/* Floating Damage Numbers */}
           {damageNumbers.map(num => (
             <div
@@ -85,6 +92,7 @@ export const BossBattle: React.FC<BossBattleProps> = ({ boss, onUseSkill }) => {
             <p className="text-xs text-slate-400">Семейный босс недели (общий враг)</p>
           </div>
         </div>
+
         <span
           className={`text-xs px-3 py-1 rounded-full font-pixel-sub font-bold uppercase tracking-wider ${
             isDefeated
@@ -92,7 +100,7 @@ export const BossBattle: React.FC<BossBattleProps> = ({ boss, onUseSkill }) => {
               : 'bg-red-500/20 text-red-300 border border-red-500/40'
           }`}
         >
-          {isDefeated ? 'ПОБЕЖДЁН 🎉' : 'В бою ⚔️'}
+          {isDefeated ? 'ПОБЕЖДЁН' : 'В БОЮ'}
         </span>
       </div>
 
@@ -123,10 +131,12 @@ export const BossBattle: React.FC<BossBattleProps> = ({ boss, onUseSkill }) => {
       <div className="flex items-center justify-between text-xs bg-black/40 p-3 rounded-xl border border-white/10">
         <div className="flex items-center gap-2 text-slate-300 font-pixel-sub text-[11px]">
           <Trophy className="w-4 h-4 text-amber-400" />
-          <span>Награда за победу: <b>оба получают +20 💰</b></span>
+          <span>Награда за победу: <b>оба получают +20 золото</b></span>
         </div>
         <span className="text-slate-500 text-[10px] font-mono">Ротация по понедельникам</span>
       </div>
     </div>
   );
 };
+
+export default BossBattle;

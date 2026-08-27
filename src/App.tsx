@@ -24,6 +24,7 @@ import { AddTaskModal } from './components/AddTaskModal';
 import { AddRewardModal } from './components/AddRewardModal';
 import { ResetConfirmModal } from './components/ResetConfirmModal';
 import { FamilyManagementModal } from './components/FamilyManagementModal';
+import { FamilySettings } from './components/Settings/FamilySettings';
 import { RegistrationModal } from './components/RegistrationModal';
 import { ReferralModal } from './components/ReferralModal';
 import { MobileChecklistModal } from './components/MobileChecklistModal';
@@ -47,6 +48,8 @@ import {
   Swords,
   Shirt,
   Layers,
+  X,
+  LayoutGrid,
 } from 'lucide-react';
 import { DAYS_OF_WEEK } from './data/initialData';
 
@@ -123,6 +126,8 @@ const sounds = new SoundFX();
 
 export function App() {
   const [appState, setAppState] = useState<AppState | null>(null);
+  const [streakData, setStreakData] = useState<{ streak: number; bonusPercent: number } | null>(null);
+  
   useEffect(() => {
     const socket = io('/'); // connects to current host
     socket.on('taskApproved', (data) => {
@@ -142,10 +147,147 @@ export function App() {
       loadState();
       triggerHaptic('notification', 'error');
     });
+
+    // === Этап 10: присоединяемся к комнате семьи для party-событий ===
+    // family_id берём из localStorage (если есть) или дефолт 1.
+    const myFamilyId = Number(localStorage.getItem('family_id') || 1);
+    socket.emit('join:family', { familyId: myFamilyId });
+    console.log(`[Socket] requested join:family ${myFamilyId}`);
+
+    // === Этап 10: party:boss_damaged — удар одного ребёнка виден всем в realtime ===
+    socket.on('party:boss_damaged', (data: {
+      attackerId: number;
+      attackerName: string;
+      damage: number;
+      newBossDamage: number;
+      bossHp: number;
+      bossDefeated: boolean;
+      timestamp: number;
+    }) => {
+      console.log('[Party] boss damaged:', data);
+      showToast(`${data.attackerName} ударил босса на ${data.damage}!`);
+      triggerHaptic('impact', 'medium');
+      loadState(); // обновить appState.boss.damage
+    });
+
+    // === Этап 9: family:hp_changed — общая полоска HP семьи ===
+    socket.on('family:hp_changed', (data: {
+      familyId: number;
+      hp: number;
+      maxHp: number;
+      exhaustedUntil: string | null;
+      justExhausted: boolean;
+    }) => {
+      console.log('[Family] HP changed:', data);
+      loadState();
+      if (data.justExhausted) {
+        showToast('Семья ИСТОЩЕНА! -15% золота 24 часа');
+        triggerHaptic('notification', 'error');
+      }
+    });
+
+    // Socket.IO: Streak Update Listener
+    socket.on('streak_updated', (data: { 
+      userId: number; 
+      current_streak: number; 
+      bonus_multiplier: number;
+    }) => {
+      console.log('Streak updated:', data);
+      
+      // Обновляем streak в состоянии
+      const bonusPercent = Math.floor((data.bonus_multiplier - 1) * 100);
+      setStreakData({
+        streak: data.current_streak,
+        bonusPercent: bonusPercent,
+      });
+      
+      // Перезагружаем состояние для синхронизации
+      loadState();
+      
+      // Haptic feedback
+      triggerHaptic('notification', 'success');
+      
+      // Звук при milestone
+      if (data.current_streak === 3 || data.current_streak === 7 || data.current_streak === 10) {
+        sounds.playLevelUp();
+      } else {
+        sounds.playCoin();
+      }
+    });
+
+    // Socket.IO: Streak Milestone Reached
+    socket.on('streak:milestone', (data: {
+      milestone: number;
+      reward: { gold?: number; crystals?: number; badge?: string };
+    }) => {
+      console.log('Streak milestone reached:', data);
+      
+      // Перезагружаем состояние для получения наград
+      loadState();
+      
+      // Haptic feedback зависит от milestone
+      if (data.milestone === 10) {
+        // Strong haptic для дня 10
+        if (navigator.vibrate) {
+          navigator.vibrate([400, 200, 400, 200, 800]);
+        }
+        triggerHaptic('notification', 'success');
+      } else if (data.milestone === 7) {
+        // Medium haptic для дня 7
+        if (navigator.vibrate) {
+          navigator.vibrate([200, 100, 200]);
+        }
+        triggerHaptic('notification', 'success');
+      } else {
+        // Light haptic для дня 3
+        triggerHaptic('notification', 'success');
+      }
+    });
+
+    // Socket.IO: Streak Saved (freeze использована)
+    socket.on('streak:saved', (data: { userId: number; freezeUsed: boolean }) => {
+      console.log('Streak saved with freeze:', data);
+      
+      // Toast уведомление
+      showToast('Streak сохранён! (freeze использована)');
+      
+      // Перезагрузка состояния
+      loadState();
+      
+      // Haptic
+      triggerHaptic('notification', 'success');
+      sounds.playCoin();
+    });
+
+    // Socket.IO: Streak Broken
+    socket.on('streak:broken', (data: { userId: number; lostStreak: number }) => {
+      console.log('Streak broken:', data);
+      
+      // Toast уведомление
+      showToast('Streak сброшен. Начни заново!');
+      
+      // Перезагрузка состояния
+      loadState();
+      
+      // Haptic
+      triggerHaptic('notification', 'error');
+      
+      // Звук сброса (если есть streak_broken.mp3, иначе используем стандартный)
+      try {
+        const audio = new Audio('/assets/sounds/streak_broken.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => console.log('Streak broken sound not available'));
+      } catch (e) {
+        // Fallback - используем стандартный звук
+        sounds.playBossHit();
+      }
+    });
+    
     return () => { socket.disconnect(); };
   }, []);
   const [activeUserId, setActiveUserId] = useState<number>(1);
   const [activeNavTab, setActiveNavTab] = useState<'dashboard' | 'tasks' | 'shop'>('dashboard');
+  const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
   const [activeScene, setActiveScene] = useState<'hub' | 'boss' | 'wardrobe' | 'overview'>('hub');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -157,6 +299,7 @@ export function App() {
   const [isAddRewardModalOpen, setIsAddRewardModalOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
+  const [isFamilySettingsOpen, setIsFamilySettingsOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
@@ -179,7 +322,7 @@ export function App() {
         body: JSON.stringify({ userId: activeUser.id, ...updates }),
       });
       triggerHaptic('notification', 'success');
-      showToast('✨ Внешность персонажа успешно сохранена!');
+      showToast('Внешность персонажа успешно сохранена!');
       loadState();
     } catch (e) {
       showToast('Внешность персонажа сохранена!');
@@ -196,11 +339,11 @@ export function App() {
       });
       const data = await res.json();
       if (!res.ok) {
-        showToast(`⛔ ${data.error}`);
+        showToast(`Ошибка: ${data.error}`);
         return;
       }
       triggerHaptic('notification', 'success');
-      showToast('🎨 Новый AI фон от PixelLab установлен!');
+      showToast('Новый AI фон от PixelLab установлен!');
       loadState();
     } catch (e) {
       showToast('Ошибка смены фона');
@@ -217,11 +360,11 @@ export function App() {
       });
       const data = await res.json();
       if (!res.ok) {
-        showToast(`⛔ ${data.error}`);
+        showToast(`Ошибка: ${data.error}`);
         return;
       }
       triggerHaptic('notification', 'success');
-      showToast('👤 Новый AI аватар от PixelLab установлен!');
+      showToast('Новый AI аватар от PixelLab установлен!');
       loadState();
     } catch (e) {
       showToast('Ошибка смены аватара');
@@ -249,15 +392,15 @@ export function App() {
       });
       const data = await res.json();
       if (!res.ok) {
-        showToast(`⚠️ ${data.error || 'Ошибка регистрации'}`);
+        showToast(`Внимание: ${data.error || 'Ошибка регистрации'}`);
         return;
       }
       if (data.user) {
         setActiveUserId(data.user.id);
         if (data.referralMessage) {
-          showToast(`🎉 ${data.referralMessage}`);
+          showToast(`${data.referralMessage}`);
         } else {
-          showToast(`🎉 Герой ${data.user.display_name} успешно зарегистрирован!`);
+          showToast(`Герой ${data.user.display_name} успешно зарегистрирован!`);
         }
         loadState();
       }
@@ -277,8 +420,22 @@ export function App() {
   const loadState = async () => {
     try {
       setIsRefreshing(true);
-      const res = await fetch(`/api/state?userId=${activeUserId}`);
-      const data = await res.json();
+      // === Этап 9: параллельно тянем state + family ===
+      const myFamilyId = Number(localStorage.getItem('family_id') || 1);
+      const [stateRes, familyRes] = await Promise.all([
+        fetch(`/api/state?userId=${activeUserId}`),
+        fetch(`/api/family/${myFamilyId}`).catch(() => null),
+      ]);
+      const data = await stateRes.json();
+      if (familyRes && familyRes.ok) {
+        try {
+          const family = await familyRes.json();
+          data.family = family;
+        } catch {}
+      } else if (!data.family) {
+        // fallback: если state не вернул family — оставляем как есть
+        data.family = null;
+      }
       setAppState(data);
     } catch (e) {
       console.error('Failed to load state', e);
@@ -306,36 +463,36 @@ export function App() {
       });
       const result = await res.json();
       if (!res.ok) {
-        showToast(`⚠️ ${result.error || 'Ошибка'}`);
+        showToast(`Внимание: ${result.error || 'Ошибка'}`);
         return;
       }
 
       sounds.playCoin();
       triggerHaptic('notification', 'success');
-      let alertText = `✅ Выполнено! +${result.gold_gain}💰 золота и +${result.xp_gain}⭐ опыта`;
+      let alertText = `Выполнено! +${result.gold_gain} золота и +${result.xp_gain} опыта`;
 
       if (result.level_up) {
         sounds.playLevelUp();
-        alertText += ` 🎉 НОВЫЙ УРОВЕНЬ: ${result.new_level}!`;
+        alertText += ` НОВЫЙ УРОВЕНЬ: ${result.new_level}!`;
       }
       if (result.perfect) {
-        alertText += ` 🌟 Идеальный день закрыт (+5💰)!`;
+        alertText += ` Идеальный день закрыт (+5)!`;
       }
       if (result.pet) {
-        alertText += ` 🐾 НАЙДЕН ПИТОМЕЦ: ${result.pet.emoji} ${result.pet.title}!`;
+        alertText += ` НАЙДЕН ПИТОМЕЦ: ${result.pet.title}!`;
       }
       if (result.bossDefeated) {
         sounds.playBossHit();
-        alertText += ` 👹 БОСС ПОВЕРЖЕН (+20💰 обоим)!`;
+        alertText += ` БОСС ПОВЕРЖЕН (+20 обоим)!`;
       }
       if (result.challengeCompleted) {
-        alertText += ` 🎯 Челлендж недели выполнен (+${result.challengeCompleted.bonus}💰)!`;
+        alertText += ` Челлендж недели выполнен (+${result.challengeCompleted.bonus})!`;
       }
 
       showToast(alertText);
       loadState();
     } catch (e) {
-      showToast('❌ Ошибка сети');
+      showToast('Ошибка сети');
     }
   };
 
@@ -388,10 +545,10 @@ export function App() {
         body: JSON.stringify({ userId: activeUser.id, className }),
       });
       const names: Record<string, string> = {
-        warrior: 'Воина ⚔️',
-        mage: 'Мага 🔮',
-        rogue: 'Разбойника 🗡️',
-        healer: 'Целителя 💚',
+        warrior: 'Воина',
+        mage: 'Мага',
+        rogue: 'Разбойника',
+        healer: 'Целителя',
       };
       showToast(`Класс изменён на ${names[className] || className}!`);
       loadState();
@@ -409,7 +566,7 @@ export function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUser.id, gender }),
       });
-      showToast(`Пол изменён на ${gender === 'female' ? 'Женский 👩' : 'Мужской 👨'}!`);
+      showToast(`Пол изменён на ${gender === 'female' ? 'Женский' : 'Мужской'}!`);
       loadState();
     } catch (e) {
       showToast('Ошибка смены пола');
@@ -427,12 +584,12 @@ export function App() {
       });
       const data = await res.json();
       if (!res.ok) {
-        showToast(`⛔ ${data.error}`);
+        showToast(`Ошибка: ${data.error}`);
         return;
       }
       sounds.playCoin();
       triggerHaptic('notification', 'success');
-      showToast(`🎁 Награда куплена! ${partnerUser?.display_name} уведомлён(а)!`);
+      showToast(`Награда куплена! ${partnerUser?.display_name} уведомлён(а)!`);
       loadState();
     } catch (e) {
       showToast('Ошибка покупки');
@@ -450,12 +607,12 @@ export function App() {
       });
       const data = await res.json();
       if (!res.ok) {
-        showToast(`⛔ ${data.error}`);
+        showToast(`Ошибка: ${data.error}`);
         return;
       }
       sounds.playCoin();
       triggerHaptic('notification', 'success');
-      showToast(`🛍️ Предмет куплен и добавлен в гардероб!`);
+      showToast(`Предмет куплен и добавлен в гардероб!`);
       loadState();
     } catch (e) {
       showToast('Ошибка');
@@ -473,12 +630,12 @@ export function App() {
       });
       const data = await res.json();
       if (!res.ok) {
-        showToast(`⛔ ${data.error}`);
+        showToast(`Ошибка: ${data.error}`);
         return;
       }
       triggerHaptic('impact', 'medium');
       if (data.message) {
-        showToast(`✨ ${data.message}`);
+        showToast(`${data.message}`);
       }
       loadState();
     } catch (e) {
@@ -495,7 +652,7 @@ export function App() {
         body: JSON.stringify(taskData),
       });
       triggerHaptic('notification', 'success');
-      showToast('✅ Новая задача создана!');
+      showToast('Новая задача создана!');
       loadState();
     } catch (e) {
       showToast('Ошибка создания задачи');
@@ -510,7 +667,7 @@ export function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rewardData),
       });
-      showToast('🎁 Новая награда добавлена в магазин!');
+      showToast('Новая награда добавлена в магазин!');
       loadState();
     } catch (e) {
       showToast('Ошибка');
@@ -548,10 +705,10 @@ export function App() {
         }),
       });
       await loadState();
-      showToast(`🎉 ${name} успешно добавлен(а) в вашу семью!`);
+      showToast(`${name} успешно добавлен(а) в вашу семью!`);
     } catch (e) {
       console.error(e);
-      showToast('⚠️ Ошибка при добавлении пользователя');
+      showToast('Ошибка при добавлении пользователя');
     }
   };
 
@@ -586,6 +743,7 @@ export function App() {
         isRefreshing={isRefreshing}
         onOpenAddModal={() => setIsAddTaskModalOpen(true)}
         onOpenFamilyModal={() => setIsFamilyModalOpen(true)}
+        onOpenFamilySettings={() => setIsFamilySettingsOpen(true)}
         onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
         onOpenReferralModal={() => setIsReferralModalOpen(true)}
         onOpenChecklistModal={() => setIsChecklistModalOpen(true)}
@@ -696,6 +854,7 @@ export function App() {
                 appState={appState}
                 activeUser={activeUser}
                 onUseSkill={handleUseSkill}
+                familyHp={appState?.family ?? null}
               />
             )}
 
@@ -800,7 +959,7 @@ export function App() {
 
             {/* Daily Routine section */}
             <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-white mb-3">☀️ Ежедневные дела</h3>
+              <h3 className="text-sm font-bold text-white mb-3">Ежедневные дела</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {appState.tasks
                   .filter((t) => t.task_type === 'daily')
@@ -812,11 +971,11 @@ export function App() {
                       <div>
                         <p className="text-sm font-semibold text-white">{t.title}</p>
                         <span className="text-[11px] text-slate-400">
-                          {t.assignee === 'misha' ? 'Миша ⚔️' : t.assignee === 'regina' ? 'Регина 🔮' : 'Вместе 🤝'}
+                          {t.assignee === 'misha' ? 'Миша' : t.assignee === 'regina' ? 'Регина' : 'Вместе'}
                         </span>
                       </div>
                       <span className="px-2.5 py-1 rounded-lg bg-amber-400/10 text-amber-300 text-xs font-bold border border-amber-400/20">
-                        +{t.points} 💰
+                        +{t.points}
                       </span>
                     </div>
                   ))}
@@ -849,7 +1008,7 @@ export function App() {
                             >
                               <span className="text-slate-200 truncate mr-2">{t.title}</span>
                               <span className="text-amber-400 font-semibold whitespace-nowrap">
-                                +{t.points}💰
+                                +{t.points}
                               </span>
                             </div>
                           ))
@@ -882,6 +1041,7 @@ export function App() {
         onSelectClass={handleSelectClass}
         onToggleGender={handleToggleGender}
         onOpenAddRewardModal={() => setIsAddRewardModalOpen(true)}
+        onPetsChanged={() => loadState()}
       />
 
       {activeUser && (
@@ -927,6 +1087,15 @@ export function App() {
         isRefreshing={isRefreshing}
       />
 
+      {activeUser && (
+        <FamilySettings
+          isOpen={isFamilySettingsOpen}
+          activeUser={activeUser}
+          onClose={() => setIsFamilySettingsOpen(false)}
+          onUserUpdated={loadState}
+        />
+      )}
+
       <RegistrationModal
         isOpen={isRegisterModalOpen}
         onClose={() => setIsRegisterModalOpen(false)}
@@ -966,73 +1135,156 @@ export function App() {
         onClose={() => setIsUpgradeGuideOpen(false)}
       />
 
-      {/* Sticky Mobile Bottom Navigation Bar for Telegram Mini App */}
+      {/* Sticky Mobile Bottom Navigation Bar for Telegram Mini App.
+          UX-аудит: 4 таба (Дом | Арена | Гардероб | Ещё) — один экран = одно действие.
+          Сцены переключаются прямо отсюда, второстепенное — в шторке «Ещё». */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0c1017]/95 backdrop-blur-lg border-t border-white/10 px-2 py-1 flex items-center justify-around tg-safe-padding shadow-2xl">
         <button
           onClick={() => {
             triggerHaptic('impact', 'light');
             setActiveNavTab('dashboard');
+            setActiveScene('hub');
           }}
-          className={`flex flex-col items-center justify-center gap-0.5 min-w-[52px] min-h-[44px] py-1 px-2 rounded-xl transition ${
-            activeNavTab === 'dashboard'
-              ? 'text-blue-400 font-bold bg-blue-500/15 shadow-sm shadow-blue-500/20'
+          className={`flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] py-1 px-2 rounded-xl transition ${
+            activeNavTab === 'dashboard' && activeScene === 'hub'
+              ? 'text-amber-400 font-bold bg-amber-500/15 shadow-sm shadow-amber-500/20'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          <LayoutDashboard className="w-5 h-5" />
-          <span className="text-[10px]">RPG</span>
+          <Home className="w-5 h-5" />
+          <span className="text-[10px]">Дом</span>
         </button>
 
         <button
           onClick={() => {
             triggerHaptic('impact', 'light');
-            setActiveNavTab('tasks');
+            setActiveNavTab('dashboard');
+            setActiveScene('boss');
           }}
-          className={`flex flex-col items-center justify-center gap-0.5 min-w-[52px] min-h-[44px] py-1 px-2 rounded-xl transition ${
-            activeNavTab === 'tasks'
-              ? 'text-emerald-400 font-bold bg-emerald-500/15 shadow-sm shadow-emerald-500/20'
+          className={`flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] py-1 px-2 rounded-xl transition ${
+            activeNavTab === 'dashboard' && activeScene === 'boss'
+              ? 'text-red-400 font-bold bg-red-500/15 shadow-sm shadow-red-500/20'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          <CheckSquare className="w-5 h-5" />
-          <span className="text-[10px]">Задачи</span>
+          <Swords className="w-5 h-5" />
+          <span className="text-[10px]">Арена</span>
         </button>
 
         <button
           onClick={() => {
             triggerHaptic('impact', 'light');
-            setShopModalTab('rewards');
-            setIsShopModalOpen(true);
+            setActiveNavTab('dashboard');
+            setActiveScene('wardrobe');
           }}
-          className="flex flex-col items-center justify-center gap-0.5 min-w-[52px] min-h-[44px] py-1 px-2 rounded-xl text-amber-400 hover:text-amber-300 transition active:scale-95"
+          className={`flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] py-1 px-2 rounded-xl transition ${
+            activeNavTab === 'dashboard' && activeScene === 'wardrobe'
+              ? 'text-indigo-400 font-bold bg-indigo-500/15 shadow-sm shadow-indigo-500/20'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
         >
-          <Gift className="w-5 h-5" />
-          <span className="text-[10px]">Лавка</span>
+          <Shirt className="w-5 h-5" />
+          <span className="text-[10px]">Гардероб</span>
         </button>
 
         <button
           onClick={() => {
             triggerHaptic('impact', 'light');
-            setShopModalTab('wardrobe');
-            setIsShopModalOpen(true);
+            setIsMoreSheetOpen(true);
           }}
-          className="flex flex-col items-center justify-center gap-0.5 min-w-[52px] min-h-[44px] py-1 px-2 rounded-xl text-indigo-300 hover:text-white transition active:scale-95"
+          className={`flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] py-1 px-2 rounded-xl transition ${
+            isMoreSheetOpen
+              ? 'text-blue-400 font-bold bg-blue-500/15'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
         >
-          <Wand2 className="w-5 h-5 text-indigo-400" />
-          <span className="text-[10px]">Студия</span>
-        </button>
-
-        <button
-          onClick={() => {
-            triggerHaptic('impact', 'light');
-            setIsFamilyModalOpen(true);
-          }}
-          className="flex flex-col items-center justify-center gap-0.5 min-w-[52px] min-h-[44px] py-1 px-2 rounded-xl text-slate-300 hover:text-white transition active:scale-95"
-        >
-          <Settings className="w-5 h-5 text-amber-400" />
-          <span className="text-[10px]">Настройки</span>
+          <LayoutGrid className="w-5 h-5" />
+          <span className="text-[10px]">Ещё</span>
         </button>
       </nav>
+
+      {/* Bottom Sheet «Ещё»: второстепенные разделы (задачи, лавка, обзор, настройки...) */}
+      {isMoreSheetOpen && (
+        <div
+          className="sm:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm animate-fadeIn"
+          onClick={() => setIsMoreSheetOpen(false)}
+        >
+          <div
+            className="absolute bottom-0 left-0 right-0 bg-[#0c1017] border-t border-white/10 rounded-t-3xl p-4 pb-8 tg-safe-padding animate-slideUp"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Grab handle */}
+            <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-white font-pixel-sub">Ещё</h3>
+              <button
+                onClick={() => setIsMoreSheetOpen(false)}
+                className="p-2 rounded-xl bg-white/5 text-slate-400 hover:text-white transition min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Закрыть"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {([
+                {
+                  icon: <CheckSquare className="w-5 h-5 text-emerald-400" />,
+                  label: 'Задачи',
+                  desc: 'Расписание недели',
+                  action: () => {
+                    setActiveNavTab('tasks');
+                    setIsMoreSheetOpen(false);
+                  },
+                },
+                {
+                  icon: <Gift className="w-5 h-5 text-amber-400" />,
+                  label: 'Лавка',
+                  desc: 'Награды и магазин',
+                  action: () => {
+                    setShopModalTab('rewards');
+                    setIsShopModalOpen(true);
+                    setIsMoreSheetOpen(false);
+                  },
+                },
+                {
+                  icon: <LayoutDashboard className="w-5 h-5 text-blue-400" />,
+                  label: 'Обзор',
+                  desc: 'Карточки героев',
+                  action: () => {
+                    setActiveNavTab('dashboard');
+                    setActiveScene('overview');
+                    setIsMoreSheetOpen(false);
+                  },
+                },
+                {
+                  icon: <Settings className="w-5 h-5 text-slate-300" />,
+                  label: 'Настройки',
+                  desc: 'Семья и прочее',
+                  action: () => {
+                    setIsFamilyModalOpen(true);
+                    setIsMoreSheetOpen(false);
+                  },
+                },
+              ] as const).map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => {
+                    triggerHaptic('impact', 'light');
+                    item.action();
+                  }}
+                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-95 transition text-left min-h-[64px]"
+                >
+                  <div className="shrink-0">{item.icon}</div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-white">{item.label}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{item.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

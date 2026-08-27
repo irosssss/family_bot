@@ -1,10 +1,14 @@
-import { pgTable, serial, text, integer, bigint, boolean, timestamp, jsonb, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, integer, bigint, doublePrecision, boolean, timestamp, jsonb, primaryKey } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const families = pgTable('families', {
   id: serial('id').primaryKey(),
   family_code: text('family_code').unique().notNull(),
   name: text('name').notNull(),
+  // Family HP (Этап 9): ночная контратака босса за пропущенные обязательные дела
+  family_hp: integer('family_hp').notNull().default(100),
+  max_family_hp: integer('max_family_hp').notNull().default(100),
+  exhausted_until: timestamp('exhausted_until'),
   created_at: timestamp('created_at').defaultNow(),
 });
 
@@ -13,6 +17,8 @@ export const users = pgTable('users', {
   telegram_id: bigint('telegram_id', { mode: 'number' }).unique().notNull(),
   family_id: integer('family_id').references(() => families.id, { onDelete: 'set null' }),
   role: text('role').notNull().default('child'),
+  family_role: text('family_role').notNull().default('child'),
+  is_admin: boolean('is_admin').notNull().default(false),
   display_name: text('display_name').notNull(),
   class_type: text('class_type').default('warrior'),
   gold: integer('gold').notNull().default(0),
@@ -22,7 +28,12 @@ export const users = pgTable('users', {
   max_hp: integer('max_hp').notNull().default(50),
   mp: integer('mp').notNull().default(30),
   max_mp: integer('max_mp').notNull().default(30),
-  streak: integer('streak').notNull().default(0),
+  current_streak: integer('current_streak').notNull().default(0),
+  best_streak: integer('best_streak').notNull().default(0),
+  streak_status: text('streak_status').notNull().default('active'),
+  streak_freeze_available: boolean('streak_freeze_available').notNull().default(false),
+  streak_freeze_last_used: timestamp('streak_freeze_last_used'),
+  last_streak_update: text('last_streak_update'),
   skill_date: text('skill_date'),
   gender: text('gender'),
   custom_avatar_url: text('custom_avatar_url'),
@@ -31,8 +42,11 @@ export const users = pgTable('users', {
   hair_style: text('hair_style'),
   hair_color: text('hair_color'),
   eye_color: text('eye_color'),
+  habitica_equipped: jsonb('habitica_equipped').default({}),
   assignee: text('assignee').default('both'),
   notify_partner: integer('notify_partner').default(1),
+  timezone: text('timezone').default('UTC'),
+  age: integer('age').default(8),
   referral_code: text('referral_code'),
   referred_by: integer('referred_by'),
   created_at: timestamp('created_at').defaultNow(),
@@ -73,6 +87,8 @@ export const character_pets = pgTable('character_pets', {
   character_id: integer('character_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   pet_id: integer('pet_id').notNull().references(() => pets.id, { onDelete: 'cascade' }),
   is_active: boolean('is_active').default(false),
+  // Habitica зоопарк (Этап 5): 0-99 = малыш, 100+ = маунт
+  feed_points: integer('feed_points').notNull().default(0),
   purchased_at: timestamp('purchased_at').defaultNow(),
 }, (t) => [
   primaryKey({ columns: [t.character_id, t.pet_id] })
@@ -85,10 +101,25 @@ export const tasks = pgTable('tasks', {
   title: text('title').notNull(),
   description: text('description'),
   points: integer('points').notNull().default(0),
+  // --- Совместимость со старой системой (не удалять!) ---
   assignee: text('assignee').default('both'),
   task_type: text('task_type').default('todo'),
   day_of_week: integer('day_of_week'),
   done: boolean('done').default(false),
+  // --- Новая система задач (Этап 6) ---
+  category: text('category'),
+  assignee_type: text('assignee_type').notNull().default('any'),
+  age_min: integer('age_min').notNull().default(4),
+  age_max: integer('age_max').notNull().default(13),
+  schedule_type: text('schedule_type').notNull().default('flexible'),
+  is_required: boolean('is_required').notNull().default(false),
+  is_repeatable: boolean('is_repeatable').notNull().default(false),
+  max_daily: integer('max_daily'),
+  icon: text('icon'),
+  recommended_class: text('recommended_class'),
+  // Habitica Task Value Decay (Этап 4): динамическая ценность -10..+10
+  value: doublePrecision('value').default(0),
+  last_completed_at: timestamp('last_completed_at'),
   created_at: timestamp('created_at').defaultNow(),
 });
 
@@ -177,4 +208,36 @@ export const referrals = pgTable('referrals', {
   created_at: text('created_at').notNull(),
   bonus_gold: integer('bonus_gold').notNull().default(0),
   bonus_crystals: integer('bonus_crystals').notNull().default(0),
+});
+
+export const milestone_rewards_given = pgTable('milestone_rewards_given', {
+  id: serial('id'),
+  user_id: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  milestone_day: integer('milestone_day').notNull(),
+  rewarded_at: timestamp('rewarded_at').defaultNow(),
+}, (t) => [
+  // Составной первичный ключ: один milestone на пользователя
+  primaryKey({ columns: [t.user_id, t.milestone_day] })
+]);
+
+// ============ HABITICA: ПРИВЫЧКИ (+/-) — Этап 3 ============
+export const habits = pgTable('habits', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  icon: text('icon'),                                  // Kenney-иконка (опционально)
+  value: doublePrecision('value').notNull().default(0), // Task Value Decay: -10..+10
+  up_points: integer('up_points').notNull().default(10),   // золото за [+]
+  down_damage: integer('down_damage').notNull().default(5),// урон HP за [-]
+  counter_up: integer('counter_up').notNull().default(0),
+  counter_down: integer('counter_down').notNull().default(0),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+export const habit_scores = pgTable('habit_scores', {
+  id: serial('id').primaryKey(),
+  habit_id: integer('habit_id').notNull().references(() => habits.id, { onDelete: 'cascade' }),
+  user_id: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  direction: text('direction').notNull(), // 'up' | 'down'
+  scored_at: timestamp('scored_at').defaultNow(),
 });

@@ -20,7 +20,7 @@ if (bot) {
     const chatId = msg.chat.id;
     const startPayload = match ? match[1] : null; // Handles deep linking like /start invite_XYZ
 
-    let text = 'Добро пожаловать в Family Chores RPG! 🏠⚔️\n\nПревратите рутинные дела в увлекательную игру для всей семьи.';
+    let text = 'Добро пожаловать в Family Chores RPG!\n\nПревратите рутинные дела в увлекательную игру для всей семьи.';
     
     if (startPayload && startPayload.startsWith('invite_')) {
       const code = startPayload.replace('invite_', '');
@@ -33,7 +33,7 @@ if (bot) {
         inline_keyboard: [
           [
             { 
-              text: '🎮 Открыть Mini App', 
+              text: 'Открыть Mini App', 
               web_app: { url: process.env.VITE_API_URL || 'https://example.com' } // Укажите реальный URL вашего приложения
             }
           ]
@@ -87,7 +87,7 @@ if (bot) {
       // Здесь был бы вызов API базы данных для обновления статуса задачи и начисления XP/Золота
       if (taskApproveCallback) taskApproveCallback(Number(taskId));
       
-      await bot.editMessageText(`✅ Квест #${taskId} успешно подтвержден!\n\nГерою начислены 💰 Золото и ✨ XP.`, {
+      await bot.editMessageText(`Квест #${taskId} успешно подтвержден!\n\nГерою начислены Золото и XP.`, {
         chat_id: chatId,
         message_id: messageId
       });
@@ -99,7 +99,7 @@ if (bot) {
     } else if (data.startsWith('reject_task_')) {
       const taskId = data.replace('reject_task_', '');
       
-      await bot.editMessageText(`❌ Квест #${taskId} отклонен родителем.\n\nПопросите ребенка переделать задачу.`, {
+      await bot.editMessageText(`Квест #${taskId} отклонен родителем.\n\nПопросите ребенка переделать задачу.`, {
         chat_id: chatId,
         message_id: messageId
       });
@@ -114,23 +114,21 @@ if (bot) {
 // Утилита для отправки уведомлений родителю из нашего API
 export async function notifyTaskCreated(chatId: number, title: string, points: number) {
   if (!bot) return;
-  await bot.sendMessage(chatId, `✅ Квест добавлен в Mini App!
-
-«${title}» — награда ${points} 💰`, { parse_mode: 'Markdown' });
+  await bot.sendMessage(chatId, `Квест добавлен в Mini App!\n\n«${title}» — награда ${points}`, { parse_mode: 'Markdown' });
 }
 
 export async function notifyParentAboutTaskCompletion(parentId: number, taskId: string | number, taskName: string, childName: string) {
   if (!bot) return;
 
-  const text = `⚔️ *Ревизия квеста!*\n\nГерой *${childName}* сообщает, что выполнил квест:\n«${taskName}»\n\nПодтверждаете выполнение?`;
+  const text = `*Ревизия квеста!*\n\nГерой *${childName}* сообщает, что выполнил квест:\n«${taskName}»\n\nПодтверждаете выполнение?`;
   
   await bot.sendMessage(parentId, text, {
     parse_mode: 'Markdown',
     reply_markup: {
       inline_keyboard: [
         [
-          { text: '✅ Подтвердить', callback_data: `approve_task_${taskId}` },
-          { text: '❌ Отклонить', callback_data: `reject_task_${taskId}` }
+          { text: 'Подтвердить', callback_data: `approve_task_${taskId}` },
+          { text: 'Отклонить', callback_data: `reject_task_${taskId}` }
         ]
       ]
     }

@@ -13,31 +13,31 @@ import { config } from '../config';
  * игровой логики (например, начисления золота за задачу).
  */
 export async function sendTelegramPushNotification(htmlText: string): Promise<void> {
-  const token = config.telegram.botToken;
-  const chatId = config.telegram.chatId;
-  if (!token || !chatId) {
-    console.log('[Telegram Push skipped]: Token or Chat ID not configured');
-    return;
-  }
+ const token = config.telegram.botToken;
+ const chatId = config.telegram.chatId;
+ if (!token || !chatId) {
+ console.log('[Telegram Push skipped]: Token or Chat ID not configured');
+ return;
+ }
 
-  try {
-    const url = `https://api.telegram.org/bot${token}/sendMessage`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: htmlText,
-        parse_mode: 'HTML',
-      }),
-    });
-    const data = await res.json();
-    if (!data.ok) {
-      console.warn('[Telegram Push Error]:', data);
-    } else {
-      console.log('⚡ [Telegram Push Sent]:', htmlText);
-    }
-  } catch (err) {
-    console.error('[Telegram Push Exception]:', err);
-  }
+ try {
+ const url = `https://api.telegram.org/bot${token}/sendMessage`;
+ const res = await fetch(url, {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({
+ chat_id: chatId,
+ text: htmlText,
+ parse_mode: 'HTML',
+ }),
+ });
+ const data = await res.json();
+ if (!data.ok) {
+ console.warn('[Telegram Push Error]:', data);
+ } else {
+ console.log(' [Telegram Push Sent]:', htmlText);
+ }
+ } catch (err) {
+ console.error('[Telegram Push Exception]:', err);
+ }
 }

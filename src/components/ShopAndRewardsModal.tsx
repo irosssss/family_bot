@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Reward, ShopItem, Pet, Achievement, User, ClassKey, GenderKey } from '../types';
-import { X, Gift, ShoppingBag, PawPrint, Trophy, Shirt, Check, Swords, Wand2, Coins, Sparkles, UserCheck, Eye } from 'lucide-react';
+import { X, Gift, ShoppingBag, PawPrint, Trophy, Shirt, Check, Swords, Wand2, Coins, Sparkles, UserCheck, Eye, ShieldAlert, Lock } from 'lucide-react';
 import { CLASSES_CONFIG } from '../data/initialData';
 import { PixelAvatar, RenderEnvironmentBg } from './PixelAvatar';
 import { LayeredAvatar } from './LayeredAvatar';
 import { get32BitAvatarLayers } from '../utils/rpg32bitAssets';
 import { ConfirmModal } from './ConfirmModal';
+import { PetsTab } from './PetsTab';
+import { ArmoireTab } from './ArmoireTab';
 
 interface ShopAndRewardsModalProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ interface ShopAndRewardsModalProps {
   onSelectClass: (className: ClassKey) => void;
   onToggleGender?: (gender: GenderKey) => void;
   onOpenAddRewardModal: () => void;
+  onPetsChanged?: () => void;
 }
 
 export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
@@ -42,8 +45,9 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
   onEquipItem,
   onSelectClass,
   onToggleGender,
-  onOpenAddRewardModal,
-}) => {
+    onOpenAddRewardModal,
+    onPetsChanged,
+  }) => {
   const [tab, setTab] = useState<'rewards' | 'shop' | 'pets' | 'achievements' | 'class' | 'wardrobe'>(initialTab);
   const [shopCategoryFilter, setShopCategoryFilter] = useState<'all' | 'weapon' | 'shield' | 'head' | 'body' | 'cloak' | 'accessory' | 'mount' | 'background'>('all');
   const [wardrobeSlotFilter, setWardrobeSlotFilter] = useState<'all' | 'weapon' | 'shield' | 'head' | 'body' | 'cloak' | 'accessory' | 'mount' | 'background'>('all');
@@ -107,7 +111,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                 Примерка: <span className="text-white font-bold">{previewItem.title}</span> {previewItem.emoji ? `(${previewItem.emoji})` : ''}
               </span>
             ) : (
-              <span>👁️ Примерочная героя (Твой текущий образ)</span>
+              <span>Примерочная героя (Твой текущий образ)</span>
             )}
           </span>
 
@@ -116,7 +120,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
               onClick={() => setPreviewItem(null)}
               className="text-[11px] text-slate-300 hover:text-white bg-black/75 hover:bg-black/95 px-2.5 py-1 rounded-xl border border-white/15 transition cursor-pointer"
             >
-              ✕ Сбросить примерку
+              Сбросить примерку
             </button>
           )}
         </div>
@@ -154,7 +158,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                 className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Check className="w-4 h-4 text-emerald-300" />
-                <span>{userEquippedItemIds.includes(previewItem.id) ? 'Уже надето' : '✅ Надеть этот предмет'}</span>
+                <span>{userEquippedItemIds.includes(previewItem.id) ? 'Уже надето' : 'Надеть этот предмет'}</span>
               </button>
             ) : (
               <button
@@ -168,7 +172,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                     : 'bg-slate-800 text-slate-500 cursor-not-allowed'
                 }`}
               >
-                <span>🛒 Купить за {previewItem.cost} 💰</span>
+                <span>Купить за {previewItem.cost} золота</span>
               </button>
             )}
           </div>
@@ -196,12 +200,12 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
         title="Подтверждение покупки награды"
         description={
           rewardToConfirm
-            ? `Вы уверены, что хотите приобрести награду «${rewardToConfirm.title}» за ${rewardToConfirm.cost} 💰?`
+            ? `Вы уверены, что хотите приобрести награду «${rewardToConfirm.title}» за ${rewardToConfirm.cost} золота?`
             : ''
         }
         confirmText="Да, купить"
         cancelText="Отмена"
-        badgeText={rewardToConfirm ? `Спишется: ${rewardToConfirm.cost} 💰` : undefined}
+        badgeText={rewardToConfirm ? `Спишется: ${rewardToConfirm.cost} золота` : undefined}
         iconType="reward"
       />
 
@@ -218,12 +222,12 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
         title="Подтверждение покупки предмета"
         description={
           shopItemToConfirm
-            ? `Вы уверены, что хотите купить «${shopItemToConfirm.emoji || ''} ${shopItemToConfirm.title}» за ${shopItemToConfirm.cost} 💰?`
+            ? `Вы уверены, что хотите купить «${shopItemToConfirm.emoji || ''} ${shopItemToConfirm.title}» за ${shopItemToConfirm.cost} золота?`
             : ''
         }
         confirmText="Да, купить"
         cancelText="Отмена"
-        badgeText={shopItemToConfirm ? `Спишется: ${shopItemToConfirm.cost} 💰` : undefined}
+        badgeText={shopItemToConfirm ? `Спишется: ${shopItemToConfirm.cost} золота` : undefined}
         iconType="shop"
       />
 
@@ -234,7 +238,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-white/10 bg-white/5">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-2xl shrink-0">🛍️</span>
+            <ShoppingBag className="w-6 h-6 text-amber-300 shrink-0" />
             <div className="min-w-0">
               <h2 className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
                 Магазин и Награды
@@ -243,7 +247,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                 <span>Баланс:</span>
                 <span className="font-bold text-amber-300 flex items-center gap-1 shrink-0">
                   <Coins className="w-3.5 h-3.5 text-amber-400 inline" />
-                  {activeUser.gold} 💰
+                  {activeUser.gold} золота
                 </span>
                 <span className="hidden sm:inline">•</span>
                 <span className="truncate max-w-[120px] sm:max-w-none">
@@ -367,7 +371,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                       <div>
                         <p className="text-sm font-semibold text-white">{reward.title}</p>
                         <span className="text-[11px] text-slate-400 capitalize">
-                          {reward.reward_type === 'personal' ? 'Личная награда 👤' : 'Совместная награда 👥'}
+                          {reward.reward_type === 'personal' ? 'Личная награда' : 'Совместная награда'}
                         </span>
                       </div>
 
@@ -381,7 +385,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         }`}
                       >
                         <span>{reward.cost}</span>
-                        <span>💰</span>
+                        <Coins className="w-3.5 h-3.5 text-amber-400" />
                       </button>
                     </div>
                   );
@@ -391,9 +395,12 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
           )}
 
           {/* TAB 2: Equipment Shop */}
-          {tab === 'shop' && (
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    {tab === 'shop' && (
+                      <div className="space-y-4">
+                        {/* Этап 8.2: Волшебный сундук */}
+                        <ArmoireTab activeUser={activeUser} onOpen={onPetsChanged} />
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-bold text-white">Лавка экипировки & Фонов RPG</h3>
                   <p className="text-xs text-slate-400">
@@ -409,14 +416,14 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
               <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
                 {[
                   { key: 'all', label: 'Все' },
-                  { key: 'weapon', label: '🗡️ Оружие' },
-                  { key: 'shield', label: '🛡️ Щиты' },
-                  { key: 'head', label: '🧢 Голова' },
-                  { key: 'body', label: '🥋 Одежда' },
-                  { key: 'cloak', label: '🧥 Плащи' },
-                  { key: 'accessory', label: '⭐ Аксессуары' },
-                  { key: 'mount', label: '🐎 Верховые' },
-                  { key: 'background', label: '🏞️ Фоны' },
+                  { key: 'weapon', label: 'Оружие' },
+                  { key: 'shield', label: 'Щиты' },
+                  { key: 'head', label: 'Голова' },
+                  { key: 'body', label: 'Одежда' },
+                  { key: 'cloak', label: 'Плащи' },
+                  { key: 'accessory', label: 'Аксессуары' },
+                  { key: 'mount', label: 'Верховые' },
+                  { key: 'background', label: 'Фоны' },
                 ].map((f) => (
                   <button
                     key={f.key}
@@ -435,14 +442,14 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
               {/* Stars IAP Button */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-blue-900/50 to-indigo-900/50 border border-blue-500/30">
                 <div className="flex flex-col">
-                  <span className="text-sm font-bold text-amber-300">Мешок Золота (1000 💰)</span>
+                  <span className="text-sm font-bold text-amber-300">Мешок Золота (1000 золота)</span>
                   <span className="text-xs text-blue-200">Через Telegram Stars</span>
                 </div>
                 <button 
                   onClick={() => alert("Интеграция Telegram.WebApp.openInvoice('...')")}
                   className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-xl text-xs flex items-center gap-1 shadow-lg shadow-blue-500/20"
                 >
-                  Купить за 50 ⭐️
+                  Купить за 50 кристаллов
                 </button>
               </div>
 
@@ -458,14 +465,14 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                     const canAfford = activeUser.gold >= item.cost;
 
                     const slotLabels: Record<string, string> = {
-                      weapon: 'Оружие 🗡️',
-                      shield: 'Щит / 2-я рука 🛡️',
-                      head: 'Голова 🧢',
-                      body: 'Одежда 🥋',
-                      cloak: 'Плащ / Крылья 🧥',
-                      accessory: 'Аксессуар ⭐',
-                      mount: 'Верховое 🐎',
-                      background: 'Фон окружения 🏞️',
+                      weapon: 'Оружие',
+                      shield: 'Щит / 2-я рука',
+                      head: 'Голова',
+                      body: 'Одежда',
+                      cloak: 'Плащ / Крылья',
+                      accessory: 'Аксессуар',
+                      mount: 'Верховое',
+                      background: 'Фон окружения',
                     };
 
                     return (
@@ -505,7 +512,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         </div>
 
                         <div className="flex items-center justify-between pt-2 border-t border-white/5 gap-2">
-                          <span className="text-xs font-bold text-amber-300">{item.cost} 💰</span>
+                          <span className="text-xs font-bold text-amber-300">{item.cost} золота</span>
 
                           <div className="flex items-center gap-1.5">
                             <button
@@ -530,7 +537,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                                     : 'bg-white/10 text-slate-300 hover:bg-white/20'
                                 }`}
                               >
-                                {isEquipped ? '✅ Надето' : 'Надеть'}
+                                {isEquipped ? 'Надето' : 'Надеть'}
                               </button>
                             ) : (
                               <button
@@ -578,14 +585,14 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                   {[
-                    { key: 'weapon', name: 'Оружие', icon: '🗡️' },
-                    { key: 'shield', name: 'Щит / 2-я рука', icon: '🛡️' },
-                    { key: 'head', name: 'Голова', icon: '🧢' },
-                    { key: 'body', name: 'Тело / Доспех', icon: '🥋' },
-                    { key: 'cloak', name: 'Плащ / Крылья', icon: '🧥' },
-                    { key: 'accessory', name: 'Аксессуар', icon: '⭐' },
-                    { key: 'mount', name: 'Верховое', icon: '🐎' },
-                    { key: 'background', name: 'Фон', icon: '🏞️' },
+                    { key: 'weapon', name: 'Оружие', icon: '' },
+                    { key: 'shield', name: 'Щит / 2-я рука', icon: '' },
+                    { key: 'head', name: 'Голова', icon: '' },
+                    { key: 'body', name: 'Тело / Доспех', icon: '' },
+                    { key: 'cloak', name: 'Плащ / Крылья', icon: '' },
+                    { key: 'accessory', name: 'Аксессуар', icon: '' },
+                    { key: 'mount', name: 'Верховое', icon: '' },
+                    { key: 'background', name: 'Фон', icon: '' },
                   ].map((slotInfo) => {
                     const equippedItem = shopItems.find(
                       (item) => item.slot === slotInfo.key && userEquippedItemIds.includes(item.id)
@@ -634,7 +641,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
 
               {/* Rules Notice */}
               <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl flex items-start gap-2 text-xs text-amber-200">
-                <span className="text-base shrink-0">⚠️</span>
+                <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
                 <p className="leading-snug">
                   <b>Правило гардероба:</b> Нельзя одновременно надеть несколько предметов одного типа (например, два меча или две мантии). При надевании нового предмета предыдущий в том же слоте снимается!
                 </p>
@@ -645,14 +652,14 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                 <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1">
                   {[
                     { key: 'all', label: 'Все' },
-                    { key: 'weapon', label: '🗡️ Оружие' },
-                    { key: 'shield', label: '🛡️ Щиты' },
-                    { key: 'head', label: '🧢 Голова' },
-                    { key: 'body', label: '🥋 Тело' },
-                    { key: 'cloak', label: '🧥 Плащи' },
-                    { key: 'accessory', label: '⭐ Аксессуары' },
-                    { key: 'mount', label: '🐎 Верховые' },
-                    { key: 'background', label: '🏞️ Окружение (Фоны)' },
+                    { key: 'weapon', label: 'Оружие' },
+                    { key: 'shield', label: 'Щиты' },
+                    { key: 'head', label: 'Голова' },
+                    { key: 'body', label: 'Тело' },
+                    { key: 'cloak', label: 'Плащи' },
+                    { key: 'accessory', label: 'Аксессуары' },
+                    { key: 'mount', label: 'Верховые' },
+                    { key: 'background', label: 'Окружение (Фоны)' },
                   ].map((f) => (
                     <button
                       key={f.key}
@@ -671,7 +678,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
 
               {userOwnedItemIds.length === 0 ? (
                 <div className="text-center py-10 bg-white/5 rounded-xl border border-dashed border-white/10">
-                  <p className="text-slate-400 text-sm">Гардероб пуст. Загляните в 🛍️ Лавку вещей!</p>
+                  <p className="text-slate-400 text-sm">Гардероб пуст. Загляните в Лавку вещей!</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -691,10 +698,10 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         background: 'Фон окружения',
                       };
                       const classNames: Record<string, string> = {
-                        warrior: '⚔️ Воин',
-                        mage: '🔮 Маг',
-                        rogue: '🗡️ Разбойник',
-                        healer: '💚 Целитель',
+                        warrior: 'Воин',
+                        mage: 'Маг',
+                        rogue: 'Разбойник',
+                        healer: 'Целитель',
                       };
 
                       return (
@@ -778,43 +785,16 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
             </div>
           )}
 
-          {/* TAB 4: Pets Collection */}
-          {tab === 'pets' && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-sm font-bold text-white">
-                  Коллекция питомцев ({userOwnedPetIds.length} / {pets.length})
-                </h3>
-                <p className="text-xs text-slate-400">
-                  За каждую выполненную задачу есть 20% шанс найти нового спутника!
-                </p>
-              </div>
+          {/* TAB 4: Pets (Этап 8.1) */}
+                    {tab === 'pets' && (
+                      <PetsTab
+                        activeUser={activeUser}
+                        userOwnedPetIds={userOwnedPetIds}
+                        onPetsChanged={onPetsChanged}
+                      />
+                    )}
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                {pets.map((pet) => {
-                  const isFound = userOwnedPetIds.includes(pet.id);
-                  return (
-                    <div
-                      key={pet.id}
-                      className={`p-3.5 rounded-2xl border text-center transition flex flex-col items-center justify-center gap-2 ${
-                        isFound
-                          ? 'bg-emerald-950/30 border-emerald-500/40 shadow-md shadow-emerald-500/10'
-                          : 'bg-slate-900/40 border-slate-800 opacity-40 grayscale'
-                      }`}
-                    >
-                      <PixelAvatar type="pet" imageUrl={pet.imageUrl} fallbackEmoji={pet.emoji} size="md" animated={isFound} />
-                      <span className="text-xs font-bold text-white font-pixel-sub">{pet.title}</span>
-                      <span className="text-[10px] text-slate-400 font-mono">
-                        {isFound ? 'Найден 🎉' : 'Не найден 🔒'}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 5: Achievements */}
+                    {/* TAB 5: Achievements */}
           {tab === 'achievements' && (
             <div className="space-y-4">
               <div>
@@ -835,7 +815,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl">{ach.unlocked ? '🏅' : '🔒'}</span>
+                      <span className="text-2xl">{ach.unlocked ? <Trophy className="w-6 h-6 text-amber-300" /> : <Lock className="w-6 h-6 text-slate-500" />}</span>
                       <div>
                         <p className="text-sm font-bold text-white">{ach.title}</p>
                         <p className="text-xs text-slate-400">{ach.description}</p>
@@ -843,7 +823,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                     </div>
 
                     <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-400/10 text-amber-300 border border-amber-400/20">
-                      +{ach.bonus} 💰
+                      +{ach.bonus} золота
                     </span>
                   </div>
                 ))}
@@ -857,7 +837,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
               {/* Gender Selection Section */}
               <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
                 <h3 className="text-sm font-bold text-white font-pixel-sub flex items-center gap-2 mb-1">
-                  <span>👤</span> Выбор пола персонажа (Habitica Avatar)
+                  <UserCheck className="w-4 h-4" /> Выбор пола персонажа (Habitica Avatar)
                 </h3>
                 <p className="text-xs text-slate-400 mb-3">
                   Влияет на пиксельный облик вашего героя, причёски, доспехи и анимацию.
@@ -872,7 +852,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                     }`}
                   >
                     <PixelAvatar type="character" classKey={activeUser.class} gender="male" size="sm" />
-                    <span>Мужской (👨)</span>
+                    <span>Мужской</span>
                   </button>
 
                   <button
@@ -884,7 +864,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                     }`}
                   >
                     <PixelAvatar type="character" classKey={activeUser.class} gender="female" size="sm" />
-                    <span>Женский (👩)</span>
+                    <span>Женский</span>
                   </button>
                 </div>
               </div>
@@ -909,13 +889,13 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   <div className="flex items-center gap-3">
                     <PixelAvatar type="character" classKey="warrior" gender={activeUser.gender} size="md" />
                     <div>
-                      <h4 className="font-bold text-white text-base font-pixel-sub">Воин ⚔️</h4>
+                      <h4 className="font-bold text-white text-base font-pixel-sub">Воин</h4>
                       <span className="text-xs text-amber-400 font-medium">Защитник & Атака</span>
                     </div>
                   </div>
 
                   <div className="text-xs text-slate-300 space-y-1.5 bg-black/30 p-3 rounded-xl border border-white/5">
-                    <p><b>Пассивный бонус:</b> +1 💰 за тяжелые задачи</p>
+                    <p><b>Пассивный бонус:</b> +1 золото за тяжёлые задачи</p>
                     <p><b>Скилл (10 MP):</b> «Мощный удар» — 15 прямого урона боссу</p>
                   </div>
 
@@ -926,7 +906,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         : 'bg-white/10 text-slate-300 hover:bg-white/20'
                     }`}
                   >
-                    {activeUser.class === 'warrior' ? 'Текущий класс ✅' : 'Выбрать Воина'}
+                    {activeUser.class === 'warrior' ? 'Текущий класс' : 'Выбрать Воина'}
                   </button>
                 </div>
 
@@ -942,14 +922,14 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   <div className="flex items-center gap-3">
                     <PixelAvatar type="character" classKey="mage" gender={activeUser.gender} size="md" />
                     <div>
-                      <h4 className="font-bold text-white text-base font-pixel-sub">Маг 🔮</h4>
+                      <h4 className="font-bold text-white text-base font-pixel-sub">Маг</h4>
                       <span className="text-xs text-purple-400 font-medium">Повелитель опыта</span>
                     </div>
                   </div>
 
                   <div className="text-xs text-slate-300 space-y-1.5 bg-black/30 p-3 rounded-xl border border-white/5">
-                    <p><b>Пассивный бонус:</b> +20% ⭐ опыта за каждую задачу</p>
-                    <p><b>Скилл (15 MP):</b> «Взрыв магии» — +25 ⭐ мгновенного опыта</p>
+                    <p><b>Пассивный бонус:</b> +20% опыта за каждую задачу</p>
+                    <p><b>Скилл (15 MP):</b> «Взрыв магии» — +25 опыта мгновенно</p>
                   </div>
 
                   <button
@@ -959,7 +939,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         : 'bg-white/10 text-slate-300 hover:bg-white/20'
                     }`}
                   >
-                    {activeUser.class === 'mage' ? 'Текущий класс ✅' : 'Выбрать Мага'}
+                    {activeUser.class === 'mage' ? 'Текущий класс' : 'Выбрать Мага'}
                   </button>
                 </div>
 
@@ -975,14 +955,14 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   <div className="flex items-center gap-3">
                     <PixelAvatar type="character" classKey="rogue" gender={activeUser.gender} size="md" />
                     <div>
-                      <h4 className="font-bold text-white text-base font-pixel-sub">Разбойник 🗡️</h4>
+                      <h4 className="font-bold text-white text-base font-pixel-sub">Разбойник</h4>
                       <span className="text-xs text-emerald-400 font-medium">Добытчик золота</span>
                     </div>
                   </div>
 
                   <div className="text-xs text-slate-300 space-y-1.5 bg-black/30 p-3 rounded-xl border border-white/5">
-                    <p><b>Пассивный бонус:</b> +30% 💰 золота за задачи</p>
-                    <p><b>Скилл (12 MP):</b> «Карманная кража» — +15 💰 золота</p>
+                    <p><b>Пассивный бонус:</b> +30% золота за задачи</p>
+                    <p><b>Скилл (12 MP):</b> «Карманная кража» — +15 золота</p>
                   </div>
 
                   <button
@@ -992,7 +972,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         : 'bg-white/10 text-slate-300 hover:bg-white/20'
                     }`}
                   >
-                    {activeUser.class === 'rogue' ? 'Текущий класс ✅' : 'Выбрать Разбойника'}
+                    {activeUser.class === 'rogue' ? 'Текущий класс' : 'Выбрать Разбойника'}
                   </button>
                 </div>
 
@@ -1008,7 +988,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   <div className="flex items-center gap-3">
                     <PixelAvatar type="character" classKey="healer" gender={activeUser.gender} size="md" />
                     <div>
-                      <h4 className="font-bold text-white text-base font-pixel-sub">Целитель 💚</h4>
+                      <h4 className="font-bold text-white text-base font-pixel-sub">Целитель</h4>
                       <span className="text-xs text-rose-400 font-medium">Хранитель жизни</span>
                     </div>
                   </div>
@@ -1025,7 +1005,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         : 'bg-white/10 text-slate-300 hover:bg-white/20'
                     }`}
                   >
-                    {activeUser.class === 'healer' ? 'Текущий класс ✅' : 'Выбрать Целителя'}
+                    {activeUser.class === 'healer' ? 'Текущий класс' : 'Выбрать Целителя'}
                   </button>
                 </div>
               </div>

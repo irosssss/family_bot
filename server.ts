@@ -10,6 +10,7 @@
  *   src/bot/       — Telegram-бот (вебхуки, коллбэки)
  *   src/db/        — PostgreSQL + Drizzle ORM
  */
+import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -29,9 +30,11 @@ import {
   onTaskCreate,
   notifyTaskCreated,
 } from './src/bot/telegramBot';
+import { initializeCronJobs } from './src/bot/cronJobs';
 import { appState } from './src/services/stateService';
 import { applyTaskCompletion } from './src/services/taskService';
 import { generateId } from './src/lib/ids';
+import { initStreakCronJob } from './src/services/streakCronJob';
 
 // Роутеры
 import { integrationsRouter } from './src/api/integrations';
@@ -45,8 +48,13 @@ import { rewardRoutes } from './src/api/rewardRoutes';
 import { shopRoutes } from './src/api/shopRoutes';
 import { referralRoutes } from './src/api/referralRoutes';
 import { assetRoutes } from './src/api/assetRoutes';
+import { habitRoutes } from './src/api/habitRoutes';
+import { zooRoutes } from './src/api/zooRoutes';
+import { armoireRoutes } from './src/api/armoireRoutes';
+import { starsRoutes, creditPurchase } from './src/api/starsRoutes';
+import { familyRoutes } from './src/api/familyRoutes';
 
-const PORT = 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
 // Initialize Sentry Node SDK if DSN is provided
 if (process.env.SENTRY_DSN) {
@@ -111,18 +119,46 @@ async function startServer() {
   // --- Socket.IO ---
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
+
+    // === Этап 10: комната семьи ===
+    // Клиент после авторизации шлёт `join:family` с { familyId } →
+    // мы добавляем сокет в комнату `family:N` для party-событий.
+    socket.on('join:family', (data: { familyId?: number }) => {
+      const familyId = Number(data?.familyId) || 1;
+      socket.join(`family:${familyId}`);
+      console.log(`Socket ${socket.id} joined family:${familyId}`);
+    });
+
+    // Дисконнект
+    socket.on('disconnect', () => {
+      console.log('Client disconnected:', socket.id);
+    });
   });
 
   // --- Middleware ---
   app.use(cors());
   app.use(express.json());
 
-  // --- Монтирование роутеров ---
+  // --- Инициализация БД ---
+  initializeDatabase();
+
+  // --- Инициализация Streak Cron Job ---
+  initStreakCronJob(io);
+
+  // --- Инициализация Cron Jobs ---
+  initializeCronJobs();
+
+  // --- API ROUTES (BEFORE Vite middleware) ---
   app.use('/api/integrations', integrationsRouter);
   app.use('/api/state', stateRoutes);
   app.use('/api/auth', authRoutes);
   app.use('/api/webhook', webhookRoutes);
   app.use('/api/tasks', taskRoutes);
+  app.use('/api/habits', habitRoutes);
+  app.use('/api/zoo', zooRoutes);
+  app.use('/api/armoire', armoireRoutes);
+  app.use('/api/stars', starsRoutes);
+  app.use('/api/family', familyRoutes);
   app.use('/api/skills', skillRoutes);
   app.use('/api/users', userRoutes);
   app.use('/api/rewards', rewardRoutes);
@@ -134,9 +170,6 @@ async function startServer() {
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
-
-  // --- Инициализация БД ---
-  initializeDatabase();
 
   // --- Глобальный error handler ---
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
@@ -150,7 +183,12 @@ async function startServer() {
     });
   });
 
-  // --- Vite (dev) / static (prod) ---
+  // --- API 404: неизвестные /api/* пути должны вернуть JSON, а не SPA-fallback (баг #6) ---
+  app.use('/api', (_req: Request, res: Response) => {
+    res.status(404).json({ error: 'API route not found', path: _req.originalUrl });
+  });
+
+  // --- Vite (dev) / static (prod) - AFTER API routes ---
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -166,7 +204,7 @@ async function startServer() {
   }
 
   httpServer.listen(PORT, '0.0.0.0', () => {
-    console.log(`🏠 Family Chores Server running on http://0.0.0.0:${PORT}`);
+    console.log(`[Server] Family Chores Server running on http://0.0.0.0:${PORT}`);
   });
 }
 

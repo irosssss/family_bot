@@ -9,6 +9,9 @@ bot.log
 *.log
 backups/
 
+# Сырые архивы ассетов (не распаковывать в git!)
+raw_archives/
+
 # Node.js
 node_modules/
 dist/

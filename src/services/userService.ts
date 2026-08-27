@@ -25,5 +25,6 @@ export function persistProfile(user: User): void {
     hair_style: user.hair_style,
     hair_color: user.hair_color,
     eye_color: user.eye_color,
+    habitica_equipped: (user as any).habitica_equipped ?? {},
   }).where(eq(schema.users.id, user.id)).execute().catch((e) => console.error('DB Update error:', e));
 }

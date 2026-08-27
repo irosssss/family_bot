@@ -5,11 +5,13 @@
  * GET /api/health — health check.
  */
 import { Request, Response, Router } from 'express';
+import { eq, desc } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { users as usersTable } from '../db/schema';
 import { appState } from '../services/stateService';
-import { getTodayStr } from '../lib/dateUtils';
+import { getTodayStr, getWeekKey } from '../lib/dateUtils';
+import { getWeeklyBoss } from '../utils/habiticaCatalog';
 import type { FeedEntry, ShopItem } from '../types';
 
 export const stateRoutes = Router();
@@ -24,7 +26,7 @@ stateRoutes.get('/db-test', async (_req: Request, res: Response) => {
   }
 });
 
-stateRoutes.get('/state', async (req: Request, res: Response) => {
+stateRoutes.get('/', async (req: Request, res: Response) => {
   try {
     const dbUsers = await db.select().from(usersTable);
     if (dbUsers.length > 0) {
@@ -58,17 +60,44 @@ stateRoutes.get('/state', async (req: Request, res: Response) => {
     const dbBosses = await db.select().from(schema.bosses);
     if (dbBosses.length > 0) {
       const dbBoss = dbBosses[0];
+      // Недельная ротация боссов (Habitica-каталог, 117 шт):
+      // если неделя сменилась — выбираем нового по номеру недели и обновляем БД.
+      const currentWeekKey = getWeekKey();
+      if ((dbBoss.week_key || '') !== currentWeekKey) {
+        const weeklyBoss = getWeeklyBoss();
+        const newHp = 90;
+        await db.update(schema.bosses).set({
+          week_key: currentWeekKey,
+          name: `${weeklyBoss.name}`,
+          sprite_url: weeklyBoss.spriteUrl,
+          hp: newHp,
+          max_hp: newHp,
+        }).where(eq(schema.bosses.id, dbBoss.id)).execute().catch((e) => console.error('Boss rotation DB error:', e));
+        Object.assign(dbBoss, { week_key: currentWeekKey, name: `${weeklyBoss.name}`, sprite_url: weeklyBoss.spriteUrl, hp: newHp, max_hp: newHp });
+        console.log(`New week boss: ${weeklyBoss.name} (${weeklyBoss.id})`);
+      }
       appState.boss = {
         id: dbBoss.id,
         week_key: dbBoss.week_key || '',
-        damage: 10,
-        defeated: 0,
+        damage: appState.boss?.damage || 10,
+        defeated: appState.boss?.defeated || 0,
         name: dbBoss.name,
         emoji: dbBoss.emoji,
         imageUrl: dbBoss.sprite_url || undefined,
+        spriteSheetUrl: dbBoss.sprite_url || undefined,
         hp: dbBoss.hp,
         maxHp: dbBoss.max_hp
       };
+    }
+
+    // Habitica Habits: гидрация из БД
+    try {
+      const dbHabits = await db.select().from(schema.habits).orderBy(desc(schema.habits.id));
+      if (dbHabits.length > 0) {
+        appState.habits = dbHabits as any;
+      }
+    } catch (e) {
+      console.error('Habits hydrate error:', e);
     }
   } catch (e) { console.error('Error fetching data from DB:', e); }
 
@@ -92,10 +121,17 @@ stateRoutes.get('/state', async (req: Request, res: Response) => {
     for (const item of equippedItems) {
       equipped[item.slot] = item.imageUrl || item.emoji || item.code || '';
     }
+    // ULPC примерка: код предмета кладётся в отдельное поле equipped_codes,
+    // чтобы фронт мог отличить ULPC-торс от старых 16-bit URL
+    const equippedCodes: Record<string, string> = {};
+    for (const item of equippedItems) {
+      equippedCodes[item.slot] = item.code || '';
+    }
 
     return {
       ...u,
       equipped,
+      equipped_codes: equippedCodes,
       pets: userPetEmojis,
     };
   });

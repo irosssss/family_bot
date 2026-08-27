@@ -30,9 +30,9 @@ export const initSentryClient = () => {
       replaysOnErrorSampleRate: 1.0,
       environment: metaEnv.MODE || 'production',
     });
-    console.log('⚡ Client Sentry initialized successfully');
+    console.log('[Sentry] Client Sentry initialized successfully');
   } else {
-    console.log('ℹ️ Client Sentry DSN not provided; running in local diagnostic mode');
+    console.log('[Sentry] Client Sentry DSN not provided; running in local diagnostic mode');
   }
 };
 

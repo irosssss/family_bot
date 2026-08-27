@@ -2,7 +2,7 @@ import { db } from './index';
 import { items, pets, bosses } from './schema';
 
 const seedAssets = async () => {
-  console.log('🌱 Начинаем сидирование локальных ассетов...');
+  console.log('[Seed] Начинаем сидирование локальных ассетов...');
 
   const seedItems = [
     {
@@ -34,7 +34,7 @@ const seedAssets = async () => {
   for (const item of seedItems) {
     await db.insert(items).values(item).onConflictDoNothing();
   }
-  console.log('✅ Экипировка добавлена.');
+  console.log('[Seed] Экипировка добавлена.');
 
   const seedPets = [
     {
@@ -56,12 +56,12 @@ const seedAssets = async () => {
   for (const pet of seedPets) {
     await db.insert(pets).values(pet).onConflictDoNothing();
   }
-  console.log('✅ Питомцы добавлены.');
+  console.log('[Seed] Питомцы добавлены.');
 
   const slimeBoss = {
     week_key: 'week_1_slime',
     name: 'Король Слизней',
-    emoji: '🦠',
+    emoji: '',
     max_hp: 5000,
     hp: 5000,
     damage: 15,
@@ -69,14 +69,14 @@ const seedAssets = async () => {
   };
 
   await db.insert(bosses).values(slimeBoss).onConflictDoNothing();
-  console.log('✅ Босс "Король Слизней" добавлен.');
+  console.log('[Seed] Босс "Король Слизней" добавлен.');
 
-  console.log('🎉 Сидирование успешно завершено!');
+  console.log('[Seed] Сидирование успешно завершено!');
 };
 
 seedAssets()
   .then(() => process.exit(0))
   .catch((err) => {
-    console.error('❌ Ошибка сидирования:', err);
+    console.error('[Seed] Ошибка сидирования:', err);
     process.exit(1);
   });
