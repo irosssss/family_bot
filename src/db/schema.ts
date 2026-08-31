@@ -35,6 +35,8 @@ export const users = pgTable('users', {
   streak_freeze_last_used: timestamp('streak_freeze_last_used'),
   last_streak_update: text('last_streak_update'),
   skill_date: text('skill_date'),
+  // Family Pro (Stars): до какой даты действует подписка
+  family_pro_until: timestamp('family_pro_until'),
   gender: text('gender'),
   custom_avatar_url: text('custom_avatar_url'),
   character_color: text('character_color'),

@@ -106,9 +106,11 @@ export function creditPurchase(
     (user as any).family_pro_until = current.toISOString();
   }
 
+  // Фаза 6: кристаллы И Family Pro — в PostgreSQL (раньше Pro терялся при
+  // рестарте: колонки не было, писал только crystals).
   db.update(schema.users).set({
     crystals: user.crystals,
-    ...(proDays ? {} : {}),
+    ...(proDays ? { family_pro_until: new Date((user as any).family_pro_until) } : {}),
   }).where(eq(schema.users.id, userId)).catch((e) => console.error('Stars credit DB error:', e));
 
   return { gems: skuDef.gems, proDays };
