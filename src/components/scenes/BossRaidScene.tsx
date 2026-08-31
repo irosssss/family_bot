@@ -277,6 +277,22 @@ export const BossRaidScene: React.FC<BossRaidSceneProps> = ({
           </div>
         </div>
 
+        {/* Мощный удар: большая кнопка ВЫШЕ инфо-ленты: при открытии арены попадает в видимую
+            thumb-zone (fixed таб-бар занимает низ вьюпорта; раньше кнопка была
+            последним элементом и уходила под навигацию). Только дети. */}
+        {activeUser.family_role !== 'parent' && !isDefeated && (
+          <PixelButton
+            variant="strike"
+            size="lg"
+            fullWidth
+            onClick={handleManualHit}
+            className="relative z-10 h-14 text-base font-bold mb-2"
+          >
+            <Flame className="w-5 h-5 text-amber-200 animate-bounce shrink-0" />
+            <span>Мощный Удар (15 урона)</span>
+          </PixelButton>
+        )}
+
         {/* Лента рейда */}
         <div className="relative z-10 bg-slate-950/90 p-2.5 sm:p-3 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-slate-300 backdrop-blur-sm">
           <div className="flex items-center gap-2">
@@ -290,20 +306,6 @@ export const BossRaidScene: React.FC<BossRaidSceneProps> = ({
             <span>Награда: +20 Золота всем</span>
           </div>
         </div>
-
-        {/* Мощный удар: большая кнопка внизу сцены (thumb zone, UX-аудит QW-2) — только дети */}
-        {activeUser.family_role !== 'parent' && !isDefeated && (
-          <PixelButton
-            variant="strike"
-            size="lg"
-            fullWidth
-            onClick={handleManualHit}
-            className="relative z-10 h-14 text-base font-bold"
-          >
-            <Flame className="w-5 h-5 text-amber-200 animate-bounce shrink-0" />
-            <span>Мощный Удар (15 урона)</span>
-          </PixelButton>
-        )}
       </div>
     </div>
   );
