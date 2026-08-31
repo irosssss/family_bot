@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { Request, Response } from 'express';
 import { Server as SocketIOServer } from 'socket.io';
+import { isUserAllowed, DENY_TEXT } from './accessControl';
 export let taskApproveCallback: ((taskId: number) => void) | null = null;
 export const onTaskApprove = (cb: (taskId: number) => void) => { taskApproveCallback = cb; };
 export let taskCreateCallback: ((title: string, points: number, chatId: number) => void) | null = null;
@@ -17,6 +18,7 @@ export const bot = token ? new TelegramBot(token, { polling: false }) : null;
 if (bot) {
   // Command: /start
   bot.onText(/\/start(?:\s+(.+))?/, (msg, match) => {
+    if (!isUserAllowed(msg.from?.id)) return; // whitelist: чужие игнорируются
     const chatId = msg.chat.id;
     const startPayload = match ? match[1] : null; // Handles deep linking like /start invite_XYZ
 
@@ -44,6 +46,7 @@ if (bot) {
 
   // Command: /invite - генерация инвайт-кода
   bot.onText(/\/invite/, (msg) => {
+    if (!isUserAllowed(msg.from?.id)) return;
     const chatId = msg.chat.id;
     // В реальном проекте мы бы сгенерировали код в базе данных для текущего Family ID пользователя
     const inviteCode = 'FAM-' + Math.floor(1000 + Math.random() * 9000);
@@ -56,6 +59,7 @@ if (bot) {
   // Обработка Callback-запросов (инлайн-кнопки подтверждения/отклонения)
   // Handle text messages for natural language task creation
   bot.on('message', (msg) => {
+    if (!isUserAllowed(msg.from?.id)) return;
     const text = msg.text;
     const chatId = msg.chat.id;
     if (!text || text.startsWith('/')) return;
@@ -75,6 +79,11 @@ if (bot) {
   });
 
   bot.on('callback_query', async (query) => {
+    if (!isUserAllowed(query.from?.id)) {
+      // Чужак нажал инлайн-кнопку (approve начисляет золото) — отказ без обработки.
+      if (query.id) await bot.answerCallbackQuery(query.id, { text: DENY_TEXT, show_alert: true });
+      return;
+    }
     const chatId = query.message?.chat.id;
     const messageId = query.message?.message_id;
     const data = query.data; // Пример: 'approve_task_123'

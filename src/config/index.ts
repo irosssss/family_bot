@@ -38,6 +38,8 @@ export const config = {
     chatId: required('TELEGRAM_CHAT_ID'),
     /** Секрет из setWebhook(secret_token=...); без него Stars-начисления в prod запрещены. */
     webhookSecret: required('TELEGRAM_WEBHOOK_SECRET'),
+    /** Whitelist Telegram-ID. Пустая строка = проверка отключена (dev/переходный период). */
+    allowedUsers: required('TELEGRAM_ALLOWED_USERS', ''),
   },
 
   /** Подключение к PostgreSQL (Cloud SQL через Unix-сокет или обычный хост). */
