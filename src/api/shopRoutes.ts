@@ -5,11 +5,9 @@
  * POST /equip — экипировать/снять предмет.
  */
 import { Request, Response, Router } from 'express';
-import { db } from '../db';
-import * as schema from '../db/schema';
-import { eq } from 'drizzle-orm';
 import { telegramAuthMiddleware } from '../utils/telegramAuth';
 import { appState } from '../services/stateService';
+import { buyShopItemAtomic } from '../services/walletService';
 
 export const shopRoutes = Router();
 
@@ -24,46 +22,24 @@ shopRoutes.post('/invoice', telegramAuthMiddleware, (req: any, res: Response) =>
   });
 });
 
-// Buy Shop Equipment Item
-shopRoutes.post('/buy', (req: Request, res: Response) => {
+// Buy Shop Equipment Item — атомарно через БД (Фаза 6-lite, H4):
+// транзакция со списанием `WHERE gold >= cost` и авто-ROLLBACK.
+shopRoutes.post('/buy', async (req: Request, res: Response) => {
   const { userId, itemId } = req.body;
-  const user = appState.users.find((u) => u.id === Number(userId));
-  const item = appState.shopItems.find((s) => s.id === Number(itemId));
 
-  if (!user || !item) return res.status(404).json({ error: 'Not found' });
-
-  const alreadyOwned = appState.userItems.some(
-    (ui) => ui.user_id === user.id && ui.item_id === item.id
-  );
-  if (alreadyOwned) return res.status(400).json({ error: 'Предмет уже куплен' });
-
-  if (user.gold < item.cost) return res.status(400).json({ error: 'Недостаточно золота' });
-
-  user.gold -= item.cost;
-  // Update DB (async)
-
-  const dbUsers = schema.users;
-  db.update(dbUsers).set({
-    gold: user.gold
-  }).where(eq(dbUsers.id, user.id)).execute().catch(e => console.error('DB Update error:', e));
-
-  // Unequip any other item in the same slot before equipping newly bought item
-  for (const ui of appState.userItems) {
-    if (ui.user_id === user.id && ui.equipped) {
-      const matchingItem = appState.shopItems.find((s) => s.id === ui.item_id);
-      if (matchingItem?.slot === item.slot) {
-        ui.equipped = 0;
-      }
-    }
+  const result = await buyShopItemAtomic(Number(userId), Number(itemId));
+  if (!result.ok) {
+    const status = result.reason === 'not_found' ? 404 : 400;
+    const msg =
+      result.reason === 'insufficient_funds' ? 'Недостаточно золота'
+      : result.reason === 'already_owned' ? 'Предмет уже куплен'
+      : result.reason === 'db_error' ? 'Ошибка базы данных, попробуйте ещё раз'
+      : 'Not found';
+    return res.status(status).json({ error: msg });
   }
 
-  appState.userItems.push({
-    user_id: user.id,
-    item_id: item.id,
-    equipped: 1,
-  });
-
-  res.json({ success: true, item, gold: user.gold });
+  const item = appState.shopItems.find((s) => s.id === Number(itemId));
+  res.json({ success: true, item, gold: result.gold });
 });
 
 // Equip / Unequip Item

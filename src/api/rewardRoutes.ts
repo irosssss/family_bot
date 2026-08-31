@@ -7,30 +7,29 @@ import { Request, Response, Router } from 'express';
 import { appState } from '../services/stateService';
 import { checkAchievements } from '../services/achievementService';
 import { sendTelegramPushNotification } from '../services/notificationService';
-import { getTodayStr } from '../lib/dateUtils';
+import { buyRewardAtomic } from '../services/walletService';
 import { generateId } from '../lib/ids';
 import type { Reward } from '../types';
 
 export const rewardRoutes = Router();
 
-rewardRoutes.post('/buy', (req: Request, res: Response) => {
+// Buy Reward — атомарно через БД (Фаза 6-lite, H4).
+rewardRoutes.post('/buy', async (req: Request, res: Response) => {
  const { userId, rewardId } = req.body;
  const user = appState.users.find((u) => u.id === Number(userId));
  const reward = appState.rewards.find((r) => r.id === Number(rewardId));
 
  if (!user || !reward) return res.status(404).json({ error: 'Not found' });
- if (user.gold < reward.cost) return res.status(400).json({ error: 'Недостаточно золота' });
 
- user.gold -= reward.cost;
- const purchase = {
- id: generateId(),
- user_id: user.id,
- reward_id: reward.id,
- reward_title: reward.title,
- created_at: getTodayStr(),
- user_name: user.display_name,
- };
- appState.purchases.push(purchase);
+ const result = await buyRewardAtomic(user.id, reward.id);
+ if (!result.ok) {
+   const status = result.reason === 'db_error' ? 500 : 400;
+   const msg =
+     result.reason === 'insufficient_funds' ? 'Недостаточно золота'
+     : result.reason === 'db_error' ? 'Ошибка базы данных, попробуйте ещё раз'
+     : 'Not found';
+   return res.status(status).json({ error: msg });
+ }
 
  checkAchievements(user.id);
 
@@ -38,7 +37,8 @@ rewardRoutes.post('/buy', (req: Request, res: Response) => {
  ` <b>${user.display_name}</b> купил(а) награду <b>"${reward.title}"</b> в Лавке Наград! (-${reward.cost})`
  );
 
- res.json({ success: true, purchase, gold: user.gold });
+ const purchase = appState.purchases[appState.purchases.length - 1];
+ res.json({ success: true, purchase, gold: result.gold });
 });
 
 rewardRoutes.post('/add', (req: Request, res: Response) => {
