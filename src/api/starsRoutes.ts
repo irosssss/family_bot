@@ -78,10 +78,20 @@ starsRoutes.post('/create-invoice', async (req: Request, res: Response) => {
 
 /**
  * Внутренняя функция: начислить купленное (вызывается из webhook при successful_payment).
+ * expectedStars — сумма из платежа; сверяется с прайсом SKU, при расхождении
+ * начисление отклоняется (защита от подделки payload, этап 2 аудита).
  */
-export function creditPurchase(userId: number, sku: string): { gems: number; proDays?: number } | null {
+export function creditPurchase(
+  userId: number,
+  sku: string,
+  expectedStars: number = SKUS[sku]?.stars ?? -1
+): { gems: number; proDays?: number } | null {
   const skuDef = SKUS[sku];
   if (!skuDef) return null;
+  if (expectedStars !== skuDef.stars) {
+    console.error(`[Stars] amount mismatch for ${sku}: paid ${expectedStars}, price ${skuDef.stars}`);
+    return null;
+  }
 
   const user = appState.users.find((u) => u.id === userId);
   if (!user) return null;

@@ -10,20 +10,17 @@ export function validateTelegramWebAppData(initData: string, botToken: string): 
   if (!initData || !botToken) return false;
 
   try {
-    const urlParams = new URLSearchParams(initData);
-    const hash = urlParams.get('hash');
-    
+    // Telegram подписывает СЫРЫЕ пары ключ=значение (URL-кодированные значения).
+    // Официальный алгоритм: убрать hash, отсортировать пары, склеить '\n'.
+    // НЕ использовать URLSearchParams для check-string: он декодирует значения
+    // и подпись перестаёт сходиться (это и был баг валидации).
+    const rawPairs = initData.split('&').filter((p) => p.length > 0 && !p.startsWith('hash='));
+    rawPairs.sort();
+    const dataCheckString = rawPairs.join('\n');
+
+    const hashPair = initData.split('&').find((p) => p.startsWith('hash='));
+    const hash = hashPair ? hashPair.slice('hash='.length) : null;
     if (!hash) return false;
-    
-    urlParams.delete('hash');
-    
-    const paramsList: string[] = [];
-    urlParams.forEach((value, key) => {
-      paramsList.push(`${key}=${value}`);
-    });
-    
-    paramsList.sort();
-    const dataCheckString = paramsList.join('\n');
     
     const secretKey = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest();
     const computedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
@@ -32,6 +29,25 @@ export function validateTelegramWebAppData(initData: string, botToken: string): 
   } catch (err) {
     console.error('Error validating Telegram initData:', err);
     return false;
+  }
+}
+
+/**
+ * Extracts the Telegram user object from initData.
+ * Returns null if the user field is missing or malformed.
+ */
+export function parseInitDataUser(initData: string): { id: number; [key: string]: unknown } | null {
+  try {
+    const urlParams = new URLSearchParams(initData);
+    const userStr = urlParams.get('user');
+    if (!userStr) return null;
+    const parsed = JSON.parse(decodeURIComponent(userStr));
+    if (!parsed || typeof parsed !== 'object' || !Number.isFinite(Number((parsed as any).id))) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
   }
 }
 

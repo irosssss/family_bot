@@ -48,6 +48,8 @@ services:
       # Поддержан и алиас TELEGRAM_BOT_TOKEN из .env.
       BOT_TOKEN: ${BOT_TOKEN:-${TELEGRAM_BOT_TOKEN:-}}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      # Секрет вебхуков (setWebhook secret_token). Без него Stars-начисления отклоняются.
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:-}
       VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
 
       # --- Cron ---
@@ -65,7 +67,9 @@ services:
       S3_PUBLIC_URL: ${S3_PUBLIC_URL:-}
     ports:
       - "3000:3000"
-    command: sh -c "npm run db:push -- --force && npm start"
+    # Схема БД применяется ВРУЧНУЮ (безопасно): docker compose run --rm app npm run db:push
+    # Раньше здесь был автозапуск "npm run db:push -- --force" при каждом старте — убрано
+    # (этап 5 аудита: --force при старте мог деструктивно менять живые данные).
 
 volumes:
   pgdata:

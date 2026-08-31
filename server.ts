@@ -13,6 +13,7 @@
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import path from 'path';
 import * as Sentry from '@sentry/node';
 import { createServer as createHttpServer } from 'http';
@@ -35,6 +36,8 @@ import { appState } from './src/services/stateService';
 import { applyTaskCompletion } from './src/services/taskService';
 import { generateId } from './src/lib/ids';
 import { initStreakCronJob } from './src/services/streakCronJob';
+import { globalApiAuth } from './src/utils/apiAuth';
+import rateLimit from 'express-rate-limit';
 
 // Роутеры
 import { integrationsRouter } from './src/api/integrations';
@@ -136,8 +139,40 @@ async function startServer() {
   });
 
   // --- Middleware ---
-  app.use(cors());
+  // CORS: allowlist (Mini App живёт на том же origin; VITE_API_URL — для внешнего фронта).
+  const corsOrigin = process.env.VITE_API_URL?.replace(/\/$/, '');
+  app.use(cors({ origin: corsOrigin ? [corsOrigin] : false }));
+  // Security-заголовки (этап 5 аудита). CSP ослаблен только для dev-VM Vite.
+  // CSP в проде настроен под Telegram Mini App:
+  //  - script-src разрешает telegram.org (telegram-web-app.js обязателен);
+  //  - frame-ancestors разрешает web.telegram.org (Mini App живёт в iframe
+  //    Telegram Web/Desktop); X-Frame-Options отключён — он бы блокировал iframe.
+  app.use(helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        'script-src': ["'self'", 'https://telegram.org'],
+        'frame-ancestors': ["'self'", 'https://web.telegram.org', 'https://webk.com', 'https://web.t.me'],
+      },
+    } : false,
+    crossOriginEmbedderPolicy: false,
+    frameguard: false,
+  }));
   app.use(express.json());
+
+  // --- Rate limit: API-запросы (этап 5 аудита) ---
+  const apiLimiter = rateLimit({
+    windowMs: 60_000,
+    limit: 300,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+  });
+  app.use('/api', apiLimiter);
+
+  // --- Глобальный auth-guard API (этап 1 аудита) ---
+  // Telegram Mini App: Authorization: tma <initData> → req.auth.
+  // DEMO MODE (нет BOT_TOKEN) работает как раньше, без auth.
+  app.use(globalApiAuth);
 
   // --- Инициализация БД ---
   initializeDatabase();

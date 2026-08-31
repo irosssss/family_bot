@@ -22,6 +22,7 @@ import { getStreakBonus, checkAllTasksCompleted, getTasksForDate, purchaseStreak
 import { generateDailyTasks, calculateReward, seededRandom, getEffectiveTaskType } from '../services/taskGenerator';
 import { valueColor } from '../services/habitService';
 import { getTodayStr } from '../lib/dateUtils';
+import { isAuthEnforced, type AuthedRequest } from '../utils/apiAuth';
 import type { ShopItem, User } from '../types';
 
 export const userRoutes = Router();
@@ -31,9 +32,17 @@ export const userRoutes = Router();
  * Все операции — только для админов (родителей). Дети — без ограничений по количеству.
  */
 
-// Проверка админа: request body должен содержать actorId (кто выполняет операцию)
-function isAdmin(actorId: number | undefined): boolean {
+// Проверка админа: request body должен содержать actorId (кто выполняет операцию).
+// В production (auth включён) actorId дополнительно сверяется с подписанным
+// пользователем из initData (req.auth) — подделать админ-действие извне нельзя.
+// В dev — унаследованное поведение по actorId из body.
+function isAdmin(req: AuthedRequest, actorId: number | undefined): boolean {
  if (!actorId) return false;
+ if (isAuthEnforced()) {
+   if (!req.auth) return false;
+   if (req.auth.userId !== actorId) return false;
+   return req.auth.isAdmin;
+ }
  const actor = appState.users.find((u) => u.id === actorId);
  return !!actor && (actor.is_admin || actor.family_role === 'parent');
 }
@@ -69,10 +78,10 @@ userRoutes.get('/:id', (req: Request, res: Response) => {
 });
 
 /** POST /api/users — добавить ребёнка (только админ) */
-userRoutes.post('/', async (req: Request, res: Response) => {
+userRoutes.post('/', async (req: AuthedRequest, res: Response) => {
  try {
  const { actorId, display_name, age, gender } = req.body;
- if (!isAdmin(Number(actorId))) {
+ if (!isAdmin(req, Number(actorId))) {
  return res.status(403).json({ error: 'Только родитель (админ) может добавлять пользователей' });
  }
  if (!display_name || typeof display_name !== 'string' || !display_name.trim()) {
@@ -144,11 +153,11 @@ userRoutes.post('/', async (req: Request, res: Response) => {
 });
 
 /** PUT /api/users/:id — редактировать имя/возраст (только админ) */
-userRoutes.put('/:id', async (req: Request, res: Response) => {
+userRoutes.put('/:id', async (req: AuthedRequest, res: Response) => {
  try {
  const userId = parseInt(req.params.id);
  const { actorId, display_name, age, gender } = req.body;
- if (!isAdmin(Number(actorId))) {
+ if (!isAdmin(req, Number(actorId))) {
  return res.status(403).json({ error: 'Только родитель (админ) может редактировать' });
  }
  const user = appState.users.find((u) => u.id === userId);
@@ -185,11 +194,11 @@ userRoutes.put('/:id', async (req: Request, res: Response) => {
 });
 
 /** DELETE /api/users/:id — удалить (только админ, нельзя удалить админа) */
-userRoutes.delete('/:id', async (req: Request, res: Response) => {
+userRoutes.delete('/:id', async (req: AuthedRequest, res: Response) => {
  try {
  const userId = parseInt(req.params.id);
  const { actorId } = req.body;
- if (!isAdmin(Number(actorId))) {
+ if (!isAdmin(req, Number(actorId))) {
  return res.status(403).json({ error: 'Только родитель (админ) может удалять' });
  }
  const user = appState.users.find((u) => u.id === userId);

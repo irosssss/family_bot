@@ -32,10 +32,12 @@ export const config = {
 
   port: asInt('PORT', 3000),
 
-  /** Telegram-бот: токен и чат для пуш-уведомлений о событиях семьи. */
+  /** Telegram-бот: токен, чат для пуш-уведомлений и секрет вебхуков. */
   telegram: {
     botToken: required('BOT_TOKEN'),
     chatId: required('TELEGRAM_CHAT_ID'),
+    /** Секрет из setWebhook(secret_token=...); без него Stars-начисления в prod запрещены. */
+    webhookSecret: required('TELEGRAM_WEBHOOK_SECRET'),
   },
 
   /** Подключение к PostgreSQL (Cloud SQL через Unix-сокет или обычный хост). */
