@@ -497,6 +497,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
               triggerHaptic('impact', 'medium');
               onOpenAddModal();
             }}
+            aria-label="Добавить задачу"
             className="flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md shadow-blue-500/20 transition shrink-0"
           >
             <Plus className="w-4 h-4" />
