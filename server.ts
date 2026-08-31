@@ -36,6 +36,7 @@ import { appState } from './src/services/stateService';
 import { applyTaskCompletion } from './src/services/taskService';
 import { generateId } from './src/lib/ids';
 import { initStreakCronJob } from './src/services/streakCronJob';
+import { registerTelegramWebhook } from './src/bot/webhookRegistration';
 import { globalApiAuth } from './src/utils/apiAuth';
 import rateLimit from 'express-rate-limit';
 import { ensureCatalogInDb, hydrateWalletFromDb, backfillProgressFromMemory } from './src/db/backfillCatalog';
@@ -249,6 +250,8 @@ async function startServer() {
 
   httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`[Server] Family Chores Server running on http://0.0.0.0:${PORT}`);
+    // Прод: саморегистрация Telegram-вебхука (идемпотентна; в dev — skip).
+    void registerTelegramWebhook();
   });
 }
 

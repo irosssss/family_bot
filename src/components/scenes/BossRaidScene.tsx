@@ -7,6 +7,7 @@ import HabiticaAnimatedAvatar from '../HabiticaAnimatedAvatar';
 import { DEFAULT_LOOKS } from '../../utils/habiticaAssets';
 import { triggerHaptic } from '../../utils/haptics';
 import { sfxBossHit } from '../../utils/sfx';
+import { PixelButton } from '../ui';
 
 interface BossRaidSceneProps {
   appState: AppState;
@@ -292,13 +293,16 @@ export const BossRaidScene: React.FC<BossRaidSceneProps> = ({
 
         {/* Мощный удар: большая кнопка внизу сцены (thumb zone, UX-аудит QW-2) — только дети */}
         {activeUser.family_role !== 'parent' && !isDefeated && (
-          <button
+          <PixelButton
+            variant="strike"
+            size="lg"
+            fullWidth
             onClick={handleManualHit}
-            className="relative z-10 w-full h-14 rounded-2xl bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-bold text-base font-pixel-sub shadow-xl shadow-red-600/30 border border-amber-300/40 transition active:scale-[0.98] active:brightness-110 flex items-center justify-center gap-2"
+            className="relative z-10 h-14 text-base font-bold"
           >
             <Flame className="w-5 h-5 text-amber-200 animate-bounce shrink-0" />
-            <span>Мощный Удар (-150 HP)</span>
-          </button>
+            <span>Мощный Удар (15 урона)</span>
+          </PixelButton>
         )}
       </div>
     </div>

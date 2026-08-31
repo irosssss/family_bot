@@ -54,7 +54,7 @@ export const tokens = {
 // Sizes: sm | md | lg
 // States: default, hover, focus, active, disabled, loading
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'strike';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface PixelButtonProps {
@@ -89,6 +89,9 @@ const buttonVariants: Record<ButtonVariant, string> = {
     'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white border-red-500/40 shadow-red-500/25 shadow-md',
   success:
     'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border-emerald-500/40 shadow-emerald-500/25 shadow-md',
+  // Мощный удар (арена): красный→оранжевый→янтарный, крупный акцент главного действия
+  strike:
+    'bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 hover:from-red-500 hover:via-orange-400 hover:to-amber-400 text-white border-amber-300/40 shadow-red-600/30 shadow-xl text-base',
 };
 
 const buttonSizes: Record<ButtonSize, string> = {
