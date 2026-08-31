@@ -5,8 +5,8 @@
 ## Запуск
 
 ```bash
-# PostgreSQL 18 — ТОЛЬКО через cmd.exe (из git-bash падает error 487!)
-cmd.exe /c "C:/Users/poddu/AppData/Local/Temp/start_pg.bat"
+# PostgreSQL 18 — в РЕАЛЬНОЙ консоли: двойной клик scripts/start-pg.bat
+# (запуск через pg_ctl start из git-bash/фона = error 487; окно открыто = БД работает)
 
 # Сервер (порт 3000, из корня проекта)
 npm run dev
