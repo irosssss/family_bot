@@ -72,15 +72,20 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
           sprite_url: weeklyBoss.spriteUrl,
           hp: newHp,
           max_hp: newHp,
+          damage: 0,
+          defeated: 0,
         }).where(eq(schema.bosses.id, dbBoss.id)).execute().catch((e) => console.error('Boss rotation DB error:', e));
-        Object.assign(dbBoss, { week_key: currentWeekKey, name: `${weeklyBoss.name}`, sprite_url: weeklyBoss.spriteUrl, hp: newHp, max_hp: newHp });
+        Object.assign(dbBoss, { week_key: currentWeekKey, name: `${weeklyBoss.name}`, sprite_url: weeklyBoss.spriteUrl, hp: newHp, max_hp: newHp, damage: 0, defeated: 0 });
         console.log(`New week boss: ${weeklyBoss.name} (${weeklyBoss.id})`);
       }
+      // Фаза 6: урон/победа приходят из БД (persistBossState пишет их туда),
+      // а не из дефолта памяти. damage=0 и defeated=0 — легитимные значения,
+      // поэтому ||-фолбэки на память здесь были бы багом рестарта.
       appState.boss = {
         id: dbBoss.id,
         week_key: dbBoss.week_key || '',
-        damage: appState.boss?.damage || 10,
-        defeated: appState.boss?.defeated || 0,
+        damage: dbBoss.damage ?? 0,
+        defeated: dbBoss.defeated ?? 0,
         name: dbBoss.name,
         emoji: dbBoss.emoji,
         imageUrl: dbBoss.sprite_url || undefined,
@@ -98,6 +103,76 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
       }
     } catch (e) {
       console.error('Habits hydrate error:', e);
+    }
+
+    // Фаза 6: прогресс игрока — БД источник правды. Перезапуск сервера больше
+    // не теряет завершения, perfect days, инвентарь, питомцев, покупки,
+    // рефералки и ачивки. Каждая коллекция перенимается только когда БД
+    // её отдаёт (иначе — демо-сида памяти, как до Фазы 6).
+    try {
+      const dbCompletions = await db.select().from(schema.completions);
+      if (dbCompletions.length > 0) {
+        appState.completions = dbCompletions.map((c) => ({
+          id: c.id,
+          user_id: c.user_id,
+          task_id: c.task_id,
+          completed_at: c.completed_at,
+          completed_at_ts: c.completed_at_ts,
+        }));
+      }
+
+      const dbPerfect = await db.select().from(schema.perfect_days);
+      if (dbPerfect.length > 0) {
+        appState.perfectDays = dbPerfect.map((p) => ({ user_id: p.user_id, day: p.day }));
+      }
+
+      const dbInv = await db.select().from(schema.character_inventory);
+      if (dbInv.length > 0) {
+        appState.userItems = dbInv.map((i) => ({
+          user_id: i.character_id,
+          item_id: i.item_id,
+          equipped: i.is_equipped ? 1 : 0,
+        }));
+      }
+
+      const dbUserPets = await db.select().from(schema.character_pets);
+      if (dbUserPets.length > 0) {
+        appState.userPets = dbUserPets.map((p) => ({ user_id: p.character_id, pet_id: p.pet_id }));
+      }
+
+      const dbPurchases = await db.select().from(schema.purchases);
+      if (dbPurchases.length > 0) {
+        appState.purchases = dbPurchases.map((p) => ({
+          id: p.id,
+          user_id: p.user_id,
+          reward_id: p.reward_id,
+          reward_title: p.reward_title || '',
+          created_at: p.created_at,
+        }));
+      }
+
+      const dbRefs = await db.select().from(schema.referrals);
+      if (dbRefs.length > 0) {
+        appState.referrals = dbRefs.map((r) => ({
+          id: r.id,
+          referrer_id: r.referrer_id,
+          referee_id: r.referee_id,
+          referee_name: r.referee_name,
+          created_at: r.created_at,
+          bonus_gold: r.bonus_gold,
+          bonus_crystals: r.bonus_crystals,
+        }));
+      }
+
+      const dbUserAch = await db.select().from(schema.user_achievements);
+      if (dbUserAch.length > 0) {
+        appState.userAchievements = dbUserAch.map((ua) => ({
+          user_id: ua.user_id,
+          achievement_id: ua.achievement_id,
+        }));
+      }
+    } catch (e) {
+      console.error('Phase6 progress hydrate error:', e);
     }
   } catch (e) { console.error('Error fetching data from DB:', e); }
 

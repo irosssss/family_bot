@@ -17,3 +17,17 @@ const client = postgres({
 });
 
 export const db = drizzle(client, { schema });
+
+/**
+ * Фаза 6: уникальный индекс завершений — идемпотентность POST /complete.
+ * Двойной клик / гонка двух вкладок не создают дубль: повторная вставка
+ * тихо пропускается (onConflictDoNothing), фактов «сгорело золото дважды» нет.
+ */
+export async function ensureCompletionsIndex(): Promise<void> {
+  try {
+    await client`CREATE UNIQUE INDEX IF NOT EXISTS uq_completions_user_task_day ON completions (user_id, task_id, completed_at)`;
+    console.log('[Phase6] uq_completions_user_task_day ensured');
+  } catch (e) {
+    console.error('[Phase6] ensureCompletionsIndex failed:', e);
+  }
+}

@@ -15,6 +15,7 @@ import { generateId } from '../lib/ids';
 import { getStreakMultiplier } from './streakService';
 import { calculateReward } from './taskGenerator';
 import { decayOnSuccess, valueColor } from './habitService';
+import { persistCompletion } from './progressService';
 import type { Completion, Pet, Task, User } from '../types';
 
 export function applyTaskCompletion(user: User, task: Task) {
@@ -173,6 +174,19 @@ export function applyTaskCompletion(user: User, task: Task) {
       `<b>СЕМЕЙНЫЙ БОСС ПОВЕРЖЕН!</b>\nГерои ${appState.users.map((u) => u.display_name).join(' и ')} разгромили босса <b>${bossDefeated.name}</b>! Вся семья получает по +20 золота!`
     );
   }
+
+  // Фаза 6: завершение и побочные эффекты — в PostgreSQL (память — зеркало).
+  // Fire-and-forget: POST /complete допишет кошелёк через persistUserState.
+  void persistCompletion({
+    completion,
+    task,
+    perfect,
+    pet: foundPet ? { id: foundPet.id } : null,
+    achievements: newAchievements.map((a: any) => ({ id: a.id })),
+    bossDefeated: !!bossDefeated,
+  }).then((dbId) => {
+    if (dbId !== null) completion.id = dbId; // серийный id БД вместо Date.now()
+  });
 
   return {
     goldGain,

@@ -10,6 +10,7 @@ import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { appState } from '../services/stateService';
 import { applyTaskCompletion } from '../services/taskService';
+import { persistUserState, removeCompletion, persistBossState } from '../services/progressService';
 import { notifyParentAboutTaskCompletion } from '../bot/telegramBot';
 import { getTodayStr } from '../lib/dateUtils';
 import { generateId } from '../lib/ids';
@@ -60,18 +61,6 @@ taskRoutes.post('/complete', async (req: Request, res: Response) => {
 
     // Update DB (async, non-blocking for now)
 
-    const dbUsers = schema.users;
-    db.update(dbUsers).set({
-      gold: user.gold,
-      xp: user.xp,
-      crystals: user.crystals,
-      hp: user.hp,
-      mp: user.mp,
-      current_streak: user.current_streak,
-      skill_date: user.skill_date,
-      last_streak_update: user.last_streak_update,
-      best_streak: user.best_streak,
-    }).where(eq(dbUsers.id, user.id)).execute().catch(e => console.error('DB Update error:', e));
     if (result.error) {
       return res.status(400).json({ error: result.error });
     }
@@ -83,10 +72,6 @@ taskRoutes.post('/complete', async (req: Request, res: Response) => {
       user.gold += surpriseChest.gold;
       user.crystals = (user.crystals || 0) + (surpriseChest.crystals || 0);
       totalGoldEarned += surpriseChest.gold;
-      db.update(dbUsers).set({
-        gold: user.gold,
-        crystals: user.crystals,
-      }).where(eq(dbUsers.id, user.id)).execute().catch(e => console.error('DB Surprise Chest error:', e));
     }
 
     // Check if all tasks completed for today → update streak
@@ -95,15 +80,11 @@ taskRoutes.post('/complete', async (req: Request, res: Response) => {
     if (allCompleted) {
       const io = req.app.get('io');
       await updateStreak(user.id, todayStr, io);
-      
-      // Update DB with new streak values
-      db.update(dbUsers).set({
-        current_streak: user.current_streak,
-        last_streak_update: user.last_streak_update,
-        best_streak: user.best_streak,
-        streak_status: user.streak_status,
-      }).where(eq(dbUsers.id, user.id)).execute().catch(e => console.error('DB Streak Update error:', e));
     }
+
+    // Фаза 6: кошелёк/стрик — один снимок в БД ПОСЛЕ всех мутаций
+    // (комплит, сундук, стрик), вместо трёх разрозненных апдейтов.
+    await persistUserState(user);
 
     // Simulate sending Telegram notification to parent for approval
     // In real app, we use actual Telegram IDs. Here we pass a mock parentId.
@@ -144,7 +125,7 @@ taskRoutes.post('/complete', async (req: Request, res: Response) => {
   }
 });
 
-taskRoutes.post('/toggle', (req: Request, res: Response) => {
+taskRoutes.post('/toggle', async (req: Request, res: Response) => {
   const { userId, taskId } = req.body;
   const user = appState.users.find((u) => u.id === Number(userId));
   const task = appState.tasks.find((t) => t.id === Number(taskId));
@@ -169,6 +150,12 @@ taskRoutes.post('/toggle', (req: Request, res: Response) => {
         appState.boss.damage = Math.max(0, appState.boss.damage - task.points);
       }
     }
+    // Фаза 6: отмена в БД; кошелёк и босс — снимком после мутаций.
+    const removal = await removeCompletion(Number(userId), Number(taskId), todayStr);
+    if (user && (removal.status === 'deleted' || removal.status === 'missing')) {
+      await persistUserState(user);
+      await persistBossState();
+    }
     const io = req.app.get('io');
     if (io) io.emit('stateUpdate');
     return res.json({ success: true, action: 'uncompleted' });
@@ -177,13 +164,13 @@ taskRoutes.post('/toggle', (req: Request, res: Response) => {
   res.status(404).json({ error: 'Completion not found' });
 });
 
-taskRoutes.post('/add', (req: Request, res: Response) => {
+taskRoutes.post('/add', async (req: Request, res: Response) => {
   const { title, points, assignee, task_type } = req.body;
   if (!title || !points) {
     return res.status(400).json({ error: 'Title and points required' });
   }
 
-  const newTask: Task = {
+  const draft: Task = {
     id: generateId(),
     code: `custom_${generateId()}`,
     title: String(title).trim(),
@@ -193,6 +180,29 @@ taskRoutes.post('/add', (req: Request, res: Response) => {
     day_of_week: null,
   };
 
-  appState.tasks.push(newTask);
-  res.json({ success: true, task: newTask });
+  // Фаза 6: задача живёт в БД (FK completions.task_id). id зеркала = серийный
+  // id БД; при сбое БД (DEMO MODE) — откат к старому поведению (id Date.now).
+  try {
+    const familyRow = await db.select().from(schema.families).limit(1);
+    const [row] = await db
+      .insert(schema.tasks)
+      .values({
+        family_id: familyRow[0]?.id ?? 1,
+        code: draft.code,
+        title: draft.title,
+        description: '',
+        points: draft.points,
+        assignee: draft.assignee,
+        task_type: draft.task_type,
+        day_of_week: null,
+      })
+      .returning({ id: schema.tasks.id });
+    draft.id = row.id;
+    draft.code = `custom_${row.id}`;
+  } catch (e) {
+    console.error('[Phase6] custom task insert failed (DEMO MODE без БД?):', e);
+  }
+
+  appState.tasks.push(draft);
+  res.json({ success: true, task: draft });
 });

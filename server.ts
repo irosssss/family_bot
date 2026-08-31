@@ -38,7 +38,8 @@ import { generateId } from './src/lib/ids';
 import { initStreakCronJob } from './src/services/streakCronJob';
 import { globalApiAuth } from './src/utils/apiAuth';
 import rateLimit from 'express-rate-limit';
-import { ensureCatalogInDb, hydrateWalletFromDb } from './src/db/backfillCatalog';
+import { ensureCatalogInDb, hydrateWalletFromDb, backfillProgressFromMemory } from './src/db/backfillCatalog';
+import { ensureCompletionsIndex } from './src/db/index';
 
 // Роутеры
 import { integrationsRouter } from './src/api/integrations';
@@ -180,7 +181,10 @@ async function startServer() {
 
   // --- Фаза 6-lite: каталог магазина/наград в БД + гидрация кошельков из БД ---
   // (покупки работают через БД-транзакции; память — зеркало для чтения UI)
-  void ensureCatalogInDb().then(() => hydrateWalletFromDb());
+  void ensureCatalogInDb()
+    .then(() => ensureCompletionsIndex())
+    .then(() => backfillProgressFromMemory())
+    .then(() => hydrateWalletFromDb());
 
   // --- Инициализация Streak Cron Job ---
   initStreakCronJob(io);
