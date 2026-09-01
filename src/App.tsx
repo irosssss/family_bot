@@ -14,10 +14,8 @@ import {
   User,
 } from './types';
 import { Navbar } from './components/Navbar';
-import { PlayerCard } from './components/PlayerCard';
 import { TodayTasks } from './components/TodayTasks';
-import { BossBattle } from './components/BossBattle';
-import { ChallengeCard } from './components/ChallengeCard';
+import { PartyView } from './components/PartyView';
 import { FeedJournal } from './components/FeedJournal';
 import { ShopAndRewardsModal } from './components/ShopAndRewardsModal';
 import { AddTaskModal } from './components/AddTaskModal';
@@ -894,57 +892,17 @@ export function App() {
             )}
 
             {activeScene === 'overview' && (
-              <div className="space-y-6">
-                {/* Dual Player RPG Character Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <PlayerCard
-                    shopItems={appState.shopItems}
-                    pets={appState.pets}
-                    user={activeUser}
-                    onOpenWardrobe={() => {
-                      setShopModalTab('wardrobe');
-                      setIsShopModalOpen(true);
-                    }}
-                    onOpenCharacterEditor={() => setIsCharacterEditorOpen(true)}
-                    onOpenClassModal={() => {
-                      setShopModalTab('class');
-                      setIsShopModalOpen(true);
-                    }}
-                    onUseSkill={handleUseSkill}
-                    onToggleGender={handleToggleGender}
-                  />
-                  {partnerUser && (
-                    <PlayerCard
-                      shopItems={appState.shopItems}
-                      pets={appState.pets}
-                      user={partnerUser}
-                      isPartner={true}
-                      onOpenWardrobe={() => {
-                        setActiveUserId(partnerUser.id);
-                        setShopModalTab('wardrobe');
-                        setIsShopModalOpen(true);
-                      }}
-                      onOpenCharacterEditor={() => {
-                        setActiveUserId(partnerUser.id);
-                        setIsCharacterEditorOpen(true);
-                      }}
-                      onOpenClassModal={() => {
-                        setActiveUserId(partnerUser.id);
-                        setShopModalTab('class');
-                        setIsShopModalOpen(true);
-                      }}
-                      onUseSkill={handleUseSkill}
-                      onToggleGender={handleToggleGender}
-                    />
-                  )}
-                </div>
-
-                {/* Boss Monster & Challenge Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <BossBattle boss={appState.boss} onUseSkill={handleUseSkill} />
-                  <ChallengeCard challenge={appState.challenge} />
-                </div>
-              </div>
+              /* Обзор = Party (как у Habitica): компактный список отряда,
+                 развёрнутые статы только у своего профиля */
+              <PartyView
+                appState={appState}
+                activeUser={activeUser}
+                onOpenWardrobe={() => {
+                  setShopModalTab('wardrobe');
+                  setIsShopModalOpen(true);
+                }}
+                onOpenCharacterEditor={() => setIsCharacterEditorOpen(true)}
+              />
             )}
 
             {/* Today's Tasks & Feed Journal Grid */}
