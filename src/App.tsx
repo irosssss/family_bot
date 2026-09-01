@@ -1233,7 +1233,7 @@ export function App() {
                 {
                   icon: <LayoutDashboard className="w-5 h-5 text-blue-400" />,
                   label: 'Обзор',
-                  desc: 'Карточки героев',
+                  desc: 'Отряд семьи',
                   action: () => {
                     setActiveNavTab('dashboard');
                     setActiveScene('overview');
@@ -1243,7 +1243,7 @@ export function App() {
                 {
                   icon: <Settings className="w-5 h-5 text-slate-300" />,
                   label: 'Настройки',
-                  desc: 'Семья и прочее',
+                  desc: 'Семья и игроки',
                   action: () => {
                     setIsFamilyModalOpen(true);
                     setIsMoreSheetOpen(false);
