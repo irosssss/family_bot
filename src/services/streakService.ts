@@ -390,12 +390,11 @@ export async function updateStreak(userId: number, date: string, io?: any): Prom
  await notifyMilestone(userId, milestoneReached, io);
  }
 
- // Уведомления
- if (newStatus === 'frozen') {
- await notifyStreakSaved(userId, io);
- } else if (newStatus === 'broken') {
- await notifyStreakBroken(userId, io);
- }
+ // Уведомления (async-parallel: не зависят друг от друга — гоним вместе)
+ await Promise.all([
+ newStatus === 'frozen' ? notifyStreakSaved(userId, io) : Promise.resolve(),
+ newStatus === 'broken' ? notifyStreakBroken(userId, io) : Promise.resolve(),
+ ]);
 
  // Socket.IO событие (BUG #5 FIX: streak_updated)
  if (io) {

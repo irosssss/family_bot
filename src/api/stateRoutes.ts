@@ -28,12 +28,19 @@ stateRoutes.get('/db-test', async (_req: Request, res: Response) => {
 
 stateRoutes.get('/', async (req: Request, res: Response) => {
   try {
-    const dbUsers = await db.select().from(usersTable);
+    // async-parallel (vercel-react-best-practices): независимые выборки —
+    // один параллельный батч вместо водопада последовательных round-trip'ов.
+    const [dbUsers, dbItems, dbPets, dbBossesArr] = await Promise.all([
+      db.select().from(usersTable),
+      db.select().from(schema.items),
+      db.select().from(schema.pets),
+      db.select().from(schema.bosses),
+    ]);
+
     if (dbUsers.length > 0) {
       appState.users = dbUsers.map(u => ({ ...u, class: u.class_type })) as any;
     }
 
-    const dbItems = await db.select().from(schema.items);
     if (dbItems.length > 0) {
       appState.shopItems = dbItems.map((i: any) => ({
         id: i.id,
@@ -46,7 +53,6 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
       })) as any;
     }
 
-    const dbPets = await db.select().from(schema.pets);
     if (dbPets.length > 0) {
        appState.pets = dbPets.map((p: any) => ({
          id: p.id,
@@ -57,9 +63,8 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
        })) as any;
     }
 
-    const dbBosses = await db.select().from(schema.bosses);
-    if (dbBosses.length > 0) {
-      const dbBoss = dbBosses[0];
+    if (dbBossesArr.length > 0) {
+      const dbBoss = dbBossesArr[0];
       // Недельная ротация боссов (Habitica-каталог, 117 шт):
       // если неделя сменилась — выбираем нового по номеру недели и обновляем БД.
       const currentWeekKey = getWeekKey();
@@ -95,7 +100,8 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
       };
     }
 
-    // Habitica Habits: гидрация из БД
+    // Habits + Фаза 6: обе группы — параллельно, изоляция сбоев сохранена
+    const habitsHydrate = (async () => {
     try {
       const dbHabits = await db.select().from(schema.habits).orderBy(desc(schema.habits.id));
       if (dbHabits.length > 0) {
@@ -104,13 +110,23 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
     } catch (e) {
       console.error('Habits hydrate error:', e);
     }
+    })();
 
     // Фаза 6: прогресс игрока — БД источник правды. Перезапуск сервера больше
     // не теряет завершения, perfect days, инвентарь, питомцев, покупки,
     // рефералки и ачивки. Каждая коллекция перенимается только когда БД
     // её отдаёт (иначе — демо-сида памяти, как до Фазы 6).
+    const phase6Hydrate = (async () => {
     try {
-      const dbCompletions = await db.select().from(schema.completions);
+      const [dbCompletions, dbPerfect, dbInv, dbUserPets, dbPurchases, dbRefs, dbUserAch] = await Promise.all([
+        db.select().from(schema.completions),
+        db.select().from(schema.perfect_days),
+        db.select().from(schema.character_inventory),
+        db.select().from(schema.character_pets),
+        db.select().from(schema.purchases),
+        db.select().from(schema.referrals),
+        db.select().from(schema.user_achievements),
+      ]);
       if (dbCompletions.length > 0) {
         appState.completions = dbCompletions.map((c) => ({
           id: c.id,
@@ -121,12 +137,10 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
         }));
       }
 
-      const dbPerfect = await db.select().from(schema.perfect_days);
       if (dbPerfect.length > 0) {
         appState.perfectDays = dbPerfect.map((p) => ({ user_id: p.user_id, day: p.day }));
       }
 
-      const dbInv = await db.select().from(schema.character_inventory);
       if (dbInv.length > 0) {
         appState.userItems = dbInv.map((i) => ({
           user_id: i.character_id,
@@ -135,12 +149,10 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
         }));
       }
 
-      const dbUserPets = await db.select().from(schema.character_pets);
       if (dbUserPets.length > 0) {
         appState.userPets = dbUserPets.map((p) => ({ user_id: p.character_id, pet_id: p.pet_id }));
       }
 
-      const dbPurchases = await db.select().from(schema.purchases);
       if (dbPurchases.length > 0) {
         appState.purchases = dbPurchases.map((p) => ({
           id: p.id,
@@ -151,7 +163,6 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
         }));
       }
 
-      const dbRefs = await db.select().from(schema.referrals);
       if (dbRefs.length > 0) {
         appState.referrals = dbRefs.map((r) => ({
           id: r.id,
@@ -164,7 +175,6 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
         }));
       }
 
-      const dbUserAch = await db.select().from(schema.user_achievements);
       if (dbUserAch.length > 0) {
         appState.userAchievements = dbUserAch.map((ua) => ({
           user_id: ua.user_id,
@@ -174,6 +184,9 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
     } catch (e) {
       console.error('Phase6 progress hydrate error:', e);
     }
+    })();
+
+    await Promise.all([habitsHydrate, phase6Hydrate]);
   } catch (e) { console.error('Error fetching data from DB:', e); }
 
   // Enrich users with equipped emojis and pets list
