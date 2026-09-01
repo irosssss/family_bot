@@ -231,7 +231,7 @@ export interface AppState {
   shopItems: ShopItem[];
   userItems: UserItem[];
   pets: Pet[];
-  userPets: { user_id: number; pet_id: number }[];
+  userPets: { user_id: number; pet_id: number; is_active?: boolean; feed_points?: number }[];
   achievements: Achievement[];
   userAchievements: { user_id: number; achievement_id: number }[];
   boss: Boss;

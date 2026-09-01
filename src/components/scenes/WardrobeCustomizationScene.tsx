@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { User, ShopItem, Pet, AppState } from '../../types';
 import HabiticaAnimatedAvatar from '../HabiticaAnimatedAvatar';
-import { DEFAULT_LOOKS } from '../../utils/habiticaAssets';
+import { DEFAULT_LOOKS, HabiticaLook } from '../../utils/habiticaAssets';
 import UlpcAvatar from '../UlpcAvatar';
-import { getUserCharacter, buildUlpcLayers, resolveUlpcTorso } from '../../utils/ulpcCharacter';
-import { Shirt, Shield, Crown, Wand2, Sparkles, Check, X, Package, UserCheck, Layers, Eye } from 'lucide-react';
+import UlpcPetAvatar from '../UlpcPetAvatar';
+import { getUserCharacter, buildUlpcLayers, resolveUlpcTorso, SHOP_TORSO_MAP } from '../../utils/ulpcCharacter';
+import { applyItemLook } from '../../utils/shopLookMap';
+import { Shirt, Shield, Crown, Wand2, Sparkles, Check, X, Package, PawPrint, Star } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 
 interface WardrobeCustomizationSceneProps {
@@ -12,13 +14,44 @@ interface WardrobeCustomizationSceneProps {
  activeUser: User;
  onEquipItem: (itemId: number) => void;
  onBuyItem?: (itemId: number) => void;
+ /** Выбрать питомца-компаньона (POST /api/zoo/active) */
+ onSetActivePet?: (petId: number) => void;
 }
+
+/** Кадр 0 выбранного ряда спрайтшита → квадратная иконка (без «полосатых» превью). */
+const SheetThumb: React.FC<{ src?: string; size?: number; row?: number; className?: string }> = ({
+ src, size = 40, row = 2, className = '',
+}) => {
+ const ref = useRef<HTMLCanvasElement>(null);
+ useEffect(() => {
+   const canvas = ref.current;
+   if (!canvas || !src) return;
+   let dead = false;
+   const img = new Image();
+   img.onload = () => {
+     if (dead) return;
+     const ctx = canvas.getContext('2d');
+     if (!ctx) return;
+     ctx.imageSmoothingEnabled = false;
+     ctx.clearRect(0, 0, canvas.width, canvas.height);
+     const fw = img.width / Math.round(img.width / 64);
+     const rows = Math.round(img.height / 64);
+     const r = Math.min(row, rows - 1);
+     ctx.drawImage(img, 0, r * 64, fw, 64, 0, 0, canvas.width, canvas.height);
+   };
+   img.src = src;
+   return () => { dead = true; };
+ }, [src, row]);
+ if (!src) return null;
+ return <canvas ref={ref} width={size} height={size} className={`[image-rendering:pixelated] shrink-0 ${className}`} />;
+};
 
 export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProps> = ({
  appState,
  activeUser,
  onEquipItem,
  onBuyItem,
+ onSetActivePet,
 }) => {
  const [activeTab, setActiveTab] = useState<'weapon' | 'body' | 'head' | 'pets'>('body');
  // Превью до покупки (UX-аудит P1): выбранный некупленный предмет показывается на персонаже,
@@ -36,37 +69,48 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
   return false;
  });
 
- const equipped = activeUser.equipped || {};
- // Коды надетых предметов (для ULPC примерки)
+ // Коды надетых предметов (для маппинга «предмет → образ»)
  const equippedCodes = (activeUser as any).equipped_codes || {};
- // Предмет в режиме примерки: если это ULPC-торс — он показывается на аватаре вместо текущего
+ // Предмет в режиме примерки
  const previewItem = previewItemId != null ? categoryItems.find((i) => i.id === previewItemId) || null : null;
  const previewIsUlpcTorso = !!previewItem && !!resolveUlpcTorso(previewItem.code);
 
+ // Какой торс показывать: ULPC (купленный или в примерке) → ULPC-аватар; иначе Habitica-тиры
+ const shownBodyCode = previewIsUlpcTorso ? previewItem!.code : equippedCodes.body;
+ const mirrorIsUlpc = !!(shownBodyCode && SHOP_TORSO_MAP[shownBodyCode]);
+
  const ulpcCfg = useMemo(() => {
-    const previewBody = previewIsUlpcTorso ? previewItem!.code : equippedCodes.body;
-    return getUserCharacter({ ...activeUser, equipped_body: previewBody }).cfg;
-  }, [activeUser, equippedCodes.body, previewIsUlpcTorso, previewItem]);
-  const ulpcLayers = useMemo(() => buildUlpcLayers(ulpcCfg, 'idle'), [ulpcCfg]);
+    return getUserCharacter({ ...activeUser, equipped_body: shownBodyCode }).cfg;
+  }, [activeUser, shownBodyCode]);
+ const ulpcLayers = useMemo(() => buildUlpcLayers(ulpcCfg, 'idle'), [ulpcCfg]);
 
-  // === Habitica V3: образ для зеркала (превью торса из магазина тоже применяется) ===
-  const hLook = useMemo(() => {
-    const key =
-      activeUser.display_name.toLowerCase().includes('миша') ? 'misha'
-      : activeUser.display_name.toLowerCase().includes('регина') || activeUser.display_name.toLowerCase().includes('regina') ? 'regina'
-      : activeUser.display_name.toLowerCase().includes('папа') ? 'papa'
-      : activeUser.display_name.toLowerCase().includes('мама') ? 'mama'
-      : 'misha';
-    const base = { ...DEFAULT_LOOKS[key], ...((activeUser as any).habitica_equipped || {}) };
-    // Живая примерка: Habitica-броня из магазина (коды вида armor_warrior_3)
-    if (previewItem && previewItem.code.startsWith('armor_')) {
-      const m = previewItem.code.match(/armor_(\w+)_(\d)/);
-      if (m) base.armorTier = Number(m[2]);
-    }
-    return base;
-  }, [activeUser, previewItem]);
+ // === Habitica V3: образ для зеркала — дефолт семьи + habitica_equipped + тиры надетых предметов ===
+ const hLook = useMemo(() => {
+   const key =
+     activeUser.display_name.toLowerCase().includes('миша') ? 'misha'
+     : activeUser.display_name.toLowerCase().includes('регина') || activeUser.display_name.toLowerCase().includes('regina') ? 'regina'
+     : activeUser.display_name.toLowerCase().includes('папа') ? 'papa'
+     : activeUser.display_name.toLowerCase().includes('мама') ? 'mama'
+     : 'misha';
+   let base: HabiticaLook = { ...DEFAULT_LOOKS[key], ...((activeUser as any).habitica_equipped || {}) } as HabiticaLook;
+   // Тиры надетых предметов (weapon/shield/head, старые 16-bit брони)
+   base = applyItemLook(base, equippedCodes.weapon);
+   base = applyItemLook(base, equippedCodes.shield);
+   base = applyItemLook(base, equippedCodes.head);
+   if (equippedCodes.body && !SHOP_TORSO_MAP[equippedCodes.body]) {
+     base = applyItemLook(base, equippedCodes.body);
+   }
+   // Живая примерка: предмет в примерке перекрывает свой слот
+   if (previewItem) base = applyItemLook(base, previewItem.code);
+   return base;
+ }, [activeUser, previewItem, equippedCodes]);
 
- // Сброс примерки при смене вкладки или пользователя
+ // Питомцы: свои (владельцы) + активный
+ const myPets = appState.userPets.filter((up) => up.user_id === activeUser.id);
+ const myPetIds = new Set(myPets.map((up) => up.pet_id));
+ const activePetId = myPets.find((up) => up.is_active)?.pet_id ?? null;
+
+ // Сброс примерки при смене вкладки
  const changeTab = (tab: typeof activeTab) => {
    triggerHaptic('impact', 'light');
    setPreviewItemId(null);
@@ -115,24 +159,36 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
  {/* Left Column: Player Mirror — sticky на мобиле, чтобы примерка всегда в поле зрения */}
  <div className="lg:col-span-5 flex flex-col items-center justify-center p-4 sm:p-6 bg-slate-900/90 backdrop-blur-md rounded-2xl sm:rounded-3xl border-2 border-indigo-500/30 shadow-2xl relative lg:sticky lg:top-2">
  <div className="absolute top-2.5 left-3 text-[9px] sm:text-[10px] uppercase font-bold text-indigo-300 font-pixel-sub flex items-center gap-1">
- <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-400" />
+ <Shirt className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-400" />
  <span>Зеркало Персонажа</span>
  </div>
 
  {previewItem && (
    <div className="absolute top-2.5 right-3 flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[9px] sm:text-[10px] font-bold uppercase">
-     <Eye className="w-3 h-3" />
      Примерка: {previewItem.title}
    </div>
  )}
 
  <div className="my-3 sm:my-6 relative">
  <div className="absolute -inset-4 rounded-full bg-indigo-500/20 blur-xl animate-pulse" />
- {/* Habitica V3: слоёный анимированный аватар (крупный в зеркале) */}
- <div className="relative">
+ {/* Зеркало: ULPC-персонаж для надетых ULPC-торсов, Habitica V3 для остальных образов */}
+ {mirrorIsUlpc ? (
+   <UlpcAvatar layers={ulpcLayers} anim="idle" size={150} animated={true} />
+ ) : (
    <HabiticaAnimatedAvatar look={hLook} cls={activeUser.class || 'warrior'} size={150} state="idle" />
+ )}
  </div>
- </div>
+
+ {/* Активный питомец-компаньон у ног (как в хабе) */}
+ {(() => {
+   const ap = activePetId != null ? appState.pets.find((p) => p.id === activePetId) : null;
+   return ap ? (
+     <div className="mb-2 flex items-center gap-2">
+       <UlpcPetAvatar pet={ap} size={40} animated={false} />
+       <span className="text-[10px] text-slate-400">Рядом: {ap.title}</span>
+     </div>
+   ) : null;
+ })()}
 
  <div className="text-center space-y-0.5 sm:space-y-1">
  <h3 className="text-sm sm:text-base font-bold text-white font-pixel-sub">
@@ -219,6 +275,7 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
  : 'bg-white/5 text-slate-400 hover:text-white'
  }`}
  >
+ <PawPrint className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
  <span>Питомцы</span>
  </button>
  </div>
@@ -245,10 +302,9 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
  }`}
  >
  <div className="flex items-center gap-2 mb-2">
- {item.imageUrl ? (
- <img src={item.imageUrl} alt={item.title} className="w-8 h-8 object-contain [image-rendering:pixelated]" />
- ) : null}
- <div>
+ {/* Иконка: спрайтшиты LPC рисуем покадрово, обычные URL — как есть */}
+ <SheetThumb src={item.imageUrl} size={36} row={2} />
+ <div className="min-w-0">
  <p className="text-xs font-semibold text-slate-100 truncate">{item.title}</p>
  <span className="text-[10px] text-slate-400">{item.slot}</span>
  </div>
@@ -309,7 +365,6 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
        }}
        className="w-full py-2.5 min-h-[44px] rounded-xl bg-amber-500/20 hover:bg-amber-500/30 active:scale-95 transition text-amber-300 border border-amber-400/40 text-[10px] font-bold flex items-center justify-center gap-1"
      >
-       <Eye className="w-3 h-3" />
        Примерка (бесплатно)
        </button>
    )}
@@ -319,20 +374,55 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
  );
  })
  ) : (
- appState.pets.map((pet) => (
- <div
- key={pet.id}
- className="p-3 rounded-2xl border border-amber-500/30 bg-slate-900/90 flex items-center gap-3"
- >
- {pet.imageUrl ? (
- <img src={pet.imageUrl} alt={pet.title} className="w-8 h-8 object-contain [image-rendering:pixelated]" />
- ) : null}
- <div>
- <p className="text-xs font-bold text-amber-200">{pet.title}</p>
- <span className="text-[10px] text-slate-400">Питомец-компаньон</span>
- </div>
- </div>
- ))
+ <>
+ {appState.pets.map((pet) => {
+   const owned = myPetIds.has(pet.id);
+   const isActive = activePetId === pet.id;
+   return (
+   <div
+   key={pet.id}
+   className={`p-3 rounded-2xl border flex flex-col justify-between ${
+     isActive
+       ? 'border-emerald-400 bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
+       : owned
+         ? 'border-amber-500/30 bg-slate-900/90'
+         : 'border-slate-800 bg-slate-950/60 opacity-75'
+   }`}
+   >
+   <div className="flex items-center gap-2 mb-2">
+   {pet.imageUrl && (
+     <SheetThumb src={pet.imageUrl} size={40} row={0} />
+   )}
+   <div className="min-w-0">
+   <p className="text-xs font-bold text-amber-200 truncate">{pet.title}</p>
+   <span className="text-[10px] text-slate-400">
+     {isActive ? 'Активный компаньон' : owned ? 'Живёт в зоопарке' : 'Ещё не вылупился'}
+   </span>
+   </div>
+   </div>
+   {owned && onSetActivePet && (
+     isActive ? (
+       <div className="w-full py-2.5 min-h-[44px] rounded-xl bg-emerald-500/20 text-emerald-300 text-[10px] font-bold flex items-center justify-center gap-1">
+         <Check className="w-3.5 h-3.5" />
+         <span>С тобой</span>
+       </div>
+     ) : (
+       <button
+         onClick={() => {
+           triggerHaptic('notification', 'success');
+           onSetActivePet(pet.id);
+         }}
+         className="w-full py-2.5 min-h-[44px] rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 active:scale-95 transition text-emerald-200 border border-emerald-500/40 text-[10px] font-bold flex items-center justify-center gap-1"
+       >
+         <Star className="w-3.5 h-3.5" />
+         Взять с собой
+       </button>
+     )
+   )}
+   </div>
+   );
+ })}
+ </>
  )}
  </div>
  </div>

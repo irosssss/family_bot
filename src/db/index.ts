@@ -17,6 +17,7 @@ const client = postgres({
 });
 
 export const db = drizzle(client, { schema });
+export { client };
 
 /**
  * Фаза 6: уникальный индекс завершений — идемпотентность POST /complete.

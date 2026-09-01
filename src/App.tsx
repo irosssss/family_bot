@@ -643,6 +643,28 @@ export function App() {
     }
   };
 
+  // Выбор активного питомца-компаньона (гардероб → вкладка «Питомцы»)
+  const handleSetActivePet = async (petId: number) => {
+    if (!activeUser) return;
+    try {
+      const res = await fetch('/api/zoo/active', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: activeUser.id, petId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(`Ошибка: ${data.error}`);
+        return;
+      }
+      triggerHaptic('notification', 'success');
+      if (data.message) showToast(data.message);
+      loadState();
+    } catch (e) {
+      showToast('Ошибка выбора питомца');
+    }
+  };
+
   // Add Task
   const handleAddTask = async (taskData: any) => {
     try {
@@ -864,6 +886,7 @@ export function App() {
                 activeUser={activeUser}
                 onEquipItem={handleEquipItem}
                 onBuyItem={handleBuyShopItem}
+                onSetActivePet={handleSetActivePet}
               />
             )}
 

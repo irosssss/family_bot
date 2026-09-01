@@ -44,7 +44,8 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
     if (dbItems.length > 0) {
       appState.shopItems = dbItems.map((i: any) => ({
         id: i.id,
-        code: i.name.toLowerCase().replace(/ /g, '_'),
+        // code из БД (колонка items.code), фолбэк — старый slug из названия
+        code: i.code || i.name.toLowerCase().replace(/ /g, '_'),
         title: i.name,
         imageUrl: i.sprite_url,
         slot: i.type === 'hat' ? 'head' : (i.type === 'clothing' ? 'body' : i.type),
@@ -150,7 +151,12 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
       }
 
       if (dbUserPets.length > 0) {
-        appState.userPets = dbUserPets.map((p) => ({ user_id: p.character_id, pet_id: p.pet_id }));
+        appState.userPets = dbUserPets.map((p) => ({
+          user_id: p.character_id,
+          pet_id: p.pet_id,
+          is_active: p.is_active ?? false,
+          feed_points: p.feed_points,
+        }));
       }
 
       if (dbPurchases.length > 0) {

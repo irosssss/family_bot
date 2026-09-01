@@ -30,11 +30,17 @@ export async function ensureCatalogInDb(): Promise<void> {
         .values({
           id: item.id,
           name: item.title,
+          // code — slug из initialData; onConflictDoUpdate дозаполняет его
+          // существующим строкам (в dev-БД каталог уже был без code).
+          code: item.code,
           type: item.slot,
           sprite_url: item.icon || '',
           cost_coins: item.cost,
         })
-        .onConflictDoNothing();
+        .onConflictDoUpdate({
+          target: schema.items.id,
+          set: { code: item.code, sprite_url: item.icon || '', cost_coins: item.cost },
+        });
     }
     for (const reward of INITIAL_REWARDS) {
       await db

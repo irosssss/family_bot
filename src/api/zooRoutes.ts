@@ -136,6 +136,48 @@ zooRoutes.get('/list', async (req: Request, res: Response) => {
   }
 });
 
+/** Выбор активного питомца-компаньона (ходит за героем в хабе) */
+zooRoutes.post('/active', async (req: Request, res: Response) => {
+  try {
+    const { userId, petId } = req.body;
+    const user = appState.users.find((u) => u.id === Number(userId));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Владение проверяем по зеркалу памяти (работает и в DEMO без БД).
+    const owned = appState.userPets.some(
+      (up) => up.user_id === Number(userId) && up.pet_id === Number(petId)
+    );
+    if (!owned) {
+      return res.status(400).json({ error: 'Питомец не найден у пользователя' });
+    }
+
+    // Зеркало памяти: is_active у выбранного, снят у остальных.
+    for (const up of appState.userPets) {
+      up.is_active = up.user_id === Number(userId) && up.pet_id === Number(petId);
+    }
+
+    // Персист best-effort (в DEMO БД нет — играем из памяти).
+    try {
+      await db.update(schema.character_pets)
+        .set({ is_active: false })
+        .where(eq(schema.character_pets.character_id, Number(userId)));
+      await db.update(schema.character_pets)
+        .set({ is_active: true })
+        .where(and(
+          eq(schema.character_pets.character_id, Number(userId)),
+          eq(schema.character_pets.pet_id, Number(petId))
+        ));
+    } catch (e) {
+      console.error('zoo/active persist error (best-effort):', (e as any)?.message || e);
+    }
+
+    const pet = appState.pets.find((p) => p.id === Number(petId));
+    res.json({ success: true, message: `${pet?.title || 'Питомец'} теперь с тобой!` });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 /** Кормление: +10 очков, на 100 превращается в маунта */
 zooRoutes.post('/feed', async (req: Request, res: Response) => {
   try {

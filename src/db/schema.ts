@@ -57,6 +57,9 @@ export const users = pgTable('users', {
 export const items = pgTable('items', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
+  // Устойчивый slug из initialData (leather_armor_shop, sword...) — ключ
+  // визуального маппинга «предмет → образ аватара» (см. SHOP_TORSO_MAP).
+  code: text('code'),
   type: text('type').notNull(),
   sprite_url: text('sprite_url').notNull(), // Локальный путь к картинке в public/
   layer_z_index: integer('layer_z_index').default(10), // z-index for rendering
