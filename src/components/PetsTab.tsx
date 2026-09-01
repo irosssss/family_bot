@@ -249,7 +249,7 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, o
             }`}
           >
             <EggIcon className="w-4 h-4" />
-            {hatching ? 'Инкубируем...' : `Инкубировать (${hatchCost}з)`}
+            {hatching ? 'Инкубируем…' : `Инкубировать (${hatchCost}з)`}
           </button>
         </div>
 
@@ -277,7 +277,7 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, o
             disabled={loading}
             className="text-[11px] px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition disabled:opacity-50 min-h-[36px]"
           >
-            {loading ? 'Загрузка...' : 'Обновить'}
+            {loading ? 'Загрузка…' : 'Обновить'}
           </button>
         </div>
 
@@ -322,7 +322,7 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, o
                     <div className="mt-1.5 flex items-center gap-2">
                       <div className="flex-1 h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-700/50">
                         <div
-                          className={`h-full transition-all duration-500 ${
+                          className={`h-full transition-[colors,transform,box-shadow] duration-500 ${
                             isMount
                               ? 'bg-gradient-to-r from-emerald-500 to-green-400'
                               : 'bg-gradient-to-r from-amber-500 to-orange-400'

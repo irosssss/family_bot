@@ -131,7 +131,7 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
   };
 
   return (
-    <div className="relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm transition-all duration-300"
+    <div className="relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-sm transition-[colors,transform,box-shadow] duration-300"
       style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}>
       <div className={`flex items-center gap-1.5 ${getBadgeColors()} px-2.5 py-0.5 rounded-full`}>
         <span className={getTextColor()}>{getStatusIcon()}</span>

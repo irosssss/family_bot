@@ -125,7 +125,7 @@ export const PixelButton: React.FC<PixelButtonProps> = ({
       disabled={isDisabled}
       aria-disabled={isDisabled}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center font-semibold transition-all duration-150 border select-none cursor-pointer
+      className={`inline-flex items-center justify-center font-semibold transition-[colors,transform,box-shadow] duration-150 border select-none cursor-pointer
         active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
         ${buttonVariants[variant]}
         ${buttonSizes[size]}
@@ -181,7 +181,7 @@ export const PixelIconButton: React.FC<PixelIconButtonProps> = ({
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       aria-disabled={disabled}
-      className={`inline-flex items-center justify-center border transition-all duration-150 select-none cursor-pointer
+      className={`inline-flex items-center justify-center border transition-[colors,box-shadow] duration-150 select-none cursor-pointer
         active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60
         ${buttonVariants[variant]}
         ${sizes[size]}

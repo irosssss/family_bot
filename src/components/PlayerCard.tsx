@@ -71,7 +71,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border transition-all p-3.5 sm:p-5 ${
+      className={`relative overflow-hidden rounded-2xl border transition-colors p-3.5 sm:p-5 ${
         isPartner ? 'border-pink-500/30' : 'border-amber-500/30'
       }`}
       style={{
@@ -131,7 +131,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
                 src={habiticaPetSprite(pet.code)}
                 alt=""
                 draggable={false}
-                className="w-10 h-12 sm:w-12 sm:h-14 [image-rendering:pixelated] object-contain"
+                width="48" height="56" className="w-10 h-12 sm:w-12 sm:h-14 [image-rendering:pixelated] object-contain"
               />
               <div className="w-6 h-1 bg-black/40 blur-[1px] rounded-full -mt-0.5 pointer-events-none" />
             </div>
@@ -158,7 +158,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
                 src={habiticaPetSprite(pet.code)}
                 alt=""
                 draggable={false}
-                className="w-10 h-12 sm:w-12 sm:h-14 [image-rendering:pixelated] object-contain"
+                width="48" height="56" className="w-10 h-12 sm:w-12 sm:h-14 [image-rendering:pixelated] object-contain"
               />
               <div className="w-6 h-1 bg-black/40 blur-[1px] rounded-full -mt-0.5 pointer-events-none" />
             </div>
@@ -177,7 +177,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         </div>
         <div className="w-full h-2.5 bg-black/60 rounded-full overflow-hidden border border-white/10">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-400 to-amber-300 transition-all duration-700"
+            className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-400 to-amber-300 transition-colors duration-700"
             style={{ width: `${Math.max(3, xpInLevel)}%` }}
           />
         </div>
@@ -196,7 +196,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
                 <span className="text-red-300 font-pixel-retro">{currentHp}/{maxHp}</span>
               </div>
               <div className="w-full h-3 bg-black/80 rounded-full overflow-hidden p-0.5 border border-red-500/40">
-                <div className="h-full rounded-full jrpg-hp-fill transition-all duration-500" style={{ width: `${hpPercent}%` }} />
+                <div className="h-full rounded-full jrpg-hp-fill transition-colors duration-500" style={{ width: `${hpPercent}%` }} />
               </div>
             </div>
             <div className="space-y-1">
@@ -207,7 +207,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
                 <span className="text-blue-300 font-pixel-retro">{currentMp}/{maxMp}</span>
               </div>
               <div className="w-full h-3 bg-black/80 rounded-full overflow-hidden p-0.5 border border-blue-500/40">
-                <div className="h-full rounded-full jrpg-mp-fill transition-all duration-500" style={{ width: `${mpPercent}%` }} />
+                <div className="h-full rounded-full jrpg-mp-fill transition-colors duration-500" style={{ width: `${mpPercent}%` }} />
               </div>
             </div>
           </div>

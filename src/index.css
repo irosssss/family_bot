@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: dark; /* WIG: тёмные скроллбары/инпуты нативно */
+
   /* Telegram WebApp Native Theme Variables with dark fallbacks */
   --tg-bg: var(--tg-theme-bg-color, #0f172a);
   --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #1e293b);

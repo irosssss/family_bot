@@ -45,13 +45,13 @@ export const BossBattle: React.FC<BossBattleProps> = ({ boss, onUseSkill }) => {
 
   return (
     <div
-      className={`bg-gradient-to-br from-red-950/40 via-slate-900/90 to-purple-950/40 border-2 border-red-500/30 rounded-2xl p-5 backdrop-blur-md relative overflow-hidden shadow-xl transition-all duration-75 ${
+      className={`bg-gradient-to-br from-red-950/40 via-slate-900/90 to-purple-950/40 border-2 border-red-500/30 rounded-2xl p-5 backdrop-blur-md relative overflow-hidden shadow-xl transition-[colors,transform,box-shadow] duration-75 ${
         isHit ? 'translate-x-1 translate-y-1 brightness-150 border-red-400' : ''
       }`}
     >
       {/* Glow Effect */}
       <div
-        className={`absolute -top-10 -right-10 w-36 h-36 rounded-full blur-2xl pointer-events-none transition-all ${
+        className={`absolute -top-10 -right-10 w-36 h-36 rounded-full blur-2xl pointer-events-none transition-[colors,transform,box-shadow] ${
           isHit ? 'bg-red-500/60 scale-150' : 'bg-red-500/20'
         }`}
       />
@@ -116,7 +116,7 @@ export const BossBattle: React.FC<BossBattleProps> = ({ boss, onUseSkill }) => {
         </div>
         <div className="w-full h-3.5 bg-black/70 rounded-full overflow-hidden p-0.5 border border-red-500/30">
           <div
-            className={`h-full rounded-full transition-all duration-700 ${
+            className={`h-full rounded-full transition-[colors,transform,box-shadow] duration-700 ${
               isDefeated
                 ? 'bg-emerald-400 shadow-lg shadow-emerald-500/50'
                 : 'bg-gradient-to-r from-red-600 via-amber-500 to-orange-400 shadow-md shadow-red-500/50'

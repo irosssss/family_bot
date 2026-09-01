@@ -244,7 +244,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
     return (
       <div
         key={task.id}
-        className={`flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border transition-all ${
+        className={`flex items-center justify-between p-3 sm:p-3.5 rounded-2xl border transition-[colors,transform,box-shadow] ${
           isDone
             ? 'bg-emerald-950/20 border-emerald-500/30 text-slate-400'
             : isRequired
@@ -263,6 +263,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
                 setTaskToConfirm(task);
               }
             }}
+            aria-label={isDone ? `Выполнено: ${task.title}` : `Отметить выполненным: ${task.title}`}
             className={`transition-transform flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl ${
               isDone
                 ? 'text-emerald-400 cursor-default'
@@ -431,7 +432,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
             </span>
           </div>
           <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-            {isLoading ? 'Загрузка...' : apiData ? (
+            {isLoading ? 'Загрузка…' : apiData ? (
               <>Выполнено {summary.required_done}/{summary.required_total} обязательных · {summary.progress_percent}% всего</>
             ) : (
               <>Выполнено {fallbackCompleted} из {scheduledTasks.length} задач ({fallbackProgress}%)
@@ -450,7 +451,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
                 setShowHabits((v) => !v);
                 if (!showHabits) fetchHabits();
               }}
-              className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg transition whitespace-nowrap text-[11px] sm:text-xs font-semibold flex items-center gap-1 ${
+              className={`px-2.5 sm:px-2.5 py-2.5 sm:py-2 my-0.5 rounded-lg transition-colors whitespace-nowrap text-[11px] sm:text-xs font-semibold min-h-[36px] flex items-center gap-1 ${
                 showHabits ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -462,7 +463,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
                 triggerHaptic('impact', 'light');
                 setFilter('mine');
               }}
-              className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg transition whitespace-nowrap text-[11px] sm:text-xs font-semibold ${
+              className={`px-2.5 sm:px-2.5 py-2.5 sm:py-2 my-0.5 rounded-lg transition-colors whitespace-nowrap text-[11px] sm:text-xs font-semibold min-h-[36px] ${
                 filter === 'mine' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -473,7 +474,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
                 triggerHaptic('impact', 'light');
                 setFilter('all');
               }}
-              className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg transition whitespace-nowrap text-[11px] sm:text-xs font-semibold ${
+              className={`px-2.5 sm:px-2.5 py-2.5 sm:py-2 my-0.5 rounded-lg transition-colors whitespace-nowrap text-[11px] sm:text-xs font-semibold min-h-[36px] ${
                 filter === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -484,7 +485,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
                 triggerHaptic('impact', 'light');
                 setFilter('joint');
               }}
-              className={`px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg transition whitespace-nowrap text-[11px] sm:text-xs font-semibold ${
+              className={`px-2.5 sm:px-2.5 py-2.5 sm:py-2 my-0.5 rounded-lg transition-colors whitespace-nowrap text-[11px] sm:text-xs font-semibold min-h-[36px] ${
                 filter === 'joint' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -509,7 +510,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
       {/* Progress Bar */}
       <div className="w-full bg-black/40 h-2.5 rounded-full overflow-hidden border border-white/10 mb-1.5">
         <div
-          className="h-full bg-gradient-to-r from-red-500 via-amber-400 to-emerald-400 transition-all duration-500"
+          className="h-full bg-gradient-to-r from-red-500 via-amber-400 to-emerald-400 transition-[colors,transform,box-shadow] duration-500"
           style={{ width: `${Math.max(0, Math.min(100, summary.progress_percent))}%` }}
         />
       </div>
@@ -606,8 +607,9 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Поиск по задачам на сегодня..."
-          className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 outline-none transition"
+          aria-label="Поиск по задачам на сегодня"
+          placeholder="Поиск задач…"
+          className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-8 py-2.5 text-xs text-white placeholder-slate-500 focus:border-blue-500 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 transition-colors"
         />
         {searchQuery && (
           <button
@@ -625,7 +627,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
           <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-3 mx-auto">
             <Sparkles className="w-6 h-6 text-blue-400 animate-pulse" />
           </div>
-          <p className="text-sm font-bold text-white">Загружаем задачи...</p>
+          <p className="text-sm font-bold text-white">Загружаем задачи…</p>
         </div>
       ) : !hasAnyTask ? (
         <div className="text-center py-10 px-4 bg-black/20 rounded-2xl border border-dashed border-white/10 flex flex-col items-center justify-center">
@@ -684,8 +686,8 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
           triggerHaptic('impact', 'medium');
           onOpenAddModal();
         }}
+        aria-label="Создать новую задачу"
         className="sm:hidden fixed bottom-20 right-4 z-40 p-4 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-amber-400 text-white shadow-2xl shadow-blue-500/50 border border-white/20 active:scale-95 transition-transform"
-        title="Создать новую задачу"
       >
         <Plus className="w-6 h-6" />
       </button>

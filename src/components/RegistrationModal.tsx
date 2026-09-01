@@ -395,7 +395,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
  setSelectedColor(col.hex);
  if (error) setError(null);
  }}
- className={`relative p-2.5 rounded-xl border transition-all text-left flex items-center gap-2.5 ${
+ className={`relative p-2.5 rounded-xl border transition-[colors,transform,box-shadow] text-left flex items-center gap-2.5 ${
  isSelected
  ? `bg-slate-800 border-2 ${col.borderClass} ${col.ringClass} ring-2 shadow-lg scale-[1.02]`
  : isTaken

@@ -41,7 +41,7 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
  const houseLevel = Math.min(5, Math.floor(totalTasksDone / 10) + 1);
 
  return (
-   <div className="relative w-full rounded-3xl overflow-hidden border-2 border-amber-500/30 bg-slate-950 shadow-2xl transition-all">
+   <div className="relative w-full rounded-3xl overflow-hidden border-2 border-amber-500/30 bg-slate-950 shadow-2xl transition-[colors,transform,box-shadow]">
      {/* Фон комнаты: cover с позицией top — мебель не режется, пол дорисовывается градиентом */}
      <div
        className="absolute inset-0 bg-no-repeat [image-rendering:pixelated]"
@@ -192,7 +192,7 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
  triggerHaptic('impact', 'medium');
  setSelectedUserForBubble(user);
  }}
- className="absolute -top-12 sm:-top-16 z-30 flex flex-col items-center animate-bounce cursor-pointer group-hover:scale-110 transition-transform"
+ className="relative z-30 -mb-1 flex flex-col items-center cursor-pointer group-hover:scale-110 transition-transform"
  title="Есть невыполненные квесты! Нажмите, чтобы просмотреть"
  >
  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-400 border-2 border-slate-950 text-slate-950 font-black flex items-center justify-center text-base sm:text-xl font-pixel-retro shadow-xl animate-pulse">
@@ -222,7 +222,7 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
  <div className="w-16 sm:w-24 h-2.5 sm:h-3 bg-black/40 blur-[2px] rounded-full -mt-1 sm:-mt-2 pointer-events-none" />
 
  {/* Clean Character Nameplate Badge under feet */}
- <div className={`mt-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold whitespace-nowrap shadow-lg backdrop-blur-md transition ${
+ <div className={`relative z-20 mt-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold whitespace-nowrap shadow-lg backdrop-blur-md transition ${
  isCurrent
  ? 'bg-amber-500/90 text-slate-950 border border-amber-300 font-pixel-sub'
  : 'bg-slate-900/80 text-amber-200 border border-white/10 font-pixel-sub'
@@ -235,11 +235,12 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
      Масштаб ~45% от роста (герой 110/140 → питомец 56/64).
      animate-bounce убран — питомец СТОИТ, а не плавает. */}
  {petObj && (
-   <div className="absolute right-0 sm:-right-2 bottom-1 sm:bottom-2 z-20 flex flex-col items-center pointer-events-none">
+   <div className="absolute -right-3 sm:-right-6 -bottom-1 sm:bottom-0 z-10 flex flex-col items-center pointer-events-none">
      <img
        src={habiticaPetSprite(petObj.code)}
        alt=""
        draggable={false}
+       width="56" height="64"
        className="w-12 h-14 [image-rendering:pixelated] object-contain"
      />
      {/* Тень под ногами питомца */}

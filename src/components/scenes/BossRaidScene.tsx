@@ -96,7 +96,7 @@ export const BossRaidScene: React.FC<BossRaidSceneProps> = ({
   };
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden border-2 border-red-600/40 bg-slate-950 shadow-2xl transition-all">
+    <div className="relative w-full rounded-3xl overflow-hidden border-2 border-red-600/40 bg-slate-950 shadow-2xl transition-[colors,transform,box-shadow]">
       {/* Фон арены */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat [image-rendering:pixelated]"
@@ -140,7 +140,7 @@ export const BossRaidScene: React.FC<BossRaidSceneProps> = ({
                 </span>
                 <div className="w-20 h-2 bg-slate-900 rounded-full overflow-hidden border border-amber-700/40">
                   <div
-                    className={`h-full transition-all duration-500 ${
+                    className={`h-full transition-[colors,transform,box-shadow] duration-500 ${
                       familyDanger
                         ? 'bg-gradient-to-r from-rose-600 to-red-500 animate-hp-danger'
                         : 'bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400'
@@ -187,7 +187,7 @@ export const BossRaidScene: React.FC<BossRaidSceneProps> = ({
           </div>
           <div className="w-full bg-slate-950 h-4 sm:h-5 rounded-full overflow-hidden border border-red-500/50 relative p-0.5">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${
+              className={`h-full rounded-full transition-[colors,transform,box-shadow] duration-500 ${
                 isDefeated
                   ? 'bg-emerald-400 shadow-lg shadow-emerald-500/50'
                   : 'bg-gradient-to-r from-red-600 via-amber-500 to-orange-400 shadow-lg shadow-red-500/50'

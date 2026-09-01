@@ -105,7 +105,7 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
  };
 
  return (
- <div className="relative w-full rounded-3xl overflow-hidden border-2 border-indigo-500/40 bg-slate-950 shadow-2xl transition-all">
+ <div className="relative w-full rounded-3xl overflow-hidden border-2 border-indigo-500/40 bg-slate-950 shadow-2xl transition-[colors,transform,box-shadow]">
  {/* Real Game Background Image: /assets/game/wardrobe_bg.png */}
  <div
    className="absolute inset-0 bg-cover bg-center bg-no-repeat"

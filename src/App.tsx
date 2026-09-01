@@ -741,7 +741,7 @@ export function App() {
       <div className="min-h-screen bg-[#0b0e14] text-slate-200 flex items-center justify-center">
         <div className="flex items-center gap-3">
           <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
-          <span className="text-sm font-semibold">Загрузка Family Chores...</span>
+          <span className="text-sm font-semibold">Загрузка Family Chores…</span>
         </div>
       </div>
     );
@@ -786,6 +786,7 @@ export function App() {
         {activeNavTab === 'dashboard' && (
           <div className="space-y-4 sm:space-y-6">
             {/* Scene Selector Router Tabs (32-bit RPG 3 Scenes) */}
+            <div className="relative">
             <div className="flex items-center justify-between bg-slate-900/90 p-1.5 sm:p-2 rounded-2xl border border-amber-500/30 overflow-x-auto gap-1.5 sm:gap-2 shadow-xl scrollbar-none">
               <button
                 onClick={() => {
@@ -837,7 +838,7 @@ export function App() {
                 <Shirt className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                 <span>
                   <span className="hidden sm:inline">3. Гардероб</span>
-                  <span className="sm:hidden">3. Гардероб</span>
+                  <span className="sm:hidden">Гардероб</span>
                 </span>
               </button>
 
@@ -858,6 +859,9 @@ export function App() {
                   <span className="sm:hidden">Обзор</span>
                 </span>
               </button>
+              {/* Скролл-хинт: обрезанный таб — сигнал, что есть прокрутка (WIG navigation) */}
+              <div className="sm:hidden pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-slate-900/95 to-transparent" aria-hidden="true" />
+            </div>
             </div>
 
             {/* Render 32-bit RPG Scene based on activeScene */}

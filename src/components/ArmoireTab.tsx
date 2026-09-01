@@ -129,7 +129,7 @@ export const ArmoireTab: React.FC<ArmoireTabProps> = ({ activeUser, onOpen }) =>
           {rolling ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Открываем сундук...
+              Открываем сундук…
             </>
           ) : (
             <>

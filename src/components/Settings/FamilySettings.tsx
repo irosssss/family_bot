@@ -241,7 +241,7 @@ export const FamilySettings: React.FC<FamilySettingsProps> = ({
 
           {/* Members list */}
           {isLoading ? (
-            <div className="text-center py-8 text-slate-400 text-sm">Загрузка...</div>
+            <div className="text-center py-8 text-slate-400 text-sm">Загрузка…</div>
           ) : (
             <div className="space-y-2">
               {members.map((u) => (
@@ -331,7 +331,7 @@ export const FamilySettings: React.FC<FamilySettingsProps> = ({
                   className="flex-1 min-h-[44px] rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white text-xs font-bold transition inline-flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <UserPlus className="w-4 h-4" />
-                  {isSaving ? 'Сохранение...' : 'Добавить'}
+                  {isSaving ? 'Сохранение…' : 'Добавить'}
                 </button>
                 <button
                   type="button"
@@ -403,7 +403,7 @@ export const FamilySettings: React.FC<FamilySettingsProps> = ({
                 className="flex-1 min-h-[44px] rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white text-xs font-bold transition inline-flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
-                {isSaving ? 'Сохранение...' : 'Сохранить'}
+                {isSaving ? 'Сохранение…' : 'Сохранить'}
               </button>
               <button
                 type="button"
