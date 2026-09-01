@@ -55,6 +55,25 @@ src/
 public/assets/game/   ТОЛЬКО файлы, которые грузит игра (см. docs/ASSET_MANIFEST.md)
 ```
 
+## Внешние скиллы (установлены в Hermes, каталог `external`)
+
+| Задача | Скилл |
+|---|---|
+| Произв. React: водопады Promise.all, бандл, ре-рендеры | `vercel-react-best-practices` (70 правил, rules/*.md) |
+| Растущие пропсы компонентов (PixelButton и т.п.), compound-паттерны | `vercel-composition-patterns` |
+| Ревью UI: a11y+UX+mobile чеклист (file:line) | `web-design-guidelines` (пара к accessibility-check) |
+| Новый экран/дизайн-контракт (не AI-шаблон) | `frontend-design` + локальный `anti-ui-slop` |
+| Тесты на швах (taskService.applyTaskCompletion и т.п.) | `tdd` |
+| Сложный баг: feedback loop → гипотезы → бисекция | `diagnosing-bugs` |
+| Стресс-тест плана перед большим этапом | `grilling` (или `grill-me`) |
+| Компрессия длинной сессии для следующего агента | `handoff` |
+| Ревью диффа: Standards + Spec | `code-review` (локальный `requesting-code-review` — про безопасность) |
+| Глоссарий домена, ADR | `domain-modeling` (AGENTS.md = наш CONTEXT.md) |
+| Огромная работа > 1 сессии: карта тикетов-решений | `wayfinder` |
+| Обучающее рабочее пространство по теме | `teach` |
+| Авторство/оптимизация самих скиллов | `skill-creator` (Hermes-специфика — `hermes-agent-skill-authoring`) |
+| Урок из ошибки/коррекции пользователя | `self-improving-agent` (плюс persistent memory) |
+
 ## Правила работы
 
 1. **Proof over claims**: визуальное изменение = скриншот/превью, а не «должно работать».
