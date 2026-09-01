@@ -46,7 +46,7 @@ export interface HabiticaLook {
 /** Дефолтные образы семьи (кожа — из фактических тонов пакета) */
 export const DEFAULT_LOOKS: Record<string, HabiticaLook> = {
   misha: { skin: 'ea8349', hairBase: 3, hairColor: 'blond', armorTier: 0, headTier: 0, weaponTier: 1 },
-  regina: { skin: 'f5a76e', hairBase: 12, hairBangs: 2, hairColor: 'red', armorTier: 0, headTier: 0, weaponTier: 1 },
+  regina: { skin: 'f5a76e', hairBase: 12, hairBangs: 2, hairColor: 'red', armorTier: 1, headTier: 0, weaponTier: 1 },
   papa: { skin: 'c06534', hairBase: 1, beard: 1, hairColor: 'brown', armorTier: 1, headTier: 0, weaponTier: 0 },
   mama: { skin: 'f5d70f', hairBase: 5, hairColor: 'brown', armorTier: 1, headTier: 0, weaponTier: 0 },
 };

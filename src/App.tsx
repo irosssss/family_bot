@@ -755,7 +755,6 @@ export function App() {
         users={appState.users}
         onSelectUser={(u) => setActiveUserId(u.id)}
         boss={appState.boss}
-        onUseSkill={handleUseSkill}
         soundEnabled={soundEnabled}
         onToggleSound={() => {
           sounds.enabled = !soundEnabled;

@@ -110,7 +110,7 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
  <div
    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
    style={{
-     backgroundImage: `url('/assets/game/wardrobe_bg.png')`,
+     backgroundImage: `url('/assets/game/habitica/backgrounds/background_castle_keep_with_banners.png')`,
      backgroundSize: 'cover',
      backgroundColor: '#0f172a'
    }}

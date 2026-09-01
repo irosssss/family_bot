@@ -101,7 +101,7 @@ export const BossRaidScene: React.FC<BossRaidSceneProps> = ({
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat [image-rendering:pixelated]"
         style={{
-          backgroundImage: `url('/assets/game/arena_bg.png')`,
+          backgroundImage: `url('/assets/game/habitica/backgrounds/background_dungeon.png')`,
           backgroundSize: 'cover',
           backgroundColor: '#180808',
         }}

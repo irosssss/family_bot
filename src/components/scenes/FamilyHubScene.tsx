@@ -6,13 +6,13 @@ import { habiticaPetSprite } from '../../utils/shopLookMap';
 import { MessageSquare, Home, Plus, Check } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 
-/** Фоны комнаты: пользовательский home_bg + LPC интерьеры (ротация) */
+/** Фоны комнаты: пользовательский home_bg + Habitica-интерьеры (ротация, канон стиля) */
 const ROOM_BACKGROUNDS = [
   '/assets/game/home_bg.png',
-  '/assets/game/backgrounds/lpc_interior/house_room_top.png',
-  '/assets/game/backgrounds/lpc_interior/house_room_bottom.png',
-  '/assets/game/backgrounds/lpc_interior/house_room_left_2x.png',
-  '/assets/game/backgrounds/lpc_interior/house_room_right_2x.png',
+  '/assets/game/habitica/backgrounds/background_cozy_library.png',
+  '/assets/game/habitica/backgrounds/background_medieval_kitchen.png',
+  '/assets/game/habitica/backgrounds/background_cozy_bedroom.png',
+  '/assets/game/habitica/backgrounds/background_farmhouse.png',
 ];
 
 interface FamilyHubSceneProps {
@@ -95,11 +95,25 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
  </div>
  </div>
 
- {/* Main Isometric Room Stage */}
- <div className="relative min-h-[360px] sm:min-h-[480px] p-4 sm:p-10 flex flex-col justify-end">
- {/* Family Members: сетка 2x2 на мобиле (375px), ряд на десктопе (UX-аудит P0) */}
- <div className="relative z-10 grid grid-cols-2 sm:flex sm:items-end sm:justify-center gap-6 sm:gap-24 pt-12 pb-4 justify-items-center">
- {appState.users.map((user) => {
+ {/* Main Room Stage: персонажи «живут» по комнате — каждый на своей точке пола,
+    задние меньше (перспектива), у своих объектов (камин/шкаф/кресло/столик) */}
+ <div className="relative min-h-[360px] sm:min-h-[480px]">
+ {/* Пол-линия, на которой стоят все персонажи */}
+ <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+ {/* Family Members: расселены по комнате (позиции подобраны под фон 480x360) */}
+ <div className="absolute inset-0 z-10">
+ {/* порядки: Regina у камина (задний план), Misha у шкафа (задний), Папа у кресла (перед), Мама у столика (перед) */}
+ {appState.users.map((user, uIdx) => {
+ // «Живое» расселение: позиция и масштаб (дальние — меньше) зависят от персонажа
+ const SPOTS = [
+   { left: '4%',  bottom: '36%', w: 0.85 },  // REGINA — у камина (задний план)
+   { left: '56%', bottom: '38%', w: 0.85 },  // MISHA — у шкафа (задний план)
+   { left: '38%', bottom: '6%',  w: 1.05 },  // Папа — у кресла (передний план)
+   { left: '74%', bottom: '4%',  w: 1.05 },  // Мама — у столика (передний план)
+ ];
+ const spot = SPOTS[uIdx % SPOTS.length];
+ const spriteSize = Math.round((window.innerWidth < 640 ? 110 : 140) * spot.w);
+
  const isCurrent = user.id === activeUser.id;
  const isBubbleOpen = selectedUserForBubble?.id === user.id;
 
@@ -125,7 +139,8 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
  return (
  <div 
  key={user.id} 
- className="relative flex flex-col items-center group cursor-pointer"
+ className="absolute flex flex-col items-center group cursor-pointer"
+ style={{ left: spot.left, bottom: spot.bottom, transform: 'translateX(-50%)' }}
  >
  {/* Classic RPG Speech Bubble Callout if active/clicked */}
  {isBubbleOpen && (
@@ -210,12 +225,9 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
              }}
              className="relative transition-transform duration-300 transform group-hover:-translate-y-2 flex flex-col items-center justify-end"
            >
- {/* ~35% Enlarged Pixel Sprite — Habitica animated avatar (пивот V3) */}
-           <div className="block sm:hidden [image-rendering:pixelated]">
-             <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={110} state="idle" gender={user.gender} />
-           </div>
-           <div className="hidden sm:block [image-rendering:pixelated]">
-             <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={140} state="idle" gender={user.gender} />
+ {/* Habitica animated avatar — размер от глубины (перспектива) */}
+           <div className="[image-rendering:pixelated]">
+             <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={spriteSize} state="idle" gender={user.gender} />
            </div>
 
  {/* Feet Radial Shadow on Room Floor */}

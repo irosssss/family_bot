@@ -226,22 +226,19 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
               </span>
               <span className="text-lg font-bold font-pixel-heading text-orange-400 mt-1 block">{user.current_streak || 0} дн.</span>
             </div>
-            <button
-              onClick={handleSkillClick}
-              disabled={!classConfig || !!user.skill_date}
-              className={`rounded-xl p-2.5 text-center border transition flex flex-col items-center justify-center cursor-pointer ${
-                user.skill_date
-                  ? 'bg-slate-900/40 border-slate-800 text-slate-500 opacity-60'
-                  : 'bg-purple-950/40 border-purple-500/30 hover:bg-purple-900/50 text-purple-300'
-              }`}
-            >
+            {/* Скилл кастуется ТОЛЬКО на арене (решение заказчика) — здесь статус */}
+            <div className={`rounded-xl p-2.5 text-center border flex flex-col items-center justify-center ${
+              user.skill_date
+                ? 'bg-slate-900/40 border-slate-800 text-slate-500 opacity-60'
+                : 'bg-purple-950/40 border-purple-500/30 text-purple-300'
+            }`}>
               <span className="text-[10px] font-pixel-sub flex items-center gap-1">
                 <Award className="w-3.5 h-3.5 text-purple-400" /> СКИЛЛ
               </span>
               <span className="text-xs font-pixel-sub font-bold mt-1 truncate">
-                {user.skill_date ? 'Использован' : 'Каст'}
+                {user.skill_date ? 'Использован' : 'На арене'}
               </span>
-            </button>
+            </div>
           </div>
 
           {/* Кнопки: Гардероб + Редактор */}
