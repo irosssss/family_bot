@@ -509,7 +509,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
  cls={selectedClass}
  size={72}
  state="idle"
- />
+  />
  <div className="min-w-0 flex-1">
  <div className="flex items-center gap-2">
  <span
@@ -639,7 +639,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
  cls={u.class}
  size={36}
  state="idle"
- />
+  gender={u.gender} />
  </div>
  <div>
  <div className="font-bold text-sm text-white flex items-center gap-2">

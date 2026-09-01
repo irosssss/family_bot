@@ -21,6 +21,7 @@ import {
   HabiticaLook,
 } from './habiticaAssets';
 import { SHOP_TORSO_MAP } from './ulpcCharacter';
+import { applyItemLook } from './shopLookMap';
 
 /** ULPC-торс → Habitica-тир брони (визуальная близость комплектов). */
 const ULPC_TORSO_TO_ARMOR_TIER: Record<string, number> = {
@@ -54,10 +55,18 @@ export function getBaseLook(user: User): HabiticaLook {
  *  - класс определяет форму брони (broad/slim) внутри HabiticaAnimatedAvatar.
  */
 export function getUnifiedLook(user: User): HabiticaLook {
-  const look = getBaseLook(user);
+  let look = getBaseLook(user);
+  const codes = ((user as any).equipped_codes || {}) as Record<string, string | undefined>;
+
+  // Тиры ВСЕХ надетых предметов: оружие/щит/шляпa/старые брони (ITEM_LOOK_MAP).
+  // items.code — стабильный ключ; render-time резолв (не миграция БД).
+  look = applyItemLook(look, codes.weapon);
+  look = applyItemLook(look, codes.shield);
+  look = applyItemLook(look, codes.head);
+  look = applyItemLook(look, codes.body);
 
   // ULPC-броня из магазина → armorTier (броня «сильнее» дефолта — показываем её)
-  const bodyCode = ((user as any).equipped_codes || {}).body as string | undefined;
+  const bodyCode = codes.body;
   if (bodyCode && SHOP_TORSO_MAP[bodyCode]) {
     const tier = ULPC_TORSO_TO_ARMOR_TIER[bodyCode];
     if (tier != null && tier > (look.armorTier ?? 0)) {

@@ -143,10 +143,10 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           className={`relative z-10 flex-1 flex justify-center ${isAttacking ? 'animate-pixel-attack' : ''}`}
         >
           <div className="block sm:hidden">
-            <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={96} state="idle" />
+            <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={96} state="idle"  gender={user.gender} />
           </div>
           <div className="hidden sm:block">
-            <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={120} state="idle" />
+            <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={120} state="idle"  gender={user.gender} />
           </div>
         </div>
 

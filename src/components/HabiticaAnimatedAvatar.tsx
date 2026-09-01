@@ -9,6 +9,7 @@ interface HabiticaAnimatedAvatarProps {
   size?: number;                // ширина холста (высота = size * 147/140)
   state?: HabiticaAnimState;    // процедурное состояние
   petUrl?: string;              // питомец-компаньон (Z-110)
+  gender?: string;              // пол: определяет форму корпуса (broad/slim)
   mountIconUrl?: string;        // иконка маунта в подножие (опционально)
   className?: string;
   /** Тень под ногами */
@@ -35,13 +36,14 @@ const HabiticaAnimatedAvatar: React.FC<HabiticaAnimatedAvatarProps> = ({
   size = 120,
   state = 'idle',
   petUrl,
+  gender,
   className = '',
   shadow = true,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [layersLoaded, setLayersLoaded] = useState(0);
   const layers = React.useMemo(
-    () => buildHabiticaLayers(look, cls),
+    () => buildHabiticaLayers(look, cls, gender),
     [look.skin, look.hairBase, look.hairBangs, look.hairColor, look.beard, look.armorTier, look.headTier, look.weaponTier, look.shieldTier, cls]
   );
   const hcls = CLASS_MAP[cls] || 'warrior';

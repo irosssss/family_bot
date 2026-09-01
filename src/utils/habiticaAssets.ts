@@ -80,13 +80,15 @@ export function getHabiticaSpritePath(
  * Слои образа в порядке Z (снизу вверх) для HabiticaAnimatedAvatar.
  * Возвращает список {zIndex, url}; пустые опции пропускаются.
  */
-export function buildHabiticaLayers(look: HabiticaLook, cls: string): Array<{ z: number; url: string }> {
+export function buildHabiticaLayers(look: HabiticaLook, cls: string, gender?: string): Array<{ z: number; url: string }> {
   const hcls = CLASS_MAP[cls] || 'warrior';
   const layers: Array<{ z: number; url: string }> = [];
 
   layers.push({ z: 30, url: getHabiticaSpritePath('skin', look.skin) });
 
-  const armorShape = hcls === 'rogue' ? 'slim' : 'broad';
+  // Форма корпуса = ПОЛ (broad = мужской, slim = женский) — канон Habitica.
+  // Класс больше не влияет на форму: rogue-женщина не должна носить мужской корпус.
+  const armorShape = gender === 'female' ? 'slim' : 'broad';
   if ((look.armorTier ?? 0) > 0) {
     layers.push({ z: 40, url: `${HABITICA_BASE}gear/armor/${armorShape}_armor_${hcls}_${look.armorTier}.png` });
   }

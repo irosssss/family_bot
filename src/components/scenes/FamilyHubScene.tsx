@@ -212,10 +212,10 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
            >
  {/* ~35% Enlarged Pixel Sprite — Habitica animated avatar (пивот V3) */}
            <div className="block sm:hidden [image-rendering:pixelated]">
-             <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={110} state="idle" />
+             <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={110} state="idle" gender={user.gender} />
            </div>
            <div className="hidden sm:block [image-rendering:pixelated]">
-             <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={140} state="idle" />
+             <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={140} state="idle" gender={user.gender} />
            </div>
 
  {/* Feet Radial Shadow on Room Floor */}

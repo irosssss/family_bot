@@ -227,14 +227,14 @@ export const BossRaidScene: React.FC<BossRaidSceneProps> = ({
                     size={72}
                     className="hidden sm:block"
                     state={isDefeated ? 'idle' : isAttackingNow ? 'attack' : 'idle'}
-                  />
+                   gender={u.gender} />
                   <HabiticaAnimatedAvatar
                     look={hLook}
                     cls={u.class || 'warrior'}
                     size={56}
                     className="block sm:hidden"
                     state={isDefeated ? 'idle' : isAttackingNow ? 'attack' : 'idle'}
-                  />
+                   gender={u.gender} />
                 </div>
               );
             })}

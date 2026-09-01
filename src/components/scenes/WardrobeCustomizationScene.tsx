@@ -159,7 +159,7 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
  <div className="my-3 sm:my-6 relative">
  <div className="absolute -inset-4 rounded-full bg-indigo-500/20 blur-xl animate-pulse" />
  {/* Зеркало: единый Habitica-персонаж (дизайн-канон — один стиль ассетов) */}
- <HabiticaAnimatedAvatar look={hLook} cls={activeUser.class || 'warrior'} size={150} state="idle" />
+ <HabiticaAnimatedAvatar look={hLook} cls={activeUser.class || 'warrior'} size={150} state="idle"  gender={activeUser.gender} />
  </div>
 
  {/* Активный питомец-компаньон у ног (как в хабе) */}

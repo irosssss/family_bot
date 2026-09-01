@@ -138,7 +138,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
             cls={activeUser.class || 'warrior'}
             size={120}
             state="idle"
-          />
+           gender={activeUser.gender} />
         </div>
 
         {/* Action button inside fitting stage */}
@@ -846,7 +846,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <HabiticaAnimatedAvatar look={DEFAULT_LOOKS.misha} cls={activeUser.class} size={36} state="idle" />
+                    <HabiticaAnimatedAvatar look={DEFAULT_LOOKS.misha} cls={activeUser.class} size={36} state="idle" gender="male" />
                     <span>Мужской</span>
                   </button>
 
@@ -858,7 +858,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <HabiticaAnimatedAvatar look={DEFAULT_LOOKS.regina} cls={activeUser.class} size={36} state="idle" />
+                    <HabiticaAnimatedAvatar look={DEFAULT_LOOKS.regina} cls={activeUser.class} size={36} state="idle" gender="female" />
                     <span>Женский</span>
                   </button>
                 </div>
@@ -882,7 +882,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="warrior" size={56} state="idle" />
+                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="warrior" size={56} state="idle"  gender={activeUser.gender} />
                     <div>
                       <h4 className="font-bold text-white text-base font-pixel-sub">Воин</h4>
                       <span className="text-xs text-amber-400 font-medium">Защитник & Атака</span>
@@ -915,7 +915,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="mage" size={56} state="idle" />
+                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="mage" size={56} state="idle"  gender={activeUser.gender} />
                     <div>
                       <h4 className="font-bold text-white text-base font-pixel-sub">Маг</h4>
                       <span className="text-xs text-purple-400 font-medium">Повелитель опыта</span>
@@ -948,7 +948,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="rogue" size={56} state="idle" />
+                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="rogue" size={56} state="idle"  gender={activeUser.gender} />
                     <div>
                       <h4 className="font-bold text-white text-base font-pixel-sub">Разбойник</h4>
                       <span className="text-xs text-emerald-400 font-medium">Добытчик золота</span>
@@ -981,7 +981,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="healer" size={56} state="idle" />
+                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="healer" size={56} state="idle"  gender={activeUser.gender} />
                     <div>
                       <h4 className="font-bold text-white text-base font-pixel-sub">Целитель</h4>
                       <span className="text-xs text-rose-400 font-medium">Хранитель жизни</span>
