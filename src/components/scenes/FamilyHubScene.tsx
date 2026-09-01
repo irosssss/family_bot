@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { User, Task, Pet, AppState } from '../../types';
 import HabiticaAnimatedAvatar from '../HabiticaAnimatedAvatar';
-import { DEFAULT_LOOKS } from '../../utils/habiticaAssets';
-import UlpcAvatar from '../UlpcAvatar';
 import UlpcPetAvatar from '../UlpcPetAvatar';
-import { getUserCharacter, buildUlpcLayers } from '../../utils/ulpcCharacter';
+import { getUnifiedLook } from '../../utils/unifiedLook';
 import { MessageSquare, Home, Plus, Check } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 
@@ -114,20 +112,9 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
  });
  const hasPendingTasks = pendingUserTasks.length > 0;
 
- // Find equipped items — ULPC layered character (weapon in hand).
-           // ВАЖНО: передаём equipped_body — купленный/надетый торс из магазина
-           // должен отображаться на персонаже ВЕЗДЕ (хаб, карточки, арена), не только в гардеробе.
-           const equipped = user.equipped || {};
-           const userChar = getUserCharacter({ ...user, equipped_body: ((user as any).equipped_codes || {}).body });
-           const ulpcLayers = userChar && buildUlpcLayers(userChar.cfg);
-           // Habitica V3: образ из habitica_equipped (или дефолт по имени)
-           const hLook = { ...DEFAULT_LOOKS[
-             user.display_name.toLowerCase().includes('миша') ? 'misha'
-             : user.display_name.toLowerCase().includes('регина') || user.display_name.toLowerCase().includes('regina') ? 'regina'
-             : user.display_name.toLowerCase().includes('папа') ? 'papa'
-             : user.display_name.toLowerCase().includes('мама') ? 'mama'
-             : 'misha'
-           ], ...((user as any).habitica_equipped || {}) };
+ // Единый образ персонажа (unifiedLook): habitica_equipped + ULPC-торсы из
+          // магазина (маппятся в тиры брони) — один и тот же образ во всех сценах.
+          const hLook = getUnifiedLook(user);
 
  // User's active pet
  const userPetRecord = appState.userPets.find((up) => up.user_id === user.id);

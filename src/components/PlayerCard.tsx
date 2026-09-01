@@ -5,9 +5,9 @@ import {
 import { ShopItem, Pet } from '../types';
 import { CLASSES_CONFIG } from '../data/initialData';
 import { PixelAvatar } from './PixelAvatar';
-import UlpcAvatar from './UlpcAvatar';
 import UlpcPetAvatar from './UlpcPetAvatar';
-import { getUserCharacter, buildUlpcLayers } from '../utils/ulpcCharacter';
+import HabiticaAnimatedAvatar from './HabiticaAnimatedAvatar';
+import { getUnifiedLook } from '../utils/unifiedLook';
 import { triggerHaptic } from '../utils/haptics';
 
 interface PlayerCardProps {
@@ -59,12 +59,8 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
   const leftPets = pets.slice(0, midIndex);
   const rightPets = pets.slice(midIndex);
 
-  // ULPC слои: передаём equipped_body (код надетого торса из магазина),
-  // иначе купленная одежда отображается только в гардеробе, а не на карточке
-  const ulpcLayers = useMemo(
-    () => buildUlpcLayers(getUserCharacter({ ...user, equipped_body: ((user as any).equipped_codes || {}).body }).cfg, 'idle'),
-    [user, (user as any).equipped_codes?.body]
-  );
+  // Единый образ (unifiedLook): тот же персонаж, что в хабе/арене/гардеробе
+  const hLook = useMemo(() => getUnifiedLook(user), [user]);
   // Фон карточки: свой для каждого игрока (по id), из кропов home_bg
   const CARD_BACKGROUNDS = [
     '/assets/game/backgrounds/cards/hero_home.png',
@@ -160,10 +156,10 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           className={`relative z-10 flex-1 flex justify-center ${isAttacking ? 'animate-pixel-attack' : ''}`}
         >
           <div className="block sm:hidden">
-            <UlpcAvatar layers={ulpcLayers} anim="idle" row={2} size={96} animated={true} />
+            <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={96} state="idle" />
           </div>
           <div className="hidden sm:block">
-            <UlpcAvatar layers={ulpcLayers} anim="idle" row={2} size={120} animated={true} />
+            <HabiticaAnimatedAvatar look={hLook} cls={user.class || 'warrior'} size={120} state="idle" />
           </div>
         </div>
 

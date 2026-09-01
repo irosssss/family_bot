@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { User, ShopItem, Pet, AppState } from '../../types';
 import HabiticaAnimatedAvatar from '../HabiticaAnimatedAvatar';
-import { DEFAULT_LOOKS, HabiticaLook } from '../../utils/habiticaAssets';
+import { HabiticaLook } from '../../utils/habiticaAssets';
+import { getUnifiedLook } from '../../utils/unifiedLook';
 import UlpcAvatar from '../UlpcAvatar';
 import UlpcPetAvatar from '../UlpcPetAvatar';
 import { getUserCharacter, buildUlpcLayers, resolveUlpcTorso, SHOP_TORSO_MAP } from '../../utils/ulpcCharacter';
@@ -84,15 +85,9 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
   }, [activeUser, shownBodyCode]);
  const ulpcLayers = useMemo(() => buildUlpcLayers(ulpcCfg, 'idle'), [ulpcCfg]);
 
- // === Habitica V3: образ для зеркала — дефолт семьи + habitica_equipped + тиры надетых предметов ===
+ // === Образ зеркала: единый look приложения + тиры надетых предметов + живая примерка ===
  const hLook = useMemo(() => {
-   const key =
-     activeUser.display_name.toLowerCase().includes('миша') ? 'misha'
-     : activeUser.display_name.toLowerCase().includes('регина') || activeUser.display_name.toLowerCase().includes('regina') ? 'regina'
-     : activeUser.display_name.toLowerCase().includes('папа') ? 'papa'
-     : activeUser.display_name.toLowerCase().includes('мама') ? 'mama'
-     : 'misha';
-   let base: HabiticaLook = { ...DEFAULT_LOOKS[key], ...((activeUser as any).habitica_equipped || {}) } as HabiticaLook;
+   let base: HabiticaLook = getUnifiedLook(activeUser);
    // Тиры надетых предметов (weapon/shield/head, старые 16-bit брони)
    base = applyItemLook(base, equippedCodes.weapon);
    base = applyItemLook(base, equippedCodes.shield);

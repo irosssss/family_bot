@@ -4,7 +4,7 @@ import { Swords, Flame, Zap, Trophy, Skull, Heart, AlertTriangle } from 'lucide-
 import { StreakBadge } from '../StreakBadge';
 import BossAvatar from '../BossAvatar';
 import HabiticaAnimatedAvatar from '../HabiticaAnimatedAvatar';
-import { DEFAULT_LOOKS } from '../../utils/habiticaAssets';
+import { getUnifiedLook } from '../../utils/unifiedLook';
 import { triggerHaptic } from '../../utils/haptics';
 import { sfxBossHit } from '../../utils/sfx';
 import { PixelButton } from '../ui';
@@ -206,11 +206,7 @@ export const BossRaidScene: React.FC<BossRaidSceneProps> = ({
           <div className="flex flex-wrap items-end justify-center md:justify-start gap-3 sm:gap-4">
             {appState.users.filter((u) => u.family_role !== 'parent').map((u) => {
               const isAttackingNow = attackerId === u.id;
-              const hLook = { ...DEFAULT_LOOKS[
-                u.display_name.toLowerCase().includes('миша') ? 'misha'
-                : u.display_name.toLowerCase().includes('регина') || u.display_name.toLowerCase().includes('regina') ? 'regina'
-                : 'misha'
-              ], ...((u as any).habitica_equipped || {}) };
+              const hLook = getUnifiedLook(u);
               return (
                 <div
                   key={u.id}
