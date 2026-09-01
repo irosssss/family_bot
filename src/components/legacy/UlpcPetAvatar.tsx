@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Pet } from '../types';
+import { Pet } from '../../types';
 
 interface UlpcPetAvatarProps {
   pet: Pet;

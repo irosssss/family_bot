@@ -1,5 +1,5 @@
 import { User, Pet } from '../types';
-import { AvatarLayer } from '../components/LayeredAvatar';
+import { AvatarLayer } from '../components/legacy/LayeredAvatar';
 import {
   BODY_BASES,
   HAIR_ASSETS,

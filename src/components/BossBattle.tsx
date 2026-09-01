@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Boss } from '../types';
 import { ShieldAlert, Trophy } from 'lucide-react';
-import { PixelAvatar } from './PixelAvatar';
+import BossAvatar from './BossAvatar';
 
 interface BossBattleProps {
   boss: Boss;
@@ -60,12 +60,11 @@ export const BossBattle: React.FC<BossBattleProps> = ({ boss, onUseSkill }) => {
       <div className="flex items-center justify-between mb-4 relative">
         <div className="flex items-center gap-3 relative">
           <div className={`transition-transform duration-75 ${isHit ? 'scale-110 -rotate-6' : ''}`}>
-            <PixelAvatar
-              type="boss"
-              imageUrl={boss.imageUrl}
-              icon={(boss as any).icon}
-              fallbackEmoji={boss.emoji}
-              size="md"
+            <BossAvatar
+              spriteSheet={boss.spriteSheetUrl || boss.imageUrl}
+              frames={boss.spriteSheetUrl ? 1 : 5}
+              size={64}
+              animated={!boss.spriteSheetUrl}
             />
           </div>
 

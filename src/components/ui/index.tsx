@@ -272,7 +272,7 @@ export const PixelCoin: React.FC<{ amount: number; crystals?: number }> = ({ amo
   <span className="inline-flex items-center gap-1">
     {crystals != null && crystals > 0 && (
       <>
-        <img src="/assets/game/backgrounds/Previews/coin.png" alt="" aria-hidden="true" className="w-3.5 h-3.5 pixel-art opacity-70" />
+        <img src="/assets/game/habitica/shop/shop_gem.png" alt="" aria-hidden="true" className="w-3.5 h-3.5 pixel-art opacity-70" />
         <span className="text-cyan-300">+{crystals}</span>
       </>
     )}

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { EmotionType } from '../utils/rpg32bitCatalog';
+import { EmotionType } from '../../utils/rpg32bitCatalog';
 
 export type AvatarLayerType =
   | 'shadow' | 'back' | 'legs' | 'body' | 'arms'

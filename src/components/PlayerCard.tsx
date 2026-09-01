@@ -4,10 +4,9 @@ import {
 } from 'lucide-react';
 import { ShopItem, Pet } from '../types';
 import { CLASSES_CONFIG } from '../data/initialData';
-import { PixelAvatar } from './PixelAvatar';
-import UlpcPetAvatar from './UlpcPetAvatar';
 import HabiticaAnimatedAvatar from './HabiticaAnimatedAvatar';
 import { getUnifiedLook } from '../utils/unifiedLook';
+import { habiticaPetSprite, habiticaBgUrl } from '../utils/shopLookMap';
 import { triggerHaptic } from '../utils/haptics';
 
 interface PlayerCardProps {
@@ -119,33 +118,21 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
       {/* Компакт: аватар + XP-полоска */}
       <div className="relative w-full bg-black/30 rounded-2xl p-3 border border-white/5 mb-3 flex items-center gap-4 overflow-hidden min-h-[120px]">
         {backgroundEmoji && (
-          <div className="absolute inset-0 opacity-40 pointer-events-none">
-            <PixelAvatar type="item" fallbackEmoji={backgroundEmoji} size="xl" animated={false} />
-          </div>
+          <div className="absolute inset-0 opacity-40 pointer-events-none bg-cover bg-center"
+            style={{ backgroundImage: `url(${habiticaBgUrl(backgroundEmoji)})` }}
+          />
         )}
 
-        {/* Питомцы слева: без рамок — только спрайт + тень на одной линии с ногами героя.
-            LPC-спрайтшиты рисуем через UlpcPetAvatar (кадр из листа), иначе «полоска»
-            всего листа в object-contain даёт зелёные/фоновые плашки. */}
+        {/* Питомцы слева: Habitica-спрайты, тень на одной линии с ногами героя */}
         <div className="relative z-10 flex items-end gap-2 shrink-0 -mr-1">
           {leftPets.map((pet: any, idx: number) => (
             <div key={`lp-${idx}`} className="flex flex-col items-center">
-              {(pet as any).spriteSheetUrl ? (
-                <UlpcPetAvatar
-                  pet={pet as any}
-                  size={48}
-                  animated={true}
-                />
-              ) : (
-                <PixelAvatar
-                  type="pet"
-                  imageUrl={(pet as any).imageUrl || ''}
-                  icon={(pet as any).icon || ''}
-                  fallbackEmoji={(pet as any).emoji || (typeof pet === 'string' ? pet : '')}
-                  size="sm"
-                  animated={true}
-                />
-              )}
+              <img
+                src={habiticaPetSprite(pet.code)}
+                alt=""
+                draggable={false}
+                className="w-10 h-12 sm:w-12 sm:h-14 [image-rendering:pixelated] object-contain"
+              />
               <div className="w-6 h-1 bg-black/40 blur-[1px] rounded-full -mt-0.5 pointer-events-none" />
             </div>
           ))}
@@ -163,27 +150,16 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           </div>
         </div>
 
-        {/* Питомцы справа: те же правила — без рамок, тень, одна линия с ногами.
-            LPC-спрайтшиты — через UlpcPetAvatar (см. комментарий к левым питомцам). */}
+        {/* Питомцы справа: Habitica-спрайты (см. левых) */}
         <div className="relative z-10 flex items-end gap-2 shrink-0 -ml-1">
           {rightPets.map((pet: any, idx: number) => (
             <div key={`rp-${idx}`} className="flex flex-col items-center">
-              {(pet as any).spriteSheetUrl ? (
-                <UlpcPetAvatar
-                  pet={pet as any}
-                  size={48}
-                  animated={true}
-                />
-              ) : (
-                <PixelAvatar
-                  type="pet"
-                  imageUrl={(pet as any).imageUrl || ''}
-                  icon={(pet as any).icon || ''}
-                  fallbackEmoji={(pet as any).emoji || (typeof pet === 'string' ? pet : '')}
-                  size="sm"
-                  animated={true}
-                />
-              )}
+              <img
+                src={habiticaPetSprite(pet.code)}
+                alt=""
+                draggable={false}
+                className="w-10 h-12 sm:w-12 sm:h-14 [image-rendering:pixelated] object-contain"
+              />
               <div className="w-6 h-1 bg-black/40 blur-[1px] rounded-full -mt-0.5 pointer-events-none" />
             </div>
           ))}

@@ -7,7 +7,7 @@
  * body → legs → feet → torso → head → eyes → hair_bg → hair → weapon_bg → weapon_fg
  */
 
-import type { UlpcLayer } from '../components/UlpcAvatar';
+import type { UlpcLayer } from '../components/legacy/UlpcAvatar';
 
 const B = '/assets/game/characters/ulpc/';
 

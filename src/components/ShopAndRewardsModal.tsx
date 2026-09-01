@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Reward, ShopItem, Pet, Achievement, User, ClassKey, GenderKey } from '../types';
 import { X, Gift, ShoppingBag, PawPrint, Trophy, Shirt, Check, Swords, Wand2, Coins, Sparkles, UserCheck, Eye, ShieldAlert, Lock } from 'lucide-react';
 import { CLASSES_CONFIG } from '../data/initialData';
-import { PixelAvatar, RenderEnvironmentBg } from './PixelAvatar';
-import { LayeredAvatar } from './LayeredAvatar';
-import { get32BitAvatarLayers } from '../utils/rpg32bitAssets';
+import { RenderEnvironmentBg } from './legacy/PixelAvatar';
 import { ConfirmModal } from './ConfirmModal';
+import { habiticaItemIcon, applyItemLook, ULPC_TORSO_TIER } from '../utils/shopLookMap';
+import { getUnifiedLook } from '../utils/unifiedLook';
+import HabiticaAnimatedAvatar from './HabiticaAnimatedAvatar';
+import { DEFAULT_LOOKS } from '../utils/habiticaAssets';
 import { PetsTab } from './PetsTab';
 import { ArmoireTab } from './ArmoireTab';
 
@@ -92,6 +94,10 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
   );
 
   const renderFittingStage = () => {
+    // Единый образ + живая примерка (тот же персонаж, что везде)
+    const fittingLook = previewItem
+      ? applyItemLook(getUnifiedLook(activeUser), previewItem.code)
+      : getUnifiedLook(activeUser);
     return (
       <div className="relative w-full bg-slate-950/90 rounded-2xl p-4 border border-blue-500/40 shadow-xl overflow-hidden flex flex-col items-center justify-center gap-3 min-h-[170px] mb-4">
         {/* Background in fitting stage */}
@@ -127,22 +133,11 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
 
         {/* Live Character Avatar */}
         <div className="relative z-10 my-1">
-          <PixelAvatar
-            type="character"
-            classKey={activeUser.class}
-            gender={activeUser.gender || 'male'}
-            characterColor={activeUser.character_color || activeUser.color}
-            customAvatarUrl={activeUser.custom_avatar_url}
-            headItem={previewItem?.slot === 'head' ? previewItem.imageUrl || previewItem.emoji || previewItem.code : activeUser.equipped?.head}
-            weaponItem={previewItem?.slot === 'weapon' ? previewItem.imageUrl || previewItem.emoji || previewItem.code : activeUser.equipped?.weapon}
-            shieldItem={previewItem?.slot === 'shield' ? previewItem.imageUrl || previewItem.emoji || previewItem.code : activeUser.equipped?.shield}
-            bodyItem={previewItem?.slot === 'body' ? previewItem.imageUrl || previewItem.emoji || previewItem.code : activeUser.equipped?.body}
-            cloakItem={previewItem?.slot === 'cloak' ? previewItem.imageUrl || previewItem.emoji || previewItem.code : activeUser.equipped?.cloak}
-            accessoryItem={previewItem?.slot === 'accessory' ? previewItem.imageUrl || previewItem.emoji || previewItem.code : activeUser.equipped?.accessory}
-            mountItem={previewItem?.slot === 'mount' ? previewItem.imageUrl || previewItem.emoji || previewItem.code : activeUser.equipped?.mount}
-            backgroundItem={previewItem?.slot === 'background' ? previewItem.imageUrl || previewItem.emoji || previewItem.code : activeUser.equipped?.background}
-            size="lg"
-            animated={true}
+          <HabiticaAnimatedAvatar
+            look={fittingLook}
+            cls={activeUser.class || 'warrior'}
+            size={120}
+            state="idle"
           />
         </div>
 
@@ -501,7 +496,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
 
                         <div className="flex items-center gap-3">
                           {item.slot !== 'background' && (
-                            <PixelAvatar type="item" imageUrl={item.imageUrl} fallbackEmoji={item.emoji} size="sm" animated={false} />
+                            <img src={habiticaItemIcon(item.code, item.slot)} alt="" className="w-10 h-10 [image-rendering:pixelated] object-contain" draggable={false} />
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-white truncate">{item.title}</p>
@@ -728,7 +723,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
 
                           <div className="flex items-center gap-3">
                             {item.slot !== 'background' && (
-                              <PixelAvatar type="item" imageUrl={item.imageUrl} fallbackEmoji={item.emoji} size="sm" animated={false} />
+                              <img src={habiticaItemIcon(item.code, item.slot)} alt="" className="w-10 h-10 [image-rendering:pixelated] object-contain" draggable={false} />
                             )}
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-semibold text-white flex items-center gap-1.5 truncate">
@@ -851,7 +846,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <PixelAvatar type="character" classKey={activeUser.class} gender="male" size="sm" />
+                    <HabiticaAnimatedAvatar look={DEFAULT_LOOKS.misha} cls={activeUser.class} size={36} state="idle" />
                     <span>Мужской</span>
                   </button>
 
@@ -863,7 +858,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white'
                     }`}
                   >
-                    <PixelAvatar type="character" classKey={activeUser.class} gender="female" size="sm" />
+                    <HabiticaAnimatedAvatar look={DEFAULT_LOOKS.regina} cls={activeUser.class} size={36} state="idle" />
                     <span>Женский</span>
                   </button>
                 </div>
@@ -887,7 +882,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <PixelAvatar type="character" classKey="warrior" gender={activeUser.gender} size="md" />
+                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="warrior" size={56} state="idle" />
                     <div>
                       <h4 className="font-bold text-white text-base font-pixel-sub">Воин</h4>
                       <span className="text-xs text-amber-400 font-medium">Защитник & Атака</span>
@@ -920,7 +915,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <PixelAvatar type="character" classKey="mage" gender={activeUser.gender} size="md" />
+                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="mage" size={56} state="idle" />
                     <div>
                       <h4 className="font-bold text-white text-base font-pixel-sub">Маг</h4>
                       <span className="text-xs text-purple-400 font-medium">Повелитель опыта</span>
@@ -953,7 +948,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <PixelAvatar type="character" classKey="rogue" gender={activeUser.gender} size="md" />
+                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="rogue" size={56} state="idle" />
                     <div>
                       <h4 className="font-bold text-white text-base font-pixel-sub">Разбойник</h4>
                       <span className="text-xs text-emerald-400 font-medium">Добытчик золота</span>
@@ -986,7 +981,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <PixelAvatar type="character" classKey="healer" gender={activeUser.gender} size="md" />
+                    <HabiticaAnimatedAvatar look={activeUser.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha} cls="healer" size={56} state="idle" />
                     <div>
                       <h4 className="font-bold text-white text-base font-pixel-sub">Целитель</h4>
                       <span className="text-xs text-rose-400 font-medium">Хранитель жизни</span>

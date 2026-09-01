@@ -3,10 +3,7 @@ import { User, ShopItem, Pet, AppState } from '../../types';
 import HabiticaAnimatedAvatar from '../HabiticaAnimatedAvatar';
 import { HabiticaLook } from '../../utils/habiticaAssets';
 import { getUnifiedLook } from '../../utils/unifiedLook';
-import UlpcAvatar from '../UlpcAvatar';
-import UlpcPetAvatar from '../UlpcPetAvatar';
-import { getUserCharacter, buildUlpcLayers, resolveUlpcTorso, SHOP_TORSO_MAP } from '../../utils/ulpcCharacter';
-import { applyItemLook } from '../../utils/shopLookMap';
+import { applyItemLook, habiticaItemIcon, habiticaPetSprite } from '../../utils/shopLookMap';
 import { Shirt, Shield, Crown, Wand2, Sparkles, Check, X, Package, PawPrint, Star } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 
@@ -74,16 +71,6 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
  const equippedCodes = (activeUser as any).equipped_codes || {};
  // Предмет в режиме примерки
  const previewItem = previewItemId != null ? categoryItems.find((i) => i.id === previewItemId) || null : null;
- const previewIsUlpcTorso = !!previewItem && !!resolveUlpcTorso(previewItem.code);
-
- // Какой торс показывать: ULPC (купленный или в примерке) → ULPC-аватар; иначе Habitica-тиры
- const shownBodyCode = previewIsUlpcTorso ? previewItem!.code : equippedCodes.body;
- const mirrorIsUlpc = !!(shownBodyCode && SHOP_TORSO_MAP[shownBodyCode]);
-
- const ulpcCfg = useMemo(() => {
-    return getUserCharacter({ ...activeUser, equipped_body: shownBodyCode }).cfg;
-  }, [activeUser, shownBodyCode]);
- const ulpcLayers = useMemo(() => buildUlpcLayers(ulpcCfg, 'idle'), [ulpcCfg]);
 
  // === Образ зеркала: единый look приложения + тиры надетых предметов + живая примерка ===
  const hLook = useMemo(() => {
@@ -92,9 +79,9 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
    base = applyItemLook(base, equippedCodes.weapon);
    base = applyItemLook(base, equippedCodes.shield);
    base = applyItemLook(base, equippedCodes.head);
-   if (equippedCodes.body && !SHOP_TORSO_MAP[equippedCodes.body]) {
-     base = applyItemLook(base, equippedCodes.body);
-   }
+   // body: ULPC-торсы не входят в ITEM_LOOK_MAP (их тир поднимает getUnifiedLook),
+   // старые 16-bit брони — входят; applyItemLook сам игнорирует неизвестные коды.
+   base = applyItemLook(base, equippedCodes.body);
    // Живая примерка: предмет в примерке перекрывает свой слот
    if (previewItem) base = applyItemLook(base, previewItem.code);
    return base;
@@ -166,12 +153,8 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
 
  <div className="my-3 sm:my-6 relative">
  <div className="absolute -inset-4 rounded-full bg-indigo-500/20 blur-xl animate-pulse" />
- {/* Зеркало: ULPC-персонаж для надетых ULPC-торсов, Habitica V3 для остальных образов */}
- {mirrorIsUlpc ? (
-   <UlpcAvatar layers={ulpcLayers} anim="idle" size={150} animated={true} />
- ) : (
-   <HabiticaAnimatedAvatar look={hLook} cls={activeUser.class || 'warrior'} size={150} state="idle" />
- )}
+ {/* Зеркало: единый Habitica-персонаж (дизайн-канон — один стиль ассетов) */}
+ <HabiticaAnimatedAvatar look={hLook} cls={activeUser.class || 'warrior'} size={150} state="idle" />
  </div>
 
  {/* Активный питомец-компаньон у ног (как в хабе) */}
@@ -179,7 +162,7 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
    const ap = activePetId != null ? appState.pets.find((p) => p.id === activePetId) : null;
    return ap ? (
      <div className="mb-2 flex items-center gap-2">
-       <UlpcPetAvatar pet={ap} size={40} animated={false} />
+       <img src={habiticaPetSprite(ap.code)} alt="" className="w-10 h-12 [image-rendering:pixelated] object-contain" draggable={false} />
        <span className="text-[10px] text-slate-400">Рядом: {ap.title}</span>
      </div>
    ) : null;
@@ -297,8 +280,8 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
  }`}
  >
  <div className="flex items-center gap-2 mb-2">
- {/* Иконка: спрайтшиты LPC рисуем покадрово, обычные URL — как есть */}
- <SheetThumb src={item.imageUrl} size={36} row={2} />
+ {/* Иконка: Habitica-спрайт того же тира, что надевается (единый стиль) */}
+ <img src={habiticaItemIcon(item.code, item.slot)} alt="" className="w-9 h-9 [image-rendering:pixelated] object-contain shrink-0" draggable={false} />
  <div className="min-w-0">
  <p className="text-xs font-semibold text-slate-100 truncate">{item.title}</p>
  <span className="text-[10px] text-slate-400">{item.slot}</span>
@@ -385,9 +368,7 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
    }`}
    >
    <div className="flex items-center gap-2 mb-2">
-   {pet.imageUrl && (
-     <SheetThumb src={pet.imageUrl} size={40} row={0} />
-   )}
+   <img src={habiticaPetSprite(pet.code)} alt="" className="w-10 h-12 [image-rendering:pixelated] object-contain" draggable={false} />
    <div className="min-w-0">
    <p className="text-xs font-bold text-amber-200 truncate">{pet.title}</p>
    <span className="text-[10px] text-slate-400">

@@ -1,13 +1,13 @@
 import React from 'react';
-import { GenderKey } from '../types';
+import { GenderKey } from '../../types';
 import {
  getPet16BitJpeg,
  getBoss16BitJpeg,
  getItem16BitJpeg,
  getEnvironment16BitJpeg,
-} from '../utils/rpg16bitAssets';
+} from '../../utils/rpg16bitAssets';
 import { LayeredAvatar } from './LayeredAvatar';
-import { get32BitAvatarLayers } from '../utils/rpg32bitAssets';
+import { get32BitAvatarLayers } from '../../utils/rpg32bitAssets';
 
 export interface PixelAvatarProps {
  type?: 'character' | 'boss' | 'pet' | 'item';

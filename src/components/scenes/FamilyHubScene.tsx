@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { User, Task, Pet, AppState } from '../../types';
 import HabiticaAnimatedAvatar from '../HabiticaAnimatedAvatar';
-import UlpcPetAvatar from '../UlpcPetAvatar';
 import { getUnifiedLook } from '../../utils/unifiedLook';
+import { habiticaPetSprite } from '../../utils/shopLookMap';
 import { MessageSquare, Home, Plus, Check } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 
@@ -236,17 +236,11 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
      animate-bounce убран — питомец СТОИТ, а не плавает. */}
  {petObj && (
    <div className="absolute right-0 sm:-right-2 bottom-1 sm:bottom-2 z-20 flex flex-col items-center pointer-events-none">
-     <UlpcPetAvatar
-       pet={petObj}
-       size={56}
-       animated={true}
-       className="hidden sm:block"
-     />
-     <UlpcPetAvatar
-       pet={petObj}
-       size={56}
-       animated={true}
-       className="sm:hidden"
+     <img
+       src={habiticaPetSprite(petObj.code)}
+       alt=""
+       draggable={false}
+       className="w-12 h-14 [image-rendering:pixelated] object-contain"
      />
      {/* Тень под ногами питомца */}
      <div className="w-7 h-1.5 bg-black/40 blur-[1px] rounded-full -mt-1 pointer-events-none" />

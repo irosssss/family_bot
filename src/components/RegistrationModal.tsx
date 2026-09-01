@@ -18,7 +18,8 @@ import {
  Gift,
 } from 'lucide-react';
 import { User, ClassKey, GenderKey } from '../types';
-import { PixelAvatar } from './PixelAvatar';
+import HabiticaAnimatedAvatar from './HabiticaAnimatedAvatar';
+import { DEFAULT_LOOKS } from '../utils/habiticaAssets';
 
 export interface CharacterColorOption {
  id: string;
@@ -503,13 +504,11 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
  {/* Hero Live Preview Card */}
  <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center gap-4">
- <PixelAvatar
- type="character"
- classKey={selectedClass}
- gender={gender}
- characterColor={selectedColor}
- size="md"
- animated={true}
+ <HabiticaAnimatedAvatar
+ look={{ ...DEFAULT_LOOKS.misha, ...(gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha) } as typeof DEFAULT_LOOKS.misha}
+ cls={selectedClass}
+ size={72}
+ state="idle"
  />
  <div className="min-w-0 flex-1">
  <div className="flex items-center gap-2">
@@ -635,13 +634,11 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
  className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full border border-white/30"
  style={{ backgroundColor: userColor }}
  />
- <PixelAvatar
- type="character"
- classKey={u.class}
- gender={u.gender || 'male'}
- characterColor={userColor}
- size="sm"
- animated={false}
+ <HabiticaAnimatedAvatar
+ look={u.gender === 'female' ? DEFAULT_LOOKS.regina : DEFAULT_LOOKS.misha}
+ cls={u.class}
+ size={36}
+ state="idle"
  />
  </div>
  <div>

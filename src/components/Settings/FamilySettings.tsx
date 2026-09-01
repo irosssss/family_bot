@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { User, GenderKey, FamilyRole } from '../../types';
-import { PixelAvatar } from '../PixelAvatar';
 import { X, Shield, UserMinus, UserPlus, Save, Edit3, Users } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 
