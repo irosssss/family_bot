@@ -3,7 +3,7 @@ import { User, ShopItem, Pet, AppState } from '../../types';
 import HabiticaAnimatedAvatar from '../HabiticaAnimatedAvatar';
 import { HabiticaLook } from '../../utils/habiticaAssets';
 import { getUnifiedLook } from '../../utils/unifiedLook';
-import { applyItemLook, habiticaItemIcon, habiticaPetSprite } from '../../utils/shopLookMap';
+import { applyItemLook, habiticaItemIcon, habiticaPetSprite, ULPC_TORSO_TIER } from '../../utils/shopLookMap';
 import { Shirt, Shield, Crown, Wand2, Sparkles, Check, X, Package, PawPrint, Star } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 
@@ -83,7 +83,12 @@ export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProp
    // старые 16-bit брони — входят; applyItemLook сам игнорирует неизвестные коды.
    base = applyItemLook(base, equippedCodes.body);
    // Живая примерка: предмет в примерке перекрывает свой слот
-   if (previewItem) base = applyItemLook(base, previewItem.code);
+   if (previewItem) {
+     base = applyItemLook(base, previewItem.code);
+     // ULPC-торсы не входят в ITEM_LOOK_MAP — их тир поднимаем по ULPC_TORSO_TIER
+     const ut = ULPC_TORSO_TIER[previewItem.code];
+     if (ut != null && (base.armorTier ?? 0) < ut) base.armorTier = ut;
+   }
    return base;
  }, [activeUser, previewItem, equippedCodes]);
 
