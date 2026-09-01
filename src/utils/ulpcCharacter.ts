@@ -70,9 +70,14 @@ export function buildUlpcLayers(cfg: UlpcCharacterConfig, anim: string = 'idle')
   add(`${cfg.sex}/legs/${cfg.legs || 'cuffed_pants'}`);
   // 3. Обувь
   if (cfg.feet) add(`${cfg.sex}/feet/${cfg.feet}`);
-  // 4. Торс
-  add(`${cfg.sex}/torso/${cfg.torso}`);
-  // 5. Голова
+  // 4. Торс. Магазинные ULPC-торсы лежат в torso_shop/<name>/<sex>/idle.png —
+  //    отдельная структура (не {sex}/torso/<name>/), поэтому собираем путь напрямую.
+  if (cfg.torso.startsWith('torso_shop/')) {
+    add(`${cfg.torso}/${cfg.sex}`);
+  } else {
+    add(`${cfg.sex}/torso/${cfg.torso}`);
+  }
+  // 4b. Голова
   add(`${cfg.sex}/head`);
   // 6. Глаза (только idle — в LPC глаза статичны вне idle)
   layers.push({ url: `${B}eyes/default/idle.png`, z: z++ });
@@ -118,6 +123,10 @@ export function getFamilyLayers(name: string): UlpcLayer[] {
  * новые вещи с code = имени папки в torso_shop/.
  */
 export const SHOP_TORSO_MAP: Record<string, string> = {
+  // Путь ОТНОСИТЕЛЬНО characters/ulpc/ (папки torso_shop/{name}/{sex}/, не {sex}/torso/):
+  // файлы лежат в torso_shop/<name>/<male|female>/idle.png, а базовый шаблон слоёв
+  // строит {sex}/torso/<torso> — поэтому для магазинных торсов используем
+  // специальную обработку в buildUlpcLayers (см. torsoIsShop).
   leather_armor_shop: 'torso_shop/leather',
   legion_armor: 'torso_shop/legion',
   plate_armor_shop: 'torso_shop/plate',

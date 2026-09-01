@@ -6,6 +6,7 @@ import { ShopItem, Pet } from '../types';
 import { CLASSES_CONFIG } from '../data/initialData';
 import { PixelAvatar } from './PixelAvatar';
 import UlpcAvatar from './UlpcAvatar';
+import UlpcPetAvatar from './UlpcPetAvatar';
 import { getUserCharacter, buildUlpcLayers } from '../utils/ulpcCharacter';
 import { triggerHaptic } from '../utils/haptics';
 
@@ -127,18 +128,28 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           </div>
         )}
 
-        {/* Питомцы слева: без рамок — только спрайт + тень на одной линии с ногами героя */}
+        {/* Питомцы слева: без рамок — только спрайт + тень на одной линии с ногами героя.
+            LPC-спрайтшиты рисуем через UlpcPetAvatar (кадр из листа), иначе «полоска»
+            всего листа в object-contain даёт зелёные/фоновые плашки. */}
         <div className="relative z-10 flex items-end gap-2 shrink-0 -mr-1">
           {leftPets.map((pet: any, idx: number) => (
             <div key={`lp-${idx}`} className="flex flex-col items-center">
-              <PixelAvatar
-                type="pet"
-                imageUrl={(pet as any).imageUrl || ''}
-                icon={(pet as any).icon || ''}
-                fallbackEmoji={(pet as any).emoji || (typeof pet === 'string' ? pet : '')}
-                size="sm"
-                animated={true}
-              />
+              {(pet as any).spriteSheetUrl ? (
+                <UlpcPetAvatar
+                  pet={pet as any}
+                  size={48}
+                  animated={true}
+                />
+              ) : (
+                <PixelAvatar
+                  type="pet"
+                  imageUrl={(pet as any).imageUrl || ''}
+                  icon={(pet as any).icon || ''}
+                  fallbackEmoji={(pet as any).emoji || (typeof pet === 'string' ? pet : '')}
+                  size="sm"
+                  animated={true}
+                />
+              )}
               <div className="w-6 h-1 bg-black/40 blur-[1px] rounded-full -mt-0.5 pointer-events-none" />
             </div>
           ))}
@@ -156,18 +167,27 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           </div>
         </div>
 
-        {/* Питомцы справа: те же правила — без рамок, тень, одна линия с ногами */}
+        {/* Питомцы справа: те же правила — без рамок, тень, одна линия с ногами.
+            LPC-спрайтшиты — через UlpcPetAvatar (см. комментарий к левым питомцам). */}
         <div className="relative z-10 flex items-end gap-2 shrink-0 -ml-1">
           {rightPets.map((pet: any, idx: number) => (
             <div key={`rp-${idx}`} className="flex flex-col items-center">
-              <PixelAvatar
-                type="pet"
-                imageUrl={(pet as any).imageUrl || ''}
-                icon={(pet as any).icon || ''}
-                fallbackEmoji={(pet as any).emoji || (typeof pet === 'string' ? pet : '')}
-                size="sm"
-                animated={true}
-              />
+              {(pet as any).spriteSheetUrl ? (
+                <UlpcPetAvatar
+                  pet={pet as any}
+                  size={48}
+                  animated={true}
+                />
+              ) : (
+                <PixelAvatar
+                  type="pet"
+                  imageUrl={(pet as any).imageUrl || ''}
+                  icon={(pet as any).icon || ''}
+                  fallbackEmoji={(pet as any).emoji || (typeof pet === 'string' ? pet : '')}
+                  size="sm"
+                  animated={true}
+                />
+              )}
               <div className="w-6 h-1 bg-black/40 blur-[1px] rounded-full -mt-0.5 pointer-events-none" />
             </div>
           ))}
