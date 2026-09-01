@@ -14,7 +14,7 @@ export const EGGS: Array<{ id: string; name: string; cost: number }> = [
   { id: 'Desert', name: 'Песчаное яйцо', cost: 35 },
   { id: 'Red', name: 'Красное яйцо', cost: 35 },
   { id: 'Golden', name: 'Золотое яйцо', cost: 60 },
-  { id: 'Shadow', name: 'Теневое яйцо', cost: 50 },
+  { id: 'Shade', name: 'Теневое яйцо', cost: 50 },
   { id: 'Skeleton', name: 'Костяное яйцо', cost: 45 },
   { id: 'Zombie', name: 'Яйцо зомби', cost: 45 },
   { id: 'CottonCandyBlue', name: 'Голубое яйцо', cost: 40 },
@@ -28,7 +28,7 @@ export const POTIONS: Array<{ id: string; name: string; cost: number }> = [
   { id: 'Desert', name: 'Пустынное зелье', cost: 25 },
   { id: 'Red', name: 'Красное зелье', cost: 25 },
   { id: 'Golden', name: 'Золотое зелье', cost: 40 },
-  { id: 'Shadow', name: 'Теневое зелье', cost: 35 },
+  { id: 'Shade', name: 'Теневое зелье', cost: 35 },
   { id: 'Skeleton', name: 'Костяное зелье', cost: 30 },
   { id: 'Zombie', name: 'Зомби-зелье', cost: 30 },
   { id: 'CottonCandyBlue', name: 'Голубное зелье', cost: 22 },
@@ -36,6 +36,12 @@ export const POTIONS: Array<{ id: string; name: string; cost: number }> = [
 ];
 
 /** Виды питомцев с русскими именами */
+/**
+ * Виды питомцев с русскими именами.
+ * Соответствие пакету HabitRPG/habitica-images (eggs.js): ключ = ключ яйца.
+ * Несуществующие виды пакета заменены (Seal→Otter, Duck→Platypus,
+ * Stoneworking→Rock, MammothRider→Mammoth); регистр TRex — как в пакете.
+ */
 export const SPECIES_RU: Record<string, string> = {
   Wolf: 'Волчонок', Dragon: 'Дракончик', BearCub: 'Медвежонок', Fox: 'Лисёнок',
   TigerCub: 'Тигрёнок', LionCub: 'Львёнок', Cat: 'Котик', Bunny: 'Кролик',
@@ -43,14 +49,14 @@ export const SPECIES_RU: Record<string, string> = {
   Squirrel: 'Бельчонок', Hedgehog: 'Ёжик', Dog: 'Щенок', Falcon: 'Соколёнок',
   Deer: 'Оленёнок', FlyingPig: 'Поросёнок', Frog: 'Лягушонок', Monkey: 'Обезьянка',
   Rat: 'Мышонок', Snail: 'Улиточка', Spider: 'Паучок', Whale: 'Китик',
-  Octopus: 'Осьминожек', Crab: 'Крабик', Seal: 'Тюлёнок', Sheep: 'Ягнёнок',
+  Octopus: 'Осьминожек', Crab: 'Крабик', Otter: 'Тюлёнок', Sheep: 'Ягнёнок',
   Horse: 'Жеребёнок', Cow: 'Телёнок', Alligator: 'Крокодильчик', Alpaca: 'Альпачка',
   Armadillo: 'Броненосик', Axolotl: 'Аксолотлик', Badger: 'Барсучок', Beetle: 'Жучок',
   Butterfly: 'Бабочка', Cactus: 'Кактусик', Chameleon: 'Хамелеончик', Cheetah: 'Гепардик',
   Cuttlefish: 'Каракатица', Giraffe: 'Жирафик', Gryphon: 'Грифончик', GuineaPig: 'Свинка',
-  Pterodactyl: 'Птеродактиль', Trex: 'Рексик', Triceratops: 'Трицератопсик',
-  Velociraptor: 'Велосирик', Sabretooth: 'Саблезубик', MammothRider: 'Мамонтик',
-  Rooster: 'Петушок', Duck: 'Уточка', Turkey: 'Индюшка', Stoneworking: 'Камнешка',
+  Pterodactyl: 'Птеродактиль', TRex: 'Рексик', Triceratops: 'Трицератопсик',
+  Velociraptor: 'Велосирик', Sabretooth: 'Саблезубик', Ferret: 'Хорёк',
+  Rooster: 'Петушок', Rock: 'Камнешек',
 };
 
 export function speciesRu(species: string): string {

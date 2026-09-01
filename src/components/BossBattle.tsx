@@ -61,7 +61,7 @@ export const BossBattle: React.FC<BossBattleProps> = ({ boss, onUseSkill }) => {
         <div className="flex items-center gap-3 relative">
           <div className={`transition-transform duration-75 ${isHit ? 'scale-110 -rotate-6' : ''}`}>
             <BossAvatar
-              spriteSheet={boss.spriteSheetUrl || boss.imageUrl}
+              spriteSheet={(boss as any).spriteSheetUrl || boss.imageUrl || (boss as any).icon}
               frames={boss.spriteSheetUrl ? 1 : 5}
               size={64}
               animated={!boss.spriteSheetUrl}

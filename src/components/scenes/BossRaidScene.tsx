@@ -262,10 +262,10 @@ export const BossRaidScene: React.FC<BossRaidSceneProps> = ({
                             <>
                               {/* Habitica-босс недели (статичный PNG) либо ULPC-спрайтшит слайма */}
                               <div className="block sm:hidden">
-                                <BossAvatar spriteSheet={appState.boss.spriteSheetUrl || '/assets/game/entities/bosses/boss_main_sheet.png'} frames={appState.boss.spriteSheetUrl ? 1 : 5} size={144} animated={!appState.boss.spriteSheetUrl} />
+                                <BossAvatar spriteSheet={(appState.boss as any).spriteSheetUrl || appState.boss.imageUrl || (appState.boss as any).icon || '/assets/game/habitica/bosses/quest_slime.png'} frames={((appState.boss as any).spriteSheetUrl || appState.boss.imageUrl || (appState.boss as any).icon) ? 1 : 5} size={144} animated={false} />
                               </div>
                               <div className="hidden sm:block">
-                                <BossAvatar spriteSheet={appState.boss.spriteSheetUrl || '/assets/game/entities/bosses/boss_main_sheet.png'} frames={appState.boss.spriteSheetUrl ? 1 : 5} size={200} animated={!appState.boss.spriteSheetUrl} />
+                                <BossAvatar spriteSheet={(appState.boss as any).spriteSheetUrl || appState.boss.imageUrl || (appState.boss as any).icon || '/assets/game/habitica/bosses/quest_slime.png'} frames={((appState.boss as any).spriteSheetUrl || appState.boss.imageUrl || (appState.boss as any).icon) ? 1 : 5} size={200} animated={false} />
                               </div>
                             </>
                           )}

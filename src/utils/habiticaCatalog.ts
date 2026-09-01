@@ -20,9 +20,13 @@ export interface BossDef {
 const BOSS_NAMES_RU: Record<string, string> = {
   alien: 'Пришелец из Запущенных Дел',
   alligator: 'Аллигатор Лени',
+  amber: 'Янтарный Пожиратель Мотивации',
+  silver: 'Серебряный Задерживатель',
   alpaca: 'Альпака Хаоса',
   armadillo: 'Броненосец Прокрастинации',
   atom1: 'Атом Беспорядка',
+  atom2: 'Атом Беспорядка II',
+  atom3: 'Атом Беспорядка III',
   axolotl: 'Аксолотль Забытых Дел',
   badger: 'Барсук Срывающих Сроков',
   basilist: 'Базилиск Вечного Завтра',

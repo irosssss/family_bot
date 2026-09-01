@@ -13,7 +13,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { appState } from '../services/stateService';
-import { EGGS, POTIONS } from '../services/zooService';
+import { EGGS, POTIONS, SPECIES_RU } from '../services/zooService';
 
 export const zooRoutes = Router();
 
@@ -31,6 +31,8 @@ zooRoutes.post('/hatch', async (req: Request, res: Response) => {
     const egg = EGGS.find((e) => e.id === eggId);
     const potion = POTIONS.find((p) => p.id === potionId);
     if (!egg || !potion) return res.status(400).json({ error: 'Неизвестное яйцо или зелье' });
+    // Вид обязан существовать в каталоге (иначе спрайт 404 и битый питомец в БД)
+    if (!SPECIES_RU[species]) return res.status(400).json({ error: 'Неизвестный вид питомца' });
 
     const cost = egg.cost + potion.cost;
     if ((user.gold ?? 0) < cost) {

@@ -12,21 +12,22 @@ export const DAYS_OF_WEEK = [
 
 export const DAYS_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-const BOSS_SPRITE = '/assets/game/entities/bosses/slime_king_spritesheet.png';
+// Боссы недели: канонические спрайты Habitica (quests/bosses, 118 шт).
+const HB = '/assets/game/habitica/bosses/';
 
 export const BOSS_LIST = [
-  { name: 'Монстр Жирных Пятен', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Барон Пыли и Мусора', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Гоблин Одиноких Носков', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Хаос в Детской Комнате', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Кракен Несмытой Раковины', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Тёмный Дракон Прокрастинации', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Титан Бытового Беспорядка', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Владыка Компьютерных Глитчей', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Ледяная Королева Лени', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Теневой Жнец Рутины', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Некромант Забытых Дел', emoji: '', icon: BOSS_SPRITE },
-  { name: 'Кибер-Гидра Бытового Хаоса', emoji: '', icon: BOSS_SPRITE },
+  { name: 'Монстр Жирных Пятен', emoji: '', icon: `${HB}quest_slime.png` },
+  { name: 'Барон Пыли и Мусора', emoji: '', icon: `${HB}quest_rock.png` },
+  { name: 'Паук Забытых Задач', emoji: '', icon: `${HB}quest_spider.png` },
+  { name: 'Хаос в Детской Комнате', emoji: '', icon: `${HB}quest_atom1.png` },
+  { name: 'Кракен Несмытой Раковины', emoji: '', icon: `${HB}quest_kraken.png` },
+  { name: 'Тёмный Дракон Прокрастинации', emoji: '', icon: `${HB}quest_basilist.png` },
+  { name: 'Крыса Бытового Беспорядка', emoji: '', icon: `${HB}quest_rat.png` },
+  { name: 'Владыка Компьютерных Глитчей', emoji: '', icon: `${HB}quest_robot.png` },
+  { name: 'Призрачный Стаг Лени', emoji: '', icon: `${HB}quest_ghost_stag.png` },
+  { name: 'Луна Забытых Дедлайнов', emoji: '', icon: `${HB}quest_moon1.png` },
+  { name: 'Гарпия Утренних Подъёмов', emoji: '', icon: `${HB}quest_harpy.png` },
+  { name: 'Змей Бытовых Отговорок', emoji: '', icon: `${HB}quest_seaserpent.png` },
 ];
 
 export const CLASSES_CONFIG = {
