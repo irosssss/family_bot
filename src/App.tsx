@@ -905,21 +905,23 @@ export function App() {
               />
             )}
 
-            {/* Today's Tasks & Feed Journal Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <TodayTasks
-                  tasks={appState.tasks}
-                  activeUser={activeUser}
-                  onCompleteTask={handleCompleteTask}
-                  onOpenAddModal={() => setIsAddTaskModalOpen(true)}
-                  onToggleUndoTask={handleToggleUndo}
-                />
+            {/* Today's Tasks: только на вкладке ДОМ (hub) — на Арена/Гардероб/Обзор дубли не нужны */}
+            {activeScene === 'hub' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <TodayTasks
+                    tasks={appState.tasks}
+                    activeUser={activeUser}
+                    onCompleteTask={handleCompleteTask}
+                    onOpenAddModal={() => setIsAddTaskModalOpen(true)}
+                    onToggleUndoTask={handleToggleUndo}
+                  />
+                </div>
+                <div>
+                  <FeedJournal feed={appState.feed || []} />
+                </div>
               </div>
-              <div>
-                <FeedJournal feed={appState.feed || []} />
-              </div>
-            </div>
+            )}
           </div>
         )}
 

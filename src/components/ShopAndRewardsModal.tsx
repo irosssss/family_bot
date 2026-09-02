@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Reward, ShopItem, Pet, Achievement, User, ClassKey, GenderKey } from '../types';
-import { X, Gift, ShoppingBag, PawPrint, Trophy, Shirt, Check, Swords, Wand2, Coins, Sparkles, UserCheck, Eye, ShieldAlert, Lock } from 'lucide-react';
+import { X, Gift, ShoppingBag, PawPrint, Trophy, Shirt, Check, Swords, Wand2, Coins, Sparkles, UserCheck, Eye, ShieldAlert, Lock, Gem, Snowflake } from 'lucide-react';
 import { CLASSES_CONFIG } from '../data/initialData';
 import { RenderEnvironmentBg } from './legacy/PixelAvatar';
 import { ConfirmModal } from './ConfirmModal';
@@ -14,7 +14,7 @@ import { ArmoireTab } from './ArmoireTab';
 interface ShopAndRewardsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialTab?: 'rewards' | 'shop' | 'pets' | 'achievements' | 'class' | 'wardrobe';
+  initialTab?: 'rewards' | 'shop' | 'pets' | 'achievements' | 'class' | 'wardrobe' | 'crystals';
   activeUser: User;
   rewards: Reward[];
   shopItems: ShopItem[];
@@ -50,12 +50,16 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
     onOpenAddRewardModal,
     onPetsChanged,
   }) => {
-  const [tab, setTab] = useState<'rewards' | 'shop' | 'pets' | 'achievements' | 'class' | 'wardrobe'>(initialTab);
+  const [tab, setTab] = useState<'rewards' | 'shop' | 'pets' | 'achievements' | 'class' | 'wardrobe' | 'crystals'>(initialTab);
   const [shopCategoryFilter, setShopCategoryFilter] = useState<'all' | 'weapon' | 'shield' | 'head' | 'body' | 'cloak' | 'accessory' | 'mount' | 'background'>('all');
   const [wardrobeSlotFilter, setWardrobeSlotFilter] = useState<'all' | 'weapon' | 'shield' | 'head' | 'body' | 'cloak' | 'accessory' | 'mount' | 'background'>('all');
   const [rewardToConfirm, setRewardToConfirm] = useState<Reward | null>(null);
   const [shopItemToConfirm, setShopItemToConfirm] = useState<ShopItem | null>(null);
   const [previewItem, setPreviewItem] = useState<ShopItem | null>(null);
+  // Этап 2: Кристальная лавка — заморозка стрика (бэкенд готов: POST /api/users/:id/streak/freeze)
+  const [freezeBusy, setFreezeBusy] = useState(false);
+  const [freezeMsg, setFreezeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [starsBusy, setStarsBusy] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -236,7 +240,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
             <ShoppingBag className="w-6 h-6 text-amber-300 shrink-0" />
             <div className="min-w-0">
               <h2 className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
-                Магазин и Награды
+                Лавка
               </h2>
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-slate-400">
                 <span>Баланс:</span>
@@ -263,7 +267,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
         {/* Tab Switcher */}
         <div className="flex items-center overflow-x-auto gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 border-b border-white/10 bg-black/30 text-xs scrollbar-none">
           <button
-            onClick={() => setTab('rewards')}
+            onClick={(e) => { setTab('rewards'); e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition whitespace-nowrap shrink-0 ${
               tab === 'rewards'
                 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold'
@@ -275,7 +279,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
           </button>
 
           <button
-            onClick={() => setTab('shop')}
+            onClick={(e) => { setTab('shop'); e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition whitespace-nowrap shrink-0 ${
               tab === 'shop'
                 ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold'
@@ -287,7 +291,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
           </button>
 
           <button
-            onClick={() => setTab('wardrobe')}
+            onClick={(e) => { setTab('wardrobe'); e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition whitespace-nowrap shrink-0 ${
               tab === 'wardrobe'
                 ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold'
@@ -299,7 +303,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
           </button>
 
           <button
-            onClick={() => setTab('pets')}
+            onClick={(e) => { setTab('pets'); e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition whitespace-nowrap shrink-0 ${
               tab === 'pets'
                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold'
@@ -311,7 +315,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
           </button>
 
           <button
-            onClick={() => setTab('achievements')}
+            onClick={(e) => { setTab('achievements'); e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition whitespace-nowrap shrink-0 ${
               tab === 'achievements'
                 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold'
@@ -323,7 +327,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
           </button>
 
           <button
-            onClick={() => setTab('class')}
+            onClick={(e) => { setTab('class'); e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition whitespace-nowrap shrink-0 ${
               tab === 'class'
                 ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30 font-bold'
@@ -333,16 +337,140 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
             <Sparkles className="w-3.5 h-3.5 text-pink-400 shrink-0" />
             <span>Выбор класса</span>
           </button>
+
+          <button
+            onClick={(e) => { setTab('crystals'); e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition whitespace-nowrap shrink-0 ${
+              tab === 'crystals'
+                ? 'bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30 font-bold'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Gem className="w-3.5 h-3.5 text-fuchsia-400 shrink-0" />
+            <span>Кристаллы</span>
+          </button>
         </div>
 
         {/* Modal Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          {/* TAB 0: Crystals — донатная лавка (принцип Habitica: косметика/удобство, НЕ сила) */}
+          {tab === 'crystals' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Лавка кристаллов</h3>
+                  <p className="text-xs text-slate-400">
+                    Кристаллы тратятся на удобство и редкий образ — силу они не покупают.
+                  </p>
+                </div>
+                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-400/20 flex items-center gap-1">
+                  {activeUser.crystals ?? 0} <Gem className="w-3.5 h-3.5 text-fuchsia-400" />
+                </span>
+              </div>
+
+              {/* Заморозка стрика — рабочая механика (бэкенд: purchaseStreakFreeze); родители не играют — им не показываем */}
+              {activeUser.family_role !== 'parent' && (
+              <div className="p-3.5 rounded-xl bg-gradient-to-r from-sky-900/40 to-indigo-900/40 border border-sky-500/30">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-white flex items-center gap-1.5">
+                      <Snowflake className="w-4 h-4 text-sky-300" /> Заморозка стрика
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Защищает серию, если день пропущен. Раз в 7 дней.
+                      {activeUser.streak_freeze_available && <span className="text-emerald-300 font-bold"> Уже есть активная.</span>}
+                    </p>
+                  </div>
+                  <button
+                    disabled={freezeBusy || activeUser.streak_freeze_available}
+                    onClick={async () => {
+                      setFreezeBusy(true);
+                      setFreezeMsg(null);
+                      try {
+                        const res = await fetch(`/api/users/${activeUser.id}/streak/freeze`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ paymentType: 'crystals' }),
+                        });
+                        const json = await res.json();
+                        setFreezeMsg({ ok: !!json.success, text: json.success ? 'Заморозка куплена за 50 кристаллов!' : (json.error || 'Не удалось купить') });
+                      } catch {
+                        setFreezeMsg({ ok: false, text: 'Сервер недоступен' });
+                      } finally {
+                        setFreezeBusy(false);
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1 ${
+                      activeUser.streak_freeze_available
+                        ? 'bg-white/5 text-slate-500 cursor-not-allowed border border-white/5'
+                        : 'bg-sky-500 hover:bg-sky-400 text-slate-950 cursor-pointer'
+                    }`}
+                  >
+                    {freezeBusy ? '...' : '50'}
+                    <Gem className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                {freezeMsg && (
+                  <p className={`text-xs mt-2 font-semibold ${freezeMsg.ok ? 'text-emerald-300' : 'text-red-300'}`}>
+                    {freezeMsg.text}
+                  </p>
+                )}
+              </div>
+              )}
+
+              {/* Пополнение кристаллов через Telegram Stars (SKU готовы на бэке) — только родители */}
+              {activeUser.family_role === 'parent' && (
+                <div className="p-3.5 rounded-xl bg-gradient-to-r from-blue-900/50 to-indigo-900/50 border border-blue-500/30">
+                  <p className="text-sm font-bold text-amber-300">Пополнить кристаллы</p>
+                  <p className="text-xs text-blue-200 mt-0.5 mb-2">Через Telegram Stars (оплата в Telegram)</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { sku: 'gems_small', label: '20 кристаллов', stars: 50 },
+                      { sku: 'gems_medium', label: '50 кристаллов', stars: 100 },
+                      { sku: 'gems_large', label: '150 + яйцо', stars: 250 },
+                    ].map((pack) => (
+                      <button
+                        key={pack.sku}
+                        disabled={starsBusy === pack.sku}
+                        onClick={async () => {
+                          setStarsBusy(pack.sku);
+                          try {
+                            const res = await fetch('/api/stars/create-invoice', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ userId: activeUser.id, sku: pack.sku }),
+                            });
+                            const json = await res.json();
+                            if (json.success && json.invoiceLink) {
+                              const tg = (window as any).Telegram?.WebApp;
+                              if (tg?.openInvoice) {
+                                tg.openInvoice(json.invoiceLink);
+                              } else {
+                                window.open(json.invoiceLink, '_blank');
+                              }
+                            }
+                          } finally {
+                            setStarsBusy(null);
+                          }
+                        }}
+                        className="p-2.5 rounded-xl bg-white/5 border border-blue-400/20 hover:bg-blue-500/20 transition text-center cursor-pointer disabled:opacity-50"
+                      >
+                        <span className="block text-xs font-bold text-white">{pack.label}</span>
+                        <span className="block text-[10px] text-amber-300 font-bold mt-0.5">{starsBusy === pack.sku ? '...' : `${pack.stars} ★`}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* TAB 1: Rewards */}
           {tab === 'rewards' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-white">Реальные награды за золото</h3>
+                  <h3 className="text-sm font-bold text-white">Призы за золото</h3>
                   <p className="text-xs text-slate-400">
                     Купленная награда списывает золото и уведомляет партнёра.
                   </p>
@@ -372,6 +500,8 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
 
                       <button
                         disabled={!canAfford}
+                        title={canAfford ? `Купить за ${reward.cost} золота` : `Не хватает золота (нужно ${reward.cost})`}
+                        aria-label={canAfford ? `Купить за ${reward.cost} золота` : `Не хватает золота`}
                         onClick={() => setRewardToConfirm(reward)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 ${
                           canAfford
@@ -399,7 +529,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                 <div>
                   <h3 className="text-sm font-bold text-white">Лавка экипировки & Фонов RPG</h3>
                   <p className="text-xs text-slate-400">
-                    Покупайте мечи, короны, мантии и волшебные фоны окружения для своего аватара!
+                    Мечи, короны, мантии и фоны меняют образ героя. Бонусы — у классовых скиллов, не у вещей.
                   </p>
                 </div>
               </div>
@@ -432,20 +562,6 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                     {f.label}
                   </button>
                 ))}
-              </div>
-
-              {/* Stars IAP Button */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-blue-900/50 to-indigo-900/50 border border-blue-500/30">
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-amber-300">Мешок Золота (1000 золота)</span>
-                  <span className="text-xs text-blue-200">Через Telegram Stars</span>
-                </div>
-                <button 
-                  onClick={() => alert("Интеграция Telegram.WebApp.openInvoice('...')")}
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-xl text-xs flex items-center gap-1 shadow-lg shadow-blue-500/20"
-                >
-                  Купить за 50 кристаллов
-                </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
