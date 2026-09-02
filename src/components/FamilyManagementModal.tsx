@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Crown, Key, CheckCircle, Sparkles, Shield, UserPlus, CreditCard, Zap, Gift, Check, Bell, Send, CheckCircle2, Smartphone, Settings, Volume2, VolumeX, RefreshCw, RotateCcw, UploadCloud } from 'lucide-react';
+import { Users, Crown, Key, Copy, CheckCircle, Sparkles, Shield, UserPlus, CreditCard, Zap, Gift, Check, Bell, Send, CheckCircle2, Smartphone, Settings, Volume2, VolumeX, RefreshCw, RotateCcw, UploadCloud } from 'lucide-react';
 import { User } from '../types';
 import { UploadAssets } from './UploadAssets';
 import { AdminIntegrations } from './AdminIntegrations';
@@ -242,7 +242,7 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
  onClick={handleCopyCode}
  className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition whitespace-nowrap"
  >
- {isCopied ? <Check className="w-4 h-4" /> : <Key className="w-4 h-4" />}
+ {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
  {isCopied ? 'Скопировано!' : 'Копировать'}
  </button>
  </div>

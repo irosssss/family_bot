@@ -293,6 +293,11 @@ export async function updateStreak(userId: number, date: string, io?: any): Prom
  let newStreak = dbUser.current_streak || 0;
  let milestoneReached: number | null = null;
 
+ // Новый день после сброса: broken — разовый статус прошлого дня, со свежего дня серия активна с нуля
+ if (newStatus === 'broken') {
+ newStatus = 'active';
+ }
+
  if (tasksAssigned === 0) {
  // Вариант C: заморозка streak
  newStatus = 'paused';

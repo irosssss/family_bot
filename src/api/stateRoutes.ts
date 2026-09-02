@@ -30,12 +30,21 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
   try {
     // async-parallel (vercel-react-best-practices): независимые выборки —
     // один параллельный батч вместо водопада последовательных round-trip'ов.
-    const [dbUsers, dbItems, dbPets, dbBossesArr] = await Promise.all([
+    const [dbUsersRaw, dbItems, dbPets, dbBossesArr] = await Promise.all([
       db.select().from(usersTable),
       db.select().from(schema.items),
       db.select().from(schema.pets),
       db.select().from(schema.bosses),
     ]);
+
+    // Стабильный порядок: родители (админы) первыми, затем дети по уровню —
+    // сцена Дома и селектор профиля получают предсказуемый порядок
+    const dbUsers = [...dbUsersRaw].sort((a: any, b: any) => {
+      const pa = a.family_role === 'parent' ? 0 : 1;
+      const pb = b.family_role === 'parent' ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      return (a.id ?? 0) - (b.id ?? 0);
+    });
 
     if (dbUsers.length > 0) {
       appState.users = dbUsers.map(u => ({ ...u, class: u.class_type })) as any;

@@ -106,10 +106,10 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
  {appState.users.map((user, uIdx) => {
  // «Живое» расселение: позиция и масштаб (дальние — меньше) зависят от персонажа
  const SPOTS = [
-   { left: '4%',  bottom: '36%', w: 0.85 },  // REGINA — у камина (задний план)
-   { left: '56%', bottom: '38%', w: 0.85 },  // MISHA — у шкафа (задний план)
-   { left: '38%', bottom: '6%',  w: 1.05 },  // Папа — у кресла (передний план)
-   { left: '74%', bottom: '4%',  w: 1.05 },  // Мама — у столика (передний план)
+   { left: '14%', bottom: '36%', w: 0.85 },  // Папа — у камина (задний план)
+   { left: '60%', bottom: '38%', w: 0.85 },  // Мама — у шкафа (задний план)
+   { left: '36%', bottom: '6%',  w: 1.05 },  // Misha — у кресла (передний план)
+   { left: '78%', bottom: '4%',  w: 1.05 },  // Regina — у столика (передний план)
  ];
  const spot = SPOTS[uIdx % SPOTS.length];
  const spriteSize = Math.round((window.innerWidth < 640 ? 110 : 140) * spot.w);
@@ -137,10 +137,10 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
  : null;
 
  return (
- <div 
- key={user.id} 
- className="absolute flex flex-col items-center group cursor-pointer"
- style={{ left: spot.left, bottom: spot.bottom, transform: 'translateX(-50%)' }}
+ <div
+  key={user.id}
+  className="absolute flex flex-col items-center group cursor-pointer"
+  style={{ left: spot.left, bottom: spot.bottom, transform: 'translateX(-50%)', zIndex: 10 + (uIdx % 2 === 0 ? 1 : 2) }}
  >
  {/* Classic RPG Speech Bubble Callout if active/clicked */}
  {isBubbleOpen && (

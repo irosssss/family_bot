@@ -191,7 +191,7 @@ export const PartyView: React.FC<PartyViewProps> = ({ appState, activeUser, onOp
     <div className="space-y-3">
       <div className="flex items-center justify-between px-1">
         <h3 className="text-sm font-bold text-white font-pixel-sub">Отряд семьи</h3>
-        <span className="text-[11px] text-slate-500">{appState.users.length} героев</span>
+        <span className="text-[11px] text-slate-500">{appState.users.length}&nbsp;{appState.users.length % 10 === 1 && appState.users.length % 100 !== 11 ? 'герой' : (appState.users.length % 10 >= 2 && appState.users.length % 10 <= 4 && (appState.users.length % 100 < 10 || appState.users.length % 100 >= 20) ? 'героя' : 'героев')}</span>
       </div>
 
       <div className="space-y-2">
