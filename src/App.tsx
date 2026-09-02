@@ -48,6 +48,7 @@ import {
   Layers,
   X,
   LayoutGrid,
+  MoreHorizontal,
 } from 'lucide-react';
 import { DAYS_OF_WEEK } from './data/initialData';
 
@@ -1184,7 +1185,7 @@ export function App() {
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          <LayoutGrid className="w-5 h-5" />
+          <MoreHorizontal className="w-5 h-5" />
           <span className="text-[10px]">Ещё</span>
         </button>
       </nav>
