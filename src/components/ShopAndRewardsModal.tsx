@@ -21,7 +21,7 @@ interface ShopAndRewardsModalProps {
   pets: Pet[];
   achievements: Achievement[];
   userItems: { user_id: number; item_id: number; equipped: number }[];
-  userPets: { user_id: number; pet_id: number }[];
+  userPets: { user_id: number; pet_id: number; is_active?: boolean; feed_points?: number }[];
   onBuyReward: (rewardId: number) => void;
   onBuyShopItem: (itemId: number) => void;
   onEquipItem: (itemId: number) => void;
@@ -183,6 +183,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
   const userOwnedPetIds = userPets
     .filter((up) => up.user_id === activeUser.id)
     .map((up) => up.pet_id);
+  const userOwnedActivePetId = (userPets.find((up) => up.user_id === activeUser.id && up.is_active) || {}).pet_id ?? null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
@@ -901,6 +902,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                       <PetsTab
                         activeUser={activeUser}
                         userOwnedPetIds={userOwnedPetIds}
+                        userActivePetId={userOwnedActivePetId}
                         onPetsChanged={onPetsChanged}
                       />
                     )}

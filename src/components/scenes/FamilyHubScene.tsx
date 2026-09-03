@@ -131,10 +131,21 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
           const hLook = getUnifiedLook(user);
 
  // User's active pet
- const userPetRecord = appState.userPets.find((up) => up.user_id === user.id);
+ const userPetRecord = appState.userPets.find((up) => up.user_id === user.id && up.is_active)
+ || appState.userPets.find((up) => up.user_id === user.id);
  const petObj = userPetRecord
  ? appState.pets.find((p) => p.id === userPetRecord.pet_id)
  : null;
+ // feed_points >= 100 → питомец вырос в маунта: рисуем Mount_Icon (как в зоопарке)
+ const petIsMount = (userPetRecord?.feed_points ?? 0) >= 100;
+ const petSpriteSrc = petIsMount && petObj
+ ? (() => {
+     //ImageUrl вида /assets/game/habitica/pets/Pet-Wolf-Base.png → Mount_Icon_Wolf-Base.png
+     const im = petObj.imageUrl || '';
+     const m = /Pet-([A-Za-z]+)-([A-Za-z]+)\.png$/.exec(im);
+     return m ? `/assets/game/habitica/stable/mounts/icon/Mount_Icon_${m[1]}-${m[2]}.png` : habiticaPetSprite(petObj.code);
+   })()
+ : petObj ? habiticaPetSprite(petObj.code) : '';
 
  return (
  <div
@@ -249,7 +260,7 @@ export const FamilyHubScene: React.FC<FamilyHubSceneProps> = ({
  {petObj && (
    <div className="absolute -right-3 sm:-right-6 -bottom-1 sm:bottom-0 z-10 flex flex-col items-center pointer-events-none">
      <img
-       src={habiticaPetSprite(petObj.code)}
+       src={petSpriteSrc}
        alt=""
        draggable={false}
        width="56" height="64"

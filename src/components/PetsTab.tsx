@@ -28,6 +28,7 @@ interface MyPet {
 interface PetsTabProps {
   activeUser: User;
   userOwnedPetIds: number[];
+  userActivePetId?: number | null;
   onPetsChanged?: () => void;
 }
 
@@ -37,7 +38,7 @@ const SPECIES_LIST = Object.keys(SPECIES_RU).sort();
 const FOOD_COST = 5;
 const HATCH_BASE_COST = 50; // яйцо Base + зелье Base (для отображения «от»)
 
-export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, onPetsChanged }) => {
+export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, userActivePetId, onPetsChanged }) => {
   const isParent = activeUser.family_role === 'parent';
   const userId = activeUser.id;
   const gold = activeUser.gold ?? 0;
@@ -54,6 +55,8 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, o
   const [myPets, setMyPets] = useState<MyPet[]>([]);
   const [loading, setLoading] = useState(false);
   const [feedingId, setFeedingId] = useState<number | null>(null);
+  const [activePetId, setActivePetId] = useState<number | null>(null);
+  const [activatingId, setActivatingId] = useState<number | null>(null);
   const [feedErr, setFeedErr] = useState<string | null>(null);
 
   const selectedEgg = useMemo(() => EGGS.find((e) => e.id === hatchEgg), [hatchEgg]);
@@ -83,6 +86,36 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, o
   useEffect(() => {
     if (userId) loadMyPets();
   }, [userId]);
+
+  // Синхронизация активного компаньона (приходит из appState.userPets.is_active)
+  useEffect(() => {
+    setActivePetId(userActivePetId ?? null);
+  }, [userActivePetId]);
+
+  // === Выбор компаньона (ходит за героем в хабе) ===
+  const handleSetActive = async (petId: number) => {
+    if (isParent || activatingId !== null || activePetId === petId) return;
+    setActivatingId(petId);
+    try {
+      const res = await fetch('/api/zoo/active', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, petId }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setActivePetId(petId);
+        onPetsChanged?.();
+      } else {
+        setFeedErr(json.error || 'Не удалось выбрать питомца');
+        sfxError();
+      }
+    } catch (e: any) {
+      setFeedErr(`Ошибка соединения: ${e.message}`);
+    } finally {
+      setActivatingId(null);
+    }
+  };
 
   // === Инкубация ===
   const handleHatch = async () => {
@@ -318,6 +351,11 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, o
                     <p className="text-[10px] text-slate-400 truncate">
                       Окрас: {pet.potion} {isMount && <span className="text-emerald-300 font-bold">• МАУНТ</span>}
                     </p>
+                    {activePetId === pet.id && (
+                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold font-pixel-sub px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                        <Sparkles className="w-3 h-3" /> Компаньон
+                      </span>
+                    )}
                     {/* Прогресс-бар 0..100 */}
                     <div className="mt-1.5 flex items-center gap-2">
                       <div className="flex-1 h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-700/50">
@@ -362,6 +400,21 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, o
                       </>
                     )}
                   </button>
+                  {!isParent && (
+                    <button
+                      type="button"
+                      onClick={() => handleSetActive(pet.id)}
+                      disabled={activatingId === pet.id || activePetId === pet.id}
+                      title={activePetId === pet.id ? 'Уже ходит с тобой' : 'Пусть пойдёт с героем в хабе'}
+                      className={`shrink-0 min-h-[44px] px-3 rounded-xl text-xs font-bold font-pixel-sub transition flex items-center gap-1 ${
+                        activePetId === pet.id
+                          ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-600/40 cursor-default'
+                          : 'bg-purple-700 hover:bg-purple-600 active:scale-95 text-white shadow-md'
+                      }`}
+                    >
+                      {activatingId === pet.id ? '...' : activePetId === pet.id ? 'Рядом' : 'Взять'}
+                    </button>
+                  )}
                 </div>
               );
             })}
