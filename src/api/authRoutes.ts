@@ -123,29 +123,36 @@ authRoutes.post('/register', async (req: Request, res: Response) => {
 
     appState.users.push(newUser);
 
-    db.insert(schema.users).values({
-      telegram_id: tgId,
-      family_id: familyId,
-      role: effectiveRole === 'parent' ? 'parent' : 'child',
-      family_role: effectiveRole,
-      is_admin: isAdmin,
-      display_name: trimmedName,
-      class_type: newUser.class || 'warrior',
-      gold: newUser.gold,
-      xp: 0,
-      crystals: newUser.crystals || 0,
-      hp: 50,
-      max_hp: 50,
-      mp: 30,
-      max_mp: 30,
-      current_streak: 0,
-      best_streak: 0,
-      streak_status: newUser.streak_status || 'active',
-      gender: newUser.gender,
-      assignee: 'both',
-      notify_partner: 1,
-      age: newUser.age,
-    }).execute().catch((e) => console.error('DB Insert error (auth register):', e));
+    // ARC-01: await вставки; при ошибке — откат памяти (пользователь не зарегистрирован)
+    try {
+      await db.insert(schema.users).values({
+        telegram_id: tgId,
+        family_id: familyId,
+        role: effectiveRole === 'parent' ? 'parent' : 'child',
+        family_role: effectiveRole,
+        is_admin: isAdmin,
+        display_name: trimmedName,
+        class_type: newUser.class || 'warrior',
+        gold: newUser.gold,
+        xp: 0,
+        crystals: newUser.crystals || 0,
+        hp: 50,
+        max_hp: 50,
+        mp: 30,
+        max_mp: 30,
+        current_streak: 0,
+        best_streak: 0,
+        streak_status: newUser.streak_status || 'active',
+        gender: newUser.gender,
+        assignee: 'both',
+        notify_partner: 1,
+        age: newUser.age,
+      });
+    } catch (e) {
+      console.error('[arc01] DB Insert error (auth register), rolling back memory:', e);
+      appState.users = appState.users.filter((u) => u.id !== newId);
+      return res.status(500).json({ success: false, error: 'Ошибка базы данных, попробуйте ещё раз' });
+    }
 
     res.json({
       success: true,

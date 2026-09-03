@@ -5,7 +5,7 @@ import { isUserAllowed, DENY_TEXT } from './accessControl';
 export let taskApproveCallback: ((taskId: number) => void) | null = null;
 export const onTaskApprove = (cb: (taskId: number) => void) => { taskApproveCallback = cb; };
 export let taskCreateCallback: ((title: string, points: number, chatId: number) => void) | null = null;
-export const onTaskCreate = (cb: (title: string, points: number, chatId: number) => void) => { taskCreateCallback = cb; };
+export const onTaskCreate = (cb: (title: string, points: number, chatId: number) => Promise<void> | void) => { taskCreateCallback = cb; };
 
 let ioInstance: SocketIOServer | null = null;
 export const setSocketIO = (io: SocketIOServer) => { ioInstance = io; };
@@ -72,7 +72,9 @@ if (bot) {
       
       if (title && points > 0) {
         if (taskCreateCallback) {
-          taskCreateCallback(title, points, chatId);
+          // ARC-01: колбэк может быть async — ошибка не рушит бот-хендлер
+          Promise.resolve(taskCreateCallback(title, points, chatId))
+            .catch((e) => console.error('[bot] taskCreate callback error:', e));
         }
       }
     }

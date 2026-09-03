@@ -82,7 +82,7 @@ async function startServer() {
   setSocketIO(io);
 
   // --- Telegram-бот коллэки (создание/одобрение задач через бота) ---
-  onTaskCreate((title, points, chatId) => {
+  onTaskCreate(async (title, points, chatId) => {
     const newTask = {
       id: generateId(),
       code: `custom_${generateId()}`,
@@ -92,20 +92,27 @@ async function startServer() {
       task_type: 'todo' as const,
       day_of_week: null,
     };
+
+    // ARC-01: сначала БД (подтверждение), затем память. Ошибка → бот получает
+    // ошибку в консоль, задача не «существует» только в памяти.
+    try {
+      await db.insert(schema.tasks).values({
+        family_id: 1, // задачи через бота создаются в семье по умолчанию (односемейный MVP)
+        code: newTask.code,
+        title: newTask.title,
+        points: newTask.points,
+        assignee: newTask.assignee,
+        task_type: newTask.task_type,
+        day_of_week: newTask.day_of_week,
+        done: false
+      });
+    } catch (e) {
+      console.error('[arc01] DB Insert error (bot task):', e);
+      return;
+    }
+
     appState.tasks.push(newTask);
     notifyTaskCreated(chatId, title, points);
-
-    // Update DB (async)
-    db.insert(schema.tasks).values({
-      family_id: 1, // задачи через бота создаются в семье по умолчанию (односемейный MVP)
-      code: newTask.code,
-      title: newTask.title,
-      points: newTask.points,
-      assignee: newTask.assignee,
-      task_type: newTask.task_type,
-      day_of_week: newTask.day_of_week,
-      done: false
-    }).execute().catch(e => console.error('DB Insert error:', e));
 
     // Broadcast via socket
     const io = app.get('io');

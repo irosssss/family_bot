@@ -602,8 +602,9 @@ userRoutes.post('/register', async (req: Request, res: Response) => {
  console.error('[users/register] family lookup failed:', e);
  }
 
- // Update DB (async)
- db.insert(schema.users).values({
+ // ARC-01: await вставки; при ошибке — откат памяти + стартовый предмет
+ try {
+ await db.insert(schema.users).values({
  telegram_id: newUser.telegram_id,
  family_id: resolvedFamilyId,
  role: familyRole === 'parent' ? 'parent' : 'child',
@@ -629,7 +630,13 @@ userRoutes.post('/register', async (req: Request, res: Response) => {
  age: newUser.age,
  referral_code: newUser.referral_code,
  referred_by: newUser.referred_by
- }).execute().catch(e => console.error('[arc01] DB Insert error (user):', e));
+ });
+ } catch (e) {
+ console.error('[arc01] DB Insert error (user), rolling back memory:', e);
+ appState.users = appState.users.filter((u) => u.id !== newId);
+ appState.userItems = appState.userItems.filter((ui) => ui.user_id !== newId);
+ return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
+ }
 
  // Give starter item to new user
  appState.userItems.push({

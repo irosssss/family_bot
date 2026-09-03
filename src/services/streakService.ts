@@ -8,7 +8,7 @@
  * - BUG #5: Socket.IO event name fix (streak:updated → streak_updated)
  */
 import { appState } from './stateService';
-import { grantMilestoneReward } from './persistService';
+import { grantMilestoneReward, persistUserWallet } from './persistService';
 import { getTodayStr } from '../lib/dateUtils';
 import { db } from '../db';
 import * as schema from '../db/schema';
@@ -471,16 +471,30 @@ export async function purchaseStreakFreeze(
  const purchaseDate = new Date().toISOString();
  user.streak_freeze_last_used = purchaseDate;
 
- // Обновить БД
+ // Обновить БД. ARC-01: при ошибке — откат списания в памяти.
+ const ok = await persistUserWallet(userId, {
+ gold: user.gold,
+ crystals: user.crystals ?? 0,
+ });
+ if (!ok) {
+ // Откат: вернуть валюту, снять freeze
+ if (paymentType === 'gold') user.gold += 500;
+ else if (paymentType === 'crystals') user.crystals = (user.crystals || 0) + 50;
+ user.streak_freeze_available = false;
+ user.streak_freeze_last_used = undefined;
+ return { success: false, error: 'Ошибка базы данных, попробуйте ещё раз' };
+ }
+ // freeze-флаги записываем следом (некритично, но подтверждённо)
+ try {
  await db.update(schema.users)
  .set({
- gold: user.gold,
- crystals: user.crystals,
  streak_freeze_available: true,
  streak_freeze_last_used: new Date(purchaseDate),
  })
- .where(eq(schema.users.id, userId))
- .execute();
+ .where(eq(schema.users.id, userId));
+ } catch (e) {
+ console.error(`[arc01] freeze flags persist failed for ${userId}:`, e);
+ }
 
  console.log(` User ${userId} purchased Streak Freeze for ${paymentType}`);
 

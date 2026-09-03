@@ -81,17 +81,22 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
       if ((dbBoss.week_key || '') !== currentWeekKey) {
         const weeklyBoss = getWeeklyBoss();
         const newHp = 90;
-        await db.update(schema.bosses).set({
-          week_key: currentWeekKey,
-          name: `${weeklyBoss.name}`,
-          sprite_url: weeklyBoss.spriteUrl,
-          hp: newHp,
-          max_hp: newHp,
-          damage: 0,
-          defeated: 0,
-        }).where(eq(schema.bosses.id, dbBoss.id)).execute().catch((e) => console.error('Boss rotation DB error:', e));
-        Object.assign(dbBoss, { week_key: currentWeekKey, name: `${weeklyBoss.name}`, sprite_url: weeklyBoss.spriteUrl, hp: newHp, max_hp: newHp, damage: 0, defeated: 0 });
-        console.log(`New week boss: ${weeklyBoss.name} (${weeklyBoss.id})`);
+        // ARC-01: await; при ошибке ротации — работаем на старом боссе (не роняем /state)
+        try {
+          await db.update(schema.bosses).set({
+            week_key: currentWeekKey,
+            name: `${weeklyBoss.name}`,
+            sprite_url: weeklyBoss.spriteUrl,
+            hp: newHp,
+            max_hp: newHp,
+            damage: 0,
+            defeated: 0,
+          }).where(eq(schema.bosses.id, dbBoss.id));
+          Object.assign(dbBoss, { week_key: currentWeekKey, name: `${weeklyBoss.name}`, sprite_url: weeklyBoss.spriteUrl, hp: newHp, max_hp: newHp, damage: 0, defeated: 0 });
+          console.log(`New week boss: ${weeklyBoss.name} (${weeklyBoss.id})`);
+        } catch (e) {
+          console.error('[arc01] Boss rotation DB error (keeping old boss):', e);
+        }
       }
       // Фаза 6: урон/победа приходят из БД (persistBossState пишет их туда),
       // а не из дефолта памяти. damage=0 и defeated=0 — легитимные значения,
