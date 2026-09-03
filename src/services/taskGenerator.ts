@@ -86,9 +86,11 @@ export function matchesSchedule(task: Task, date: Date): boolean {
 
 /**
  * Доступна ли задача конкретному пользователю по assignee_type/assignee.
- * РОЛЕВАЯ МОДЕЛЬ (Этап R1):
+ * РОЛЕВАЯ МОДЕЛЬ (Этап R1) + ARC-02 (мультитенантность):
  * - Родители НЕ получают детских задач (не играют)
  * - Дети не получают родительских задач (assignee_type === 'parent')
+ * - Новая модель: assignee_list хранит user_id как строки ('1','2'),
+ *   fallback на legacy assignee ('misha'|'regina'|'both') для старых задач
  */
 export function matchesAssignee(task: Task, user: User): boolean {
   // Родители не играют — им не генерируем детские задачи
@@ -109,7 +111,8 @@ export function matchesAssignee(task: Task, user: User): boolean {
         // Fallback на старую модель: assignee ('misha' | 'regina' | 'both')
         return task.assignee === 'both' || task.assignee === user.assignee;
       }
-      return list.includes(user.assignee) || list.includes(user.display_name);
+      // ARC-02: userId-строки приоритетны; display_name — legacy-совместимость
+      return list.includes(String(user.id)) || list.includes(user.display_name);
     }
     default:
       return true;

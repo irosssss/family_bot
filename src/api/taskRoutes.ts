@@ -17,6 +17,7 @@ import { getTodayStr } from '../lib/dateUtils';
 import { generateId } from '../lib/ids';
 import { checkAllTasksCompleted, updateStreak } from '../services/streakService';
 import { rollSurpriseChest } from '../services/taskGenerator';
+import { isTaskAssignedToUser, assigneeLabel } from '../services/assigneeService';
 import type { Task } from '../types';
 
 export const taskRoutes = Router();
@@ -36,10 +37,9 @@ taskRoutes.post('/complete', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'User or task not found' });
     }
 
-    // Check task ownership: User can only complete their own or joint ('both') tasks
-    const isAssignedToUser = task.assignee === user.assignee || task.assignee === 'both';
-    if (!isAssignedToUser) {
-      const assigneeName = task.assignee === 'misha' ? 'Миша' : task.assignee === 'regina' ? 'Регина' : 'Общая';
+    // ARC-02: единый резолв назначенности (userId-модель + legacy fallback)
+    if (!isTaskAssignedToUser(task, user)) {
+      const assigneeName = assigneeLabel(task, appState.users);
       return res
         .status(403)
         .json({ error: `Эта задача назначена на (${assigneeName}). Только исполнитель может её выполнить и подтвердить!` });
@@ -141,7 +141,7 @@ taskRoutes.post('/toggle', async (req: Request, res: Response) => {
   }
   const task = appState.tasks.find((t) => t.id === Number(taskId));
 
-  if (task && user && task.assignee !== user.assignee && task.assignee !== 'both') {
+  if (task && user && !isTaskAssignedToUser(task, user)) {
     return res.status(403).json({ error: 'Вы можете отменять отметку только своих задач!' });
   }
 

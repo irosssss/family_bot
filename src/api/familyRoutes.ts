@@ -10,13 +10,45 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { appState } from '../services/stateService';
+import { AuthedRequest, isAuthEnforced } from '../utils/apiAuth';
 
 export const familyRoutes = Router();
 
-/** Получить текущее состояние семьи */
-familyRoutes.get('/:id', async (req: Request, res: Response) => {
+/**
+ * GET /api/family/code/:id — код семьи пользователя (для показа родителю
+ * и ввода новым участником). ARC-02: код берётся из БД, не из хардкода.
+ */
+familyRoutes.get('/code/:userId', async (req: Request, res: Response) => {
+  try {
+    const userId = Number(req.params.userId);
+    const user = appState.users.find((u) => u.id === userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    let code = 'FAM-1234'; // dev-fallback (существующая демо-семья)
+    try {
+      const famRows = await db.select().from(schema.families)
+        .where(eq(schema.families.id, (user as any).family_id ?? 1)).limit(1);
+      if (famRows.length > 0) code = famRows[0].family_code;
+    } catch {
+      // БД недоступна — fallback
+    }
+    res.json({ family_code: code });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/** Получить текущее состояние семьи. ARC-02: только своя семья (или любая в dev). */
+familyRoutes.get('/:id', async (req: AuthedRequest, res: Response) => {
   try {
     const familyId = Number(req.params.id);
+    // В production пользователь видит только свою семью
+    if (isAuthEnforced() && req.auth) {
+      const authFamilyId = (req.auth.user as any).family_id ?? 1;
+      if (familyId !== authFamilyId && !req.auth.isAdmin) {
+        return res.status(403).json({ error: 'Forbidden: not your family' });
+      }
+    }
     const rows = await db.select().from(schema.families).where(eq(schema.families.id, familyId)).limit(1);
     if (rows.length === 0) {
       // Fallback на appState

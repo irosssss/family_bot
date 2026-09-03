@@ -77,13 +77,15 @@ userRoutes.get('/:id', (req: Request, res: Response) => {
  res.json({ success: true, data: user });
 });
 
-/** POST /api/users — добавить ребёнка (только админ) */
+/** POST /api/users — добавить ребёнка (только админ). ARC-02: family_id — из семьи актора. */
 userRoutes.post('/', async (req: AuthedRequest, res: Response) => {
  try {
  const { actorId, display_name, age, gender } = req.body;
  if (!isAdmin(req, Number(actorId))) {
  return res.status(403).json({ error: 'Только родитель (админ) может добавлять пользователей' });
  }
+ const actor = appState.users.find((u) => u.id === Number(actorId));
+ const actorFamilyId = (actor as any)?.family_id ?? 1;
  if (!display_name || typeof display_name !== 'string' || !display_name.trim()) {
  return res.status(400).json({ error: 'Укажите имя' });
  }
@@ -123,7 +125,7 @@ userRoutes.post('/', async (req: AuthedRequest, res: Response) => {
  // В БД (async, non-blocking)
  db.insert(schema.users).values({
  telegram_id: newUser.telegram_id,
- family_id: 1,
+ family_id: actorFamilyId,
  role: 'child',
  family_role: 'child',
  is_admin: false,
@@ -495,17 +497,18 @@ userRoutes.post('/reset', (req: Request, res: Response) => {
  res.json({ success: true, user });
 });
 
-userRoutes.post('/register', (req: Request, res: Response) => {
+userRoutes.post('/register', async (req: Request, res: Response) => {
  const {
  name,
  classKey = 'warrior',
  gender = 'male',
- familyCode = 'FAM-7892',
+ familyCode,
  customAvatarUrl,
  character_color,
  color,
  refCode,
  age,
+ telegram_id,
  } = req.body;
 
  if (!name || typeof name !== 'string' || !name.trim()) {
@@ -568,10 +571,30 @@ userRoutes.post('/register', (req: Request, res: Response) => {
 
  appState.users.push(newUser);
 
+ // ARC-02: family_id резолвится по коду семьи (не хардкод 1).
+ // Код из body (RegistrationModal) → поиск в families; не найден → 404;
+ // не передан → первая существующая семья (совместимость с текущей демо-семьёй).
+ let resolvedFamilyId = 1;
+ try {
+ if (familyCode) {
+ const famRows = await db.select().from(schema.families)
+ .where(eq(schema.families.family_code, String(familyCode).trim())).limit(1);
+ if (famRows.length > 0) {
+ resolvedFamilyId = famRows[0].id;
+ } else {
+ // откат in-memory добавления — семья не найдена
+ appState.users.pop();
+ return res.status(404).json({ error: 'Код семьи не найден. Проверьте код у родителя.' });
+ }
+ }
+ } catch (e) {
+ console.error('[users/register] family lookup failed:', e);
+ }
+
  // Update DB (async)
  db.insert(schema.users).values({
  telegram_id: newUser.telegram_id,
- family_id: 1, // hardcoded for now
+ family_id: resolvedFamilyId,
  role: familyRole === 'parent' ? 'parent' : 'child',
  family_role: familyRole,
  is_admin: isAdmin,

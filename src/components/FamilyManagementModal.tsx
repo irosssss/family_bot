@@ -29,7 +29,7 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
  onOpenResetModal,
 }) => {
  const [activeTab, setActiveTab] = useState<'family' | 'app_settings' | 'add_member' | 'plans' | 'mobile_ux' | 'assets'>('family');
- const [familyCode] = useState('FAM-7892');
+ const [familyCode, setFamilyCode] = useState('FAM-1234');
  const [familyName, setFamilyName] = useState('Семья Героев');
  const [isCopied, setIsCopied] = useState(false);
 
@@ -62,8 +62,16 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
  }
  })
  .catch((err) => console.warn('Failed to load telegram config:', err));
+
+ // ARC-02: реальный код семьи вместо хардкода
+ fetch(`/api/family/code/${activeUser.id}`)
+ .then((res) => (res.ok ? res.json() : null))
+ .then((data) => {
+ if (data?.family_code) setFamilyCode(data.family_code);
+ })
+ .catch((err) => console.warn('Failed to load family code:', err));
  }
- }, [isOpen]);
+ }, [isOpen, activeUser.id]);
 
  if (!isOpen) return null;
 

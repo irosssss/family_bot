@@ -4,6 +4,7 @@
  * POST /api/auth/register — регистрация пользователя (Этап R1).
  */
 import { Request, Response, Router } from 'express';
+import { eq } from 'drizzle-orm';
 import { telegramAuthMiddleware, validateTelegramWebAppData, parseInitDataUser } from '../utils/telegramAuth';
 import { appState } from '../services/stateService';
 import { db } from '../db';
@@ -66,6 +67,33 @@ authRoutes.post('/register', async (req: Request, res: Response) => {
     const effectiveRole: 'parent' | 'child' = isFirstUser ? 'parent' : 'child';
     const isAdmin = isFirstUser;
 
+    // ARC-02: family_id резолвится по invite-коду (family_code), а не хардкод 1.
+    // Первый пользователь создаёт семью с новым кодом, остальные вступают по коду.
+    let familyId = 1; // fallback: единственная существующая семья (dev/DEMO)
+    const inviteCode = typeof req.body.invite_code === 'string' ? req.body.invite_code.trim() : '';
+    if (isFirstUser) {
+      try {
+        const created = await db.insert(schema.families)
+          .values({ family_code: `FAM-${Date.now().toString(36).toUpperCase().slice(-6)}`, name: `Семья ${trimmedName}` })
+          .returning({ id: schema.families.id });
+        if (created.length > 0) familyId = created[0].id;
+      } catch (e) {
+        console.error('[auth/register] family create failed, fallback family 1:', e);
+      }
+    } else if (inviteCode) {
+      try {
+        const fam = await db.select().from(schema.families)
+          .where(eq(schema.families.family_code, inviteCode)).limit(1);
+        if (fam.length > 0) {
+          familyId = fam[0].id;
+        } else {
+          return res.status(404).json({ error: 'Код семьи не найден. Проверьте код у родителя.' });
+        }
+      } catch (e) {
+        console.error('[auth/register] family lookup failed:', e);
+      }
+    }
+
     // dev-фолбэк: без tma берём telegram_id из body (dev-песочница)
     const tgId = tgIdFromAuth ?? (Number(req.body.telegram_id) || 100000 + Date.now() % 100000);
 
@@ -97,7 +125,7 @@ authRoutes.post('/register', async (req: Request, res: Response) => {
 
     db.insert(schema.users).values({
       telegram_id: tgId,
-      family_id: 1,
+      family_id: familyId,
       role: effectiveRole === 'parent' ? 'parent' : 'child',
       family_role: effectiveRole,
       is_admin: isAdmin,

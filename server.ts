@@ -97,7 +97,7 @@ async function startServer() {
 
     // Update DB (async)
     db.insert(schema.tasks).values({
-      family_id: 1, // default for now
+      family_id: 1, // задачи через бота создаются в семье по умолчанию (односемейный MVP)
       code: newTask.code,
       title: newTask.title,
       points: newTask.points,
