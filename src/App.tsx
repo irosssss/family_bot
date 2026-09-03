@@ -53,6 +53,7 @@ import {
 import { DAYS_OF_WEEK } from './data/initialData';
 
 import { initTelegramWebApp, triggerHaptic } from './utils/haptics';
+import { getTelegramInitData } from './utils/apiFetch';
 import { io } from 'socket.io-client';
 
 // Simple Web Audio Sound Synth
@@ -147,10 +148,12 @@ export function App() {
       triggerHaptic('notification', 'error');
     });
 
-    // === Этап 10: присоединяемся к комнате семьи для party-событий ===
-    // family_id берём из localStorage (если есть) или дефолт 1.
+    // === Этап 10 + SEC-06: присоединяемся к комнате семьи ===
+    // familyId берём из localStorage (dev-песочница); в проде сервер резолвит
+    // семью из проверенного initData (tma) и игнорирует client value.
     const myFamilyId = Number(localStorage.getItem('family_id') || 1);
-    socket.emit('join:family', { familyId: myFamilyId });
+    const tmaInitData = getTelegramInitData();
+    socket.emit('join:family', { familyId: myFamilyId, tma: tmaInitData || undefined });
     console.log(`[Socket] requested join:family ${myFamilyId}`);
 
     // === Этап 10: party:boss_damaged — удар одного ребёнка виден всем в realtime ===

@@ -59,6 +59,8 @@ import { zooRoutes } from './src/api/zooRoutes';
 import { armoireRoutes } from './src/api/armoireRoutes';
 import { starsRoutes, creditPurchase } from './src/api/starsRoutes';
 import { familyRoutes } from './src/api/familyRoutes';
+import { validateTelegramWebAppData, parseInitDataUser } from './src/utils/telegramAuth';
+import { runMigrations } from './src/db/migrate';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
@@ -126,12 +128,33 @@ async function startServer() {
   io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
 
-    // === Этап 10: комната семьи ===
-    // Клиент после авторизации шлёт `join:family` с { familyId } →
-    // мы добавляем сокет в комнату `family:N` для party-событий.
-    socket.on('join:family', (data: { familyId?: number }) => {
-      const familyId = Number(data?.familyId) || 1;
+    // === SEC-06 FIX: familyId берётся из проверенной сессии, а не от клиента ===
+    // Фронт шлёт initData в handshake.auth.tma; здесь мы НЕ можем переиспользовать
+    // Express-middleware, поэтому валидация повторяется локально. В dev (нет
+    // BOT_TOKEN) разрешаем join без подписи — песочница работает как раньше.
+    socket.on('join:family', (data: { familyId?: number; tma?: string }) => {
+      const botToken = process.env.BOT_TOKEN;
+      const initData = typeof data?.tma === 'string' ? data.tma : '';
+      let familyId: number | null = null;
+
+      if (botToken && initData && validateTelegramWebAppData(initData, botToken)) {
+        const tgUser = parseInitDataUser(initData);
+        const user = tgUser
+          ? appState.users.find((u) => u.telegram_id === tgUser.id)
+          : undefined;
+        if (user) familyId = (user as any).family_id ?? 1;
+      } else if (!botToken) {
+        // dev-песочница: без BOT_TOKEN подписи невозможны — доверяем client value
+        familyId = Number(data?.familyId) || 1;
+      }
+
+      if (!familyId) {
+        socket.emit('join:family:denied', { error: 'Forbidden: invalid session' });
+        return;
+      }
+
       socket.join(`family:${familyId}`);
+      socket.data.familyId = familyId;
       console.log(`Socket ${socket.id} joined family:${familyId}`);
     });
 
@@ -182,8 +205,10 @@ async function startServer() {
 
   // --- Фаза 6-lite: каталог магазина/наград в БД + гидрация кошельков из БД ---
   // (покупки работают через БД-транзакции; память — зеркало для чтения UI)
+  // DAT-02: миграции применяются журналируемым migrator'ом (idempotent),
+  // ensureCompletionsIndex перенесён в migrations/0014.
   void ensureCatalogInDb()
-    .then(() => ensureCompletionsIndex())
+    .then(() => runMigrations())
     .then(() => backfillProgressFromMemory())
     .then(() => hydrateWalletFromDb());
 
