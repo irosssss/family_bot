@@ -22,5 +22,8 @@ jobs:
       - name: Typecheck (tsc --noEmit)
         run: npm run lint
 
+      - name: Tests (vitest)
+        run: npm test
+
       - name: Build (vite + esbuild server)
         run: npm run build

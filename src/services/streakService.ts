@@ -30,7 +30,8 @@ export type StreakStatus = 'active' | 'paused' | 'broken' | 'frozen';
  * +5% за каждый день, максимум +50% (10 дней).
  */
 export function getStreakBonus(streak: number): number {
- return Math.min(streak * 5, 50);
+ // Отрицательный streak (некорректные данные) не должен давать отрицательный бонус
+ return Math.min(Math.max(streak, 0) * 5, 50);
 }
 
 /**

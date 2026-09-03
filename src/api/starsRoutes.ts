@@ -21,7 +21,8 @@ export const starsRoutes = Router();
 
 const BOT_TOKEN = process.env.BOT_TOKEN || '';
 
-const SKUS: Record<string, { title: string; description: string; stars: number; gems: number; proDays?: number }> = {
+/** Прайс Stars-SKU. Экспортирован для тестов (tests/starsPricing.test.ts). */
+export const SKUS: Record<string, { title: string; description: string; stars: number; gems: number; proDays?: number }> = {
   gems_small: { title: '20 кристаллов', description: 'Набор из 20 кристаллов для Family Chores RPG', stars: 50, gems: 20 },
   gems_medium: { title: '50 кристаллов', description: 'Набор из 50 кристаллов + бонус', stars: 100, gems: 50 },
   gems_large: { title: '150 кристаллов + Драконье яйцо', description: 'Большой набор: 150 кристаллов и редкое яйцо', stars: 250, gems: 150 },
