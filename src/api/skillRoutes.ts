@@ -9,11 +9,12 @@ import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { appState } from '../services/stateService';
 import { applySkill } from '../services/skillService';
+import { persistUserWallet } from '../services/persistService';
 import { sendTelegramPushNotification } from '../services/notificationService';
 
 export const skillRoutes = Router();
 
-skillRoutes.post('/use', (req: Request, res: Response) => {
+skillRoutes.post('/use', async (req: Request, res: Response) => {
  const { userId } = req.body;
  // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
  const __req = req as any;
@@ -27,19 +28,19 @@ skillRoutes.post('/use', (req: Request, res: Response) => {
  }
 
  const result = applySkill(user);
- // Update DB (async)
-
- const dbUsers = schema.users;
- db.update(dbUsers).set({
+ // Update DB. ARC-01: await + persistUserWallet — ошибка БД видна,
+ // память мутирует только в памяти процесса (зеркало), как и было.
+ await persistUserWallet(user.id, {
  gold: user.gold,
  xp: user.xp,
  hp: user.hp,
  mp: user.mp,
- skill_date: user.skill_date,
- }).where(eq(dbUsers.id, user.id)).execute().catch(e => console.error('DB Update error:', e));
+ skill_date: user.skill_date ?? null,
+ });
  // If healer was used, all users are updated in appState, but we only persist this user for now unless we do a loop
  for (const u of appState.users) {
- db.update(dbUsers).set({ hp: u.hp, gold: u.gold }).where(eq(dbUsers.id, u.id)).execute().catch(e => console.error('DB Update error:', e));
+ if (u.id === user.id) continue; // уже записан выше
+ await persistUserWallet(u.id, { hp: u.hp, gold: u.gold });
  }
  if (result.error) {
  return res.status(400).json({ error: result.error });

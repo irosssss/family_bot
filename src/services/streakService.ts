@@ -8,6 +8,7 @@
  * - BUG #5: Socket.IO event name fix (streak:updated → streak_updated)
  */
 import { appState } from './stateService';
+import { grantMilestoneReward } from './persistService';
 import { getTodayStr } from '../lib/dateUtils';
 import { db } from '../db';
 import * as schema from '../db/schema';
@@ -133,26 +134,19 @@ async function notifyMilestone(userId: number, milestone: number, io?: any): Pro
  const reward = rewards[milestone];
  if (!reward) return;
 
- // Выдать награду
+ // Выдать награду. ARC-01: атомарно в БД (начисление + отметка в одной
+ // транзакции), память зеркалится только после подтверждения записи.
+ const granted = await grantMilestoneReward(userId, milestone, {
+ gold: (user.gold || 0) + reward.gold,
+ crystals: (user.crystals || 0) + reward.crystals,
+ });
+ if (!granted) {
+ console.error(` Milestone ${milestone} reward NOT granted to ${user.display_name} (db failed)`);
+ return; // память не мутируем: начисление не подтверждено
+ }
+
  user.gold += reward.gold;
  user.crystals = (user.crystals || 0) + reward.crystals;
-
- // Обновить БД
- await db.update(schema.users)
- .set({ 
- gold: user.gold,
- crystals: user.crystals 
- })
- .where(eq(schema.users.id, userId))
- .execute();
-
- // Записать, что награда выдана
- await db.insert(schema.milestone_rewards_given)
- .values({
- user_id: userId,
- milestone_day: milestone,
- })
- .execute();
 
  console.log(` Milestone ${milestone} reached by ${user.display_name}! Reward: ${reward.gold} gold, ${reward.crystals} crystals`);
 

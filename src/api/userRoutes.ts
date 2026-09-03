@@ -122,30 +122,36 @@ userRoutes.post('/', async (req: AuthedRequest, res: Response) => {
 
  appState.users.push(newUser);
 
- // В БД (async, non-blocking)
- db.insert(schema.users).values({
+ // ARC-01: await БД-вставку; при ошибке — откат памяти (ребёнок не «существует»)
+ try {
+ await db.insert(schema.users).values({
  telegram_id: newUser.telegram_id,
  family_id: actorFamilyId,
  role: 'child',
  family_role: 'child',
  is_admin: false,
  display_name: newUser.display_name,
- class_type: 'warrior',
- gold: 0,
- xp: 0,
- crystals: 0,
- hp: 50,
- max_hp: 50,
- mp: 30,
- max_mp: 30,
- current_streak: 0,
- best_streak: 0,
+ class_type: newUser.class || 'warrior',
+ gold: newUser.gold,
+ xp: newUser.xp,
+ crystals: newUser.crystals || 0,
+ hp: newUser.hp || 50,
+ max_hp: newUser.max_hp || 50,
+ mp: newUser.mp || 30,
+ max_mp: newUser.max_mp || 30,
+ current_streak: newUser.current_streak || 0,
+ best_streak: newUser.best_streak || 0,
  streak_status: 'active',
  gender: newUser.gender,
  assignee: 'both',
  notify_partner: 1,
  age: newUser.age,
- }).execute().catch((e) => console.error('DB Insert error (new child):', e));
+ });
+ } catch (e) {
+ console.error('[arc01] DB Insert error (new child), rolling back memory:', e);
+ appState.users = appState.users.filter((u) => u.id !== newId);
+ return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
+ }
 
  res.json({ success: true, user: newUser });
  } catch (error: any) {
@@ -182,11 +188,16 @@ userRoutes.put('/:id', async (req: AuthedRequest, res: Response) => {
  user.gender = gender === 'female' ? 'female' : gender === 'male' ? 'male' : user.gender;
  }
 
- db.update(schema.users).set({
+ // ARC-01: await обновление; ошибка — лог с userId (память — зеркало)
+ try {
+ await db.update(schema.users).set({
  display_name: user.display_name,
  age: user.age,
  gender: user.gender,
- }).where(eq(schema.users.id, userId)).execute().catch((e) => console.error('DB Update error (user):', e));
+ }).where(eq(schema.users.id, userId));
+ } catch (e) {
+ console.error(`[arc01] DB Update error (user ${userId}):`, e);
+ }
 
  res.json({ success: true, user });
  } catch (error: any) {
@@ -618,7 +629,7 @@ userRoutes.post('/register', async (req: Request, res: Response) => {
  age: newUser.age,
  referral_code: newUser.referral_code,
  referred_by: newUser.referred_by
- }).execute().catch(e => console.error('DB Insert error (user):', e));
+ }).execute().catch(e => console.error('[arc01] DB Insert error (user):', e));
 
  // Give starter item to new user
  appState.userItems.push({
