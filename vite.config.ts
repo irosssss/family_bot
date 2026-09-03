@@ -11,16 +11,35 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpeg,jpg}'],
+        // FE-01 FIX: precache — только бандл (js/css/html/ico/svg-иконки).
+        // 16 756 PNG из public/ (81 МБ) НЕ попадают в precache-манифест:
+        // спрайты кэшируются runtime-стратегией CacheFirst по /assets/game/.
+        globPatterns: ['**/*.{js,css,html,ico}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/cdn\.family-chores\.com\/assets\/.*/i,
+            // Игровые ассеты (Habitica/ULPC спрайты, фоны) — CacheFirst
+            urlPattern: /\/assets\/game\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'rpg-assets-cache',
               expiration: {
-                maxEntries: 100,
+                maxEntries: 300,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 Days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            // Прочие статические ресурсы (не из бандла) — StaleWhileRevalidate
+            urlPattern: /\/assets\/(?!game\/).*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'static-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7,
               },
               cacheableResponse: {
                 statuses: [0, 200]

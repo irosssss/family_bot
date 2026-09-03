@@ -28,3 +28,8 @@ Thumbs.db
 
 # ZCode CLI (служебные файлы сессий/планов)
 .zcode/
+# SEC-09: генераторные артефакты и локальные конфиги
+firebase-applet-config.json
+firebase-applet-config.*.json
+metadata.json
+bun.lock

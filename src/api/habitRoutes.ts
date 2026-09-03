@@ -6,6 +6,7 @@
  * DELETE /api/habits/:id             — удалить (владелец или админ)
  */
 import { Request, Response, Router } from 'express';
+import { AuthedRequest, canActOn } from '../utils/apiAuth';
 import { eq, desc } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../db/schema';
@@ -27,6 +28,11 @@ habitRoutes.get('/', (req: Request, res: Response) => {
 habitRoutes.post('/add', async (req: Request, res: Response) => {
   try {
     const { userId, title, icon } = req.body;
+    // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
+    const __req = req as any;
+    if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+      return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
+    }
     if (!title || !title.trim()) return res.status(400).json({ error: 'Название обязательно' });
 
     // В память
@@ -145,6 +151,11 @@ habitRoutes.delete('/:id', async (req: Request, res: Response) => {
   try {
     const habitId = Number(req.params.id);
     const { userId } = req.body;
+    // SEC-03 FIX
+    const __req = req as any;
+    if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+      return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
+    }
 
     const habit = appState.habits.find((h) => h.id === habitId);
     if (!habit) return res.status(404).json({ error: 'Не найдено' });

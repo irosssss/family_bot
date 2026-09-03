@@ -4,7 +4,7 @@
  * POST /api/auth/register — регистрация пользователя (Этап R1).
  */
 import { Request, Response, Router } from 'express';
-import { telegramAuthMiddleware } from '../utils/telegramAuth';
+import { telegramAuthMiddleware, validateTelegramWebAppData, parseInitDataUser } from '../utils/telegramAuth';
 import { appState } from '../services/stateService';
 import { db } from '../db';
 import * as schema from '../db/schema';
@@ -18,13 +18,36 @@ authRoutes.post('/verify', telegramAuthMiddleware, (req: any, res: Response) => 
 
 /**
  * POST /api/auth/register
- * Регистрация пользователя.
- * body: { telegram_id, display_name, family_role?, age?, gender?, invite_code? }
- * Если первый пользователь → parent (admin), остальные по invite → child.
+ * Регистрация пользователя (Этап R1).
+ *
+ * SEC-01 FIX (эскалация привилегий закрыта):
+ *  - telegram_id берётся ТОЛЬКО из проверенного initData (заголовок tma),
+ *    а не из body — подделать сессию нельзя.
+ *  - family_role из body ИГНОРИРУЕТСЯ: первый пользователь семьи — parent,
+ *    все последующие — child (родители добавляются существующим родителем).
+ *  - В production эндпоинт требует валидный tma-заголовок (фолбэк на
+ *    initData в body только в dev для тестов без Telegram).
  */
 authRoutes.post('/register', async (req: Request, res: Response) => {
   try {
-    const { telegram_id, display_name, family_role, age, gender, invite_code } = req.body;
+    const { display_name, age, gender } = req.body;
+
+    // SEC-01: telegram_id ТОЛЬКО из проверенной подписи
+    const authHeader = req.headers.authorization || '';
+    let tgIdFromAuth: number | null = null;
+    if (authHeader.startsWith('tma ')) {
+      const initData = authHeader.slice(4).trim();
+      const botToken = process.env.BOT_TOKEN as string;
+      if (botToken && validateTelegramWebAppData(initData, botToken)) {
+        const tgUser = parseInitDataUser(initData);
+        if (tgUser) tgIdFromAuth = tgUser.id;
+      }
+    }
+
+    const isProd = process.env.NODE_ENV === 'production';
+    if (isProd && !tgIdFromAuth) {
+      return res.status(401).json({ error: 'Требуется авторизация Telegram (tma initData)' });
+    }
 
     if (!display_name || typeof display_name !== 'string' || !display_name.trim()) {
       return res.status(400).json({ error: 'Укажите имя' });
@@ -38,14 +61,15 @@ authRoutes.post('/register', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Имя уже занято' });
     }
 
-    // Первый пользователь — родитель (admin). Остальные — дети.
+    // SEC-01: role НЕ из body. Первый — parent/admin, остальные — child.
     const isFirstUser = appState.users.length === 0;
-    const effectiveRole: 'parent' | 'child' =
-      isFirstUser ? 'parent' : (family_role === 'parent' ? 'parent' : 'child');
+    const effectiveRole: 'parent' | 'child' = isFirstUser ? 'parent' : 'child';
     const isAdmin = isFirstUser;
 
+    // dev-фолбэк: без tma берём telegram_id из body (dev-песочница)
+    const tgId = tgIdFromAuth ?? (Number(req.body.telegram_id) || 100000 + Date.now() % 100000);
+
     const newId = Math.max(...appState.users.map((u) => u.id), 0) + 1;
-    const tgId = Number(telegram_id) || (100000 + newId);
 
     const newUser: User = {
       id: newId,

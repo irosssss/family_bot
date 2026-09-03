@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Users, Crown, Key, Copy, CheckCircle, Sparkles, Shield, UserPlus, CreditCard, Zap, Gift, Check, Bell, Send, CheckCircle2, Smartphone, Settings, Volume2, VolumeX, RefreshCw, RotateCcw, UploadCloud } from 'lucide-react';
 import { User } from '../types';
 import { UploadAssets } from './UploadAssets';
-import { AdminIntegrations } from './AdminIntegrations';
 
 interface FamilyManagementModalProps {
  isOpen: boolean;
@@ -576,7 +575,6 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
  {activeTab === 'assets' && (
  <div className="space-y-6">
  <UploadAssets />
- <AdminIntegrations />
  </div>
  )}
  </div>

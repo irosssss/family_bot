@@ -4,6 +4,7 @@
  * POST /apply — активировать реферальный код.
  */
 import { Request, Response, Router } from 'express';
+import { AuthedRequest, canActOn } from '../utils/apiAuth';
 import { appState } from '../services/stateService';
 import { processReferral } from '../services/referralService';
 
@@ -49,6 +50,11 @@ referralRoutes.get('/info', (req: Request, res: Response) => {
 
 referralRoutes.post('/apply', (req: Request, res: Response) => {
   const { userId, refCode } = req.body;
+  // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
+  const __req = req as any;
+  if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+    return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
+  }
   const user = appState.users.find((u) => u.id === Number(userId));
   if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 

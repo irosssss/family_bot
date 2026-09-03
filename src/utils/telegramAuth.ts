@@ -10,6 +10,15 @@ export function validateTelegramWebAppData(initData: string, botToken: string): 
   if (!initData || !botToken) return false;
 
   try {
+    // SEC-05 FIX (replay): initData старше 24 ч отклоняется — перехваченная строка
+    // не должна быть бессрочным ключом. auth_date в секундах.
+    const authDatePair = initData.split('&').find((p) => p.startsWith('auth_date='));
+    const authDate = authDatePair ? Number(authDatePair.slice('auth_date='.length)) : NaN;
+    if (!Number.isFinite(authDate)) return false;
+    const ageSeconds = Date.now() / 1000 - authDate;
+    const MAX_AGE_SECONDS = 24 * 60 * 60;
+    if (ageSeconds < -60 || ageSeconds > MAX_AGE_SECONDS) return false; // -60s: допуск часов клиента
+
     // Telegram подписывает СЫРЫЕ пары ключ=значение (URL-кодированные значения).
     // Официальный алгоритм: убрать hash, отсортировать пары, склеить '\n'.
     // НЕ использовать URLSearchParams для check-string: он декодирует значения
@@ -24,8 +33,11 @@ export function validateTelegramWebAppData(initData: string, botToken: string): 
     
     const secretKey = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest();
     const computedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
-    
-    return computedHash === hash;
+
+    // SEC-05 FIX (timing-safe): сравнение буферов постоянного времени
+    const a = Buffer.from(computedHash, 'hex');
+    const b = Buffer.from(hash, 'hex');
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
   } catch (err) {
     console.error('Error validating Telegram initData:', err);
     return false;

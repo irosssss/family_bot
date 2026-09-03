@@ -27,11 +27,12 @@ export interface AuthedRequest extends Request {
   auth?: ApiAuth;
 }
 
-/** Пути, доступные без tma-заголовка (webhooks, health, Google-integration). */
+/** Пути, доступные без tma-заголовка (webhooks, health, auth-вход).
+ *  SEC-02 FIX: /api/integrations/* УДАЛЕН из публичных — требует tma + admin
+ *  (свой Bearer Google остаётся, но поверх обязательной tma-сессии). */
 export const PUBLIC_API_PREFIXES = [
   '/api/health',
   '/api/webhook/',
-  '/api/integrations/',
   '/api/auth/verify',
   '/api/auth/register',
 ];
@@ -44,15 +45,19 @@ export function isPublicApiPath(originalUrl: string): boolean {
 /**
  * Auth принудителен ТОЛЬКО в production (NODE_ENV=production, как в Docker).
  * В dev (npm run dev) API остаётся открытым — браузерное тестирование без
- * Telegram работает как раньше. В prod без BOT_TOKEN auth невозможен —
- * предупредим и оставим открытым (misconfiguration), чтобы не положить прод.
+ * Telegram работает как раньше.
+ *
+ * SEC-04 FIX (fail-closed): в production без BOT_TOKEN — упать на старте,
+ * а не открывать API всем. DEMO включается явным DEMO_MODE=true.
  */
 export function isAuthEnforced(): boolean {
   const isProd = process.env.NODE_ENV === 'production';
   if (!isProd) return false;
+  if (process.env.DEMO_MODE === 'true') return false;
   if (!process.env.BOT_TOKEN) {
-    console.warn('[auth] NODE_ENV=production, но BOT_TOKEN не задан — API работает без auth!');
-    return false;
+    // Fail-closed: ошибка конфигурации не должна превращаться в открытый API.
+    console.error('[auth] FATAL: NODE_ENV=production без BOT_TOKEN. Задай BOT_TOKEN или DEMO_MODE=true.');
+    process.exit(1);
   }
   return true;
 }

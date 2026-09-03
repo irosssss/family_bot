@@ -4,8 +4,21 @@ import { db } from '../db';
 import * as schema from '../db/schema';
 import fs from 'fs';
 import path from 'path';
+import { AuthedRequest, requireAdmin } from '../utils/apiAuth';
 
 export const integrationsRouter = Router();
+
+/**
+ * SEC-02 FIX: все /api/integrations/* требуют tma-сессию (глобальный guard больше
+ * не исключает этот роутер) + права admin. Bearer Google-токен по-прежнему нужен,
+ * но поверх проверенной сессии — слить БД в чужой Drive больше нельзя.
+ */
+integrationsRouter.use((req: AuthedRequest, res: Response, next: () => void) => {
+  if (!requireAdmin(req)) {
+    return res.status(403).json({ error: 'Forbidden: admin only' });
+  }
+  next();
+});
 
 // Helper to get OAuth2 client
 const getOAuth2Client = (req: Request) => {

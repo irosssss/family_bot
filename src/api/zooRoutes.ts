@@ -9,6 +9,7 @@
  *   100+  = маунт (Mount_Icon_ спрайт)
  */
 import { Request, Response, Router } from 'express';
+import { AuthedRequest, canActOn } from '../utils/apiAuth';
 import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../db/schema';
@@ -24,6 +25,11 @@ const FEED_PER_MEAL = 10;
 zooRoutes.post('/hatch', async (req: Request, res: Response) => {
   try {
     const { userId, species, eggId, potionId } = req.body;
+    // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
+    const __req = req as any;
+    if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+      return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
+    }
     const user = appState.users.find((u) => u.id === Number(userId));
     if (!user) return res.status(404).json({ error: 'User not found' });
     if (user.family_role === 'parent') return res.status(403).json({ error: 'Родители не играют' });
@@ -143,6 +149,11 @@ zooRoutes.post('/active', async (req: Request, res: Response) => {
   try {
     const { userId, petId } = req.body;
     const user = appState.users.find((u) => u.id === Number(userId));
+    // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
+    const __req = req as any;
+    if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+      return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
+    }
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // Владение проверяем по зеркалу памяти (работает и в DEMO без БД).
@@ -185,6 +196,11 @@ zooRoutes.post('/feed', async (req: Request, res: Response) => {
   try {
     const { userId, petId } = req.body;
     const user = appState.users.find((u) => u.id === Number(userId));
+    // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
+    const __req = req as any;
+    if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+      return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
+    }
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // Кормление стоит 5 золота (еда)

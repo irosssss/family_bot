@@ -5,6 +5,7 @@
  * POST /equip — экипировать/снять предмет.
  */
 import { Request, Response, Router } from 'express';
+import { AuthedRequest, canActOn } from '../utils/apiAuth';
 import { telegramAuthMiddleware } from '../utils/telegramAuth';
 import { appState } from '../services/stateService';
 import { buyShopItemAtomic } from '../services/walletService';
@@ -31,6 +32,11 @@ shopRoutes.post('/invoice', telegramAuthMiddleware, (req: any, res: Response) =>
 // транзакция со списанием `WHERE gold >= cost` и авто-ROLLBACK.
 shopRoutes.post('/buy', async (req: Request, res: Response) => {
   const { userId, itemId } = req.body;
+  // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
+  const __req = req as any;
+  if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+    return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
+  }
 
   const result = await buyShopItemAtomic(Number(userId), Number(itemId));
   if (!result.ok) {
@@ -50,6 +56,11 @@ shopRoutes.post('/buy', async (req: Request, res: Response) => {
 // Equip / Unequip Item
 shopRoutes.post('/equip', async (req: Request, res: Response) => {
   const { userId, itemId } = req.body;
+  // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
+  const __req = req as any;
+  if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+    return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
+  }
   const user = appState.users.find((u) => u.id === Number(userId));
   const item = appState.shopItems.find((s) => s.id === Number(itemId));
 

@@ -5,6 +5,7 @@
  * POST /add — создать кастомную задачу.
  */
 import { Request, Response, Router } from 'express';
+import { AuthedRequest, canActOn } from '../utils/apiAuth';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
@@ -23,6 +24,11 @@ export const taskRoutes = Router();
 taskRoutes.post('/complete', async (req: Request, res: Response) => {
   try {
     const { userId, taskId } = req.body;
+    // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
+    const __req = req as any;
+    if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+      return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
+    }
     const user = appState.users.find((u) => u.id === Number(userId));
     const task = appState.tasks.find((t) => t.id === Number(taskId));
 
@@ -128,6 +134,11 @@ taskRoutes.post('/complete', async (req: Request, res: Response) => {
 taskRoutes.post('/toggle', async (req: Request, res: Response) => {
   const { userId, taskId } = req.body;
   const user = appState.users.find((u) => u.id === Number(userId));
+  // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
+  const __req = req as any;
+  if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+    return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
+  }
   const task = appState.tasks.find((t) => t.id === Number(taskId));
 
   if (task && user && task.assignee !== user.assignee && task.assignee !== 'both') {

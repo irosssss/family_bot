@@ -246,3 +246,17 @@ export const habit_scores = pgTable('habit_scores', {
   direction: text('direction').notNull(), // 'up' | 'down'
   scored_at: timestamp('scored_at').defaultNow(),
 });
+
+// ============ ПЛАТЕЖИ (DAT-01 FIX): дедупликация на уровне БД ============
+// UNIQUE(charge_id) — повторная доставка вебхука Telegram НЕ начислит дважды,
+// даже после рестарта сервера (Set в памяти больше не единственный барьер).
+export const payments = pgTable('payments', {
+  id: serial('id').primaryKey(),
+  charge_id: text('charge_id').notNull().unique(),  // provider_payment_charge_id
+  user_id: integer('user_id').notNull(),
+  sku: text('sku').notNull(),
+  amount: integer('amount').notNull(),              // в XTR (Stars)
+  currency: text('currency').notNull().default('XTR'),
+  status: text('status').notNull().default('credited'),
+  created_at: timestamp('created_at').defaultNow(),
+});
