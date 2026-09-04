@@ -99,20 +99,6 @@ socket.on('streak_updated', (data) => {
 - При увеличении streak: `triggerHaptic('notification', 'success')`
 - Milestone: дополнительная вибрация через `sounds.playLevelUp()`
 
-## Custom Hook
-
-Для загрузки streak из API:
-
-```tsx
-import { useStreak } from '../hooks/useStreak';
-
-const { streak, bonusPercent, isLoading } = useStreak(userId);
-
-{!isLoading && (
-  <StreakBadge streak={streak} bonusPercent={bonusPercent} />
-)}
-```
-
 ## Backend API Endpoint
 
 ```

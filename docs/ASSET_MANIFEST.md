@@ -12,26 +12,20 @@
 | home_bg | Комната семьи с камином (LPC interior) | 1376x768, fullscreen cover | /assets/game/home_bg.png | FamilyHubScene |
 | arena_bg | Фон арены боя | 1376x768, fullscreen cover | /assets/game/arena_bg.png | BossRaidScene |
 | wardrobe_bg | Гардеробная с зеркалом | 1376x768, fullscreen cover | /assets/game/wardrobe_bg.png | WardrobeCustomizationScene |
-| hero_home | Карточка: комната с камином (кроп home_bg) | 480x360, card cover | /assets/game/backgrounds/cards/hero_home.png | PlayerCard (id 1) |
-| hero_hall | Карточка: зал | 480x360, card cover | /assets/game/backgrounds/cards/hero_hall.png | PlayerCard (id 2) |
-| hero_corner | Карточка: угол комнаты | 480x360, card cover | /assets/game/backgrounds/cards/hero_corner.png | PlayerCard (id 3) |
-| hero_study | Карточка: кабинет | 480x360, card cover | /assets/game/backgrounds/cards/hero_study.png | PlayerCard (id 4+) |
 
 ## Боссы
 
 | Name | Описание | Size | Path | Used by |
 |------|----------|------|------|---------|
-| boss_main_sheet | Слайм-король крупный, 5 кадров по 128px | 640x128 sheet, кадр 128px | /assets/game/entities/bosses/boss_main_sheet.png | BossRaidScene (BossAvatar, size 144-200) |
 | slime_idle_sheet | Слайм idle, 5 кадров по 64px | 320x64 sheet, кадр 64px | /assets/game/entities/bosses/slime_idle_sheet.png | BossAvatar (default) |
-| slime_king_spritesheet | Оригинальный слайм-король | 320x640 sheet | /assets/game/entities/bosses/slime_king_spritesheet.png | initialData BOSS_LIST.icon |
 
 ## Питомцы (LPC, 8x4 кадров по 64px, ряд 1 = профиль)
 
 | Name | Описание | Size | Path | Used by |
 |------|----------|------|------|---------|
-| lpc_cat | Кот, полный спрайтшит | 512x256 sheet, кадр 64x64 | /assets/game/entities/pets/lpc_cat.png | UlpcPetAvatar (spriteSheetUrl) |
+| lpc_cat | Кот, полный спрайтшит | 512x256 sheet, кадр 64x64 | /assets/game/entities/pets/lpc_cat.png | initialData Pet.spriteSheetUrl |
 | lpc_cat_idle | Кот, статичный кадр (иконка) | 64x64, display 56px | /assets/game/entities/pets/lpc_cat_idle.png | Pet.icon, PixelAvatar type=pet |
-| lpc_dog | Пёс, полный спрайтшит | 512x256 sheet, кадр 64x64 | /assets/game/entities/pets/lpc_dog.png | UlpcPetAvatar (spriteSheetUrl) |
+| lpc_dog | Пёс, полный спрайтшит | 512x256 sheet, кадр 64x64 | /assets/game/entities/pets/lpc_dog.png | initialData Pet.spriteSheetUrl |
 | lpc_dog_idle | Пёс, статичный кадр | 64x64, display 56px | /assets/game/entities/pets/lpc_dog_idle.png | Pet.icon |
 
 ## UI
@@ -53,7 +47,7 @@
 | weapons/sword_iron (bg+fg) | все 7 анимаций | `ulpc/weapons/sword_iron/` |
 | torso_shop (магазин одежды) | idle, walk | `ulpc/torso_shop/{leather,legion,plate,chainmail,overalls,suspenders}/{male,female}/` |
 
-Код: `src/utils/ulpcCharacter.ts` (getUserCharacter, buildUlpcLayers), `src/components/UlpcAvatar.tsx`.
+Код: `src/utils/ulpcCharacter.ts` (маппинг магазинных ULPC-торсов).
 
 ## Старые LPC-слои (используются FamilySettings + иконки магазина)
 
@@ -71,7 +65,7 @@
 ## Kenney Previews (ИСПОЛЬЗУЮТСЯ! Не удалять!)
 
 `backgrounds/Previews/` — 51 иконка, `entities/pets/Previews/` — 24 иконки.
-**В git их НЕТ.** Единственный бэкап — `dist/assets/game/`. Используются в:
+**Они отслеживаются в git.** `dist/assets/game/` — только сгенерированная копия. Используются в:
 `initialData.ts` (35+ иконок магазина/задач), `FeedJournal`, `TodayTasks`, `ui/index.tsx` (coin),
 `FamilySettings` (character-human, animal-chick).
 

@@ -181,7 +181,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
  const [selectedClass, setSelectedClass] = useState<ClassKey>('warrior');
  const [gender, setGender] = useState<GenderKey>('male');
  const [selectedColor, setSelectedColor] = useState<string>('#f59e0b');
- const [familyCode, setFamilyCode] = useState('FAM-7892');
+ const [familyCode, setFamilyCode] = useState(() => localStorage.getItem('family_code') || '');
  const [refCode, setRefCode] = useState('');
  const [error, setError] = useState<string | null>(null);
 

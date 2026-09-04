@@ -7,7 +7,11 @@
  * body → legs → feet → torso → head → eyes → hair_bg → hair → weapon_bg → weapon_fg
  */
 
-import type { UlpcLayer } from '../components/legacy/UlpcAvatar';
+/** Слой ULPC-персонажа. Рендерер был legacy-only и больше не нужен runtime. */
+export interface UlpcLayer {
+  url: string;
+  z: number;
+}
 
 const B = '/assets/game/characters/ulpc/';
 
@@ -54,7 +58,7 @@ export const FAMILY_CHARACTERS: Record<string, UlpcCharacterConfig> = {
 };
 
 /**
- * Собирает упорядоченный список слоёв для UlpcAvatar.
+ * Собирает упорядоченный список слоёв для ULPC-рендера.
  * ponytail2-стили имеют fg/bg части — обрабатываются автоматически.
  */
 export function buildUlpcLayers(cfg: UlpcCharacterConfig, anim: string = 'idle'): UlpcLayer[] {

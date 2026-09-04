@@ -41,6 +41,7 @@ import { globalApiAuth } from './src/utils/apiAuth';
 import rateLimit from 'express-rate-limit';
 import { ensureCatalogInDb, hydrateWalletFromDb, backfillProgressFromMemory } from './src/db/backfillCatalog';
 import { ensureCompletionsIndex } from './src/db/index';
+import { hydrateUsersFromDb } from './src/services/userStateHydration';
 
 // Роутеры
 import { integrationsRouter } from './src/api/integrations';
@@ -208,16 +209,16 @@ async function startServer() {
   app.use(globalApiAuth);
 
   // --- Инициализация БД ---
-  initializeDatabase();
-
-  // --- Фаза 6-lite: каталог магазина/наград в БД + гидрация кошельков из БД ---
-  // (покупки работают через БД-транзакции; память — зеркало для чтения UI)
-  // DAT-02: миграции применяются журналируемым migrator'ом (idempotent),
-  // ensureCompletionsIndex перенесён в migrations/0014.
-  void ensureCatalogInDb()
-    .then(() => runMigrations())
-    .then(() => backfillProgressFromMemory())
-    .then(() => hydrateWalletFromDb());
+  // Никаких fire-and-forget: globalApiAuth читает appState.users до первого
+  // /api/state. К моменту, когда порт начинает слушать запросы, кэш должен
+  // отражать PostgreSQL, иначе любой реальный Telegram-пользователь получает 403.
+  await runMigrations();
+  await initializeDatabase();
+  await ensureCatalogInDb();
+  await backfillProgressFromMemory();
+  const hydratedUsers = await hydrateUsersFromDb();
+  await hydrateWalletFromDb();
+  console.log(`[Server] Hydrated ${hydratedUsers} users from PostgreSQL.`);
 
   // --- Инициализация Streak Cron Job ---
   initStreakCronJob(io);

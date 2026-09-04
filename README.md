@@ -1,112 +1,156 @@
 # Family Chores RPG
 
-**Семейная RPG-игра домашних дел: превращает рутинные обязанности в совместное приключение.** Никаких скучных дашбордов — приложение выглядит и играется как ретро-RPG: три сцены (хаб семьи, арена с боссом, гардероб), прокачка, золото, кристаллы, питомцы и маунты.
+[![CI](https://github.com/irosssss/family_bot/actions/workflows/ci.yml/badge.svg)](https://github.com/irosssss/family_bot/actions/workflows/ci.yml)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=111827)](https://react.dev/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Платформы: **Telegram Mini App** (готов на ~90%) и **MAX Mini App** (приоритет запуска — см. [docs/MAX_LAUNCH_PLAN.md](docs/MAX_LAUNCH_PLAN.md)). Mobile-first: 95% пользователей — телефоны 375–390px.
+Семейная RPG для домашних дел. Обычные обязанности превращаются в совместное приключение: дети выполняют задания, получают золото и опыт, растят питомцев и вместе с семьёй сражаются с боссом.
 
----
+Проект рассчитан прежде всего на мобильный Telegram Mini App: основные сценарии проверяются на ширине 375–390 px.
 
-## Ролевая модель семьи
+## Возможности
 
-- **Родители (папа/мама)** — администраторы семьи: ставят задачи, управляют составом, видят прогресс детей. **Не играют**: без золота, XP, босса и streak. Первый зарегистрированный пользователь автоматически становится родителем-админом.
-- **Дети (сын/дочка)** — игроки без ограничений по количеству: выполняют задачи, копят золото, растят питомцев, бьют босса в рейде.
+- ежедневные, разовые и квестовые задачи;
+- семейный прогресс, streak и награды за идеальный день;
+- кооперативный рейд с общим боссом и семейным HP;
+- классы, навыки, золото, кристаллы, питомцы и маунты;
+- магазин, гардероб и единый образ персонажа во всех сценах;
+- родительская роль для управления семьёй и задачами;
+- Telegram initData HMAC-проверка в production;
+- Telegram Stars и webhook с проверкой секрета и дедупликацией платежей;
+- PWA-кэширование игровых ассетов.
 
-Все `POST/PUT/DELETE /api/users` требуют `actorId` (admin-guard, 403 для не-родителей).
+## Игровая модель
 
-## Игровые механики
+| Роль | Возможности |
+| --- | --- |
+| Родитель | Администрирует семью, добавляет задачи, управляет участниками и видит прогресс |
+| Ребёнок | Выполняет задачи, получает награды, развивает персонажа и участвует в рейде |
 
-| Механика | Как работает |
-|---|---|
-| Задачи | Ежедневные/разовые домашние дела → золото + XP; perfect day и streak |
-| Босс-рейды | Совместный урон всей семьёй; «Мощный удар» только на арене; классы и скиллы |
-| Экономика | Золото (игровое) + кристаллы (редкая валюта: заморозка streak 50💎, пополнение через Telegram Stars) |
-| Питомцы и маунты | Кормление за золото; `feed_points ≥ 100` → питомец вырастает в маунта; активный компаньон ходит за героем в хабе |
-| Гардероб | Покупная одежда/оружие/причёски; экипировка видна во всех сценах (единый `getUnifiedLook`) |
-| Визуал | **Единый канон — стиль Habitica** для всех персонажей/предметов/питомцев; эмодзи запрещены везде, только пиксель-арт спрайты и lucide-иконки |
+Родители не являются игровыми персонажами: игровые действия, золото, streak и урон по боссу предназначены для детей.
 
-## Стек
+## Технологии
 
-- **Frontend**: React 18, Vite 6, Tailwind CSS 4, Motion, Recharts, Socket.IO-client, PWA
-- **Backend**: Node.js 20+, Express, Socket.IO, node-cron, Sentry
-- **БД**: PostgreSQL 18, Drizzle ORM + postgres.js (источник правды для прогресса; in-memory DEMO-режим без БД для разработки)
-- **Бот**: node-telegram-bot-api (вебхуки, Stars-платежи, push); в планах @maxhub/max-bot-api
-- **Design system**: `src/components/ui` — PixelButton/PixelCard ≥44px, WCAG 2.1 AA
-- **Ассеты**: Habitica sprite pack в `public/assets/game/` (CC-BY-SA, кредит ниже)
+- **Frontend:** React 18, Vite, Tailwind CSS 4, Motion, PWA
+- **Backend:** Node.js 20+, Express, Socket.IO, node-cron, Sentry
+- **Database:** PostgreSQL 18, Drizzle ORM, postgres.js
+- **Bot:** node-telegram-bot-api, Telegram Mini App API, Telegram Stars
+- **Quality:** TypeScript, Vitest, GitHub Actions
+- **Visuals:** Habitica sprite pack, LPC/ULPC assets, Lucide icons
 
 ## Быстрый старт
 
-Требования: **Node.js 18+**, **PostgreSQL 18** (или Docker), для полной работы — токен бота от [@BotFather](https://t.me/BotFather).
+### Локальный запуск
 
-```bash
+Требования: Node.js 20+, npm и PostgreSQL 18. Telegram bot token нужен для полноценного production-сценария; в development без него доступен demo-режим.
+
+~~~bash
 npm ci
-cp .env.example .env        # заполнить токены/БД
-```
+cp .env.example .env
+# заполнить .env
+npm run dev
+~~~
 
-**Windows:** PostgreSQL запускается двойным кликом `scripts/start-pg.bat` (окно открыто = БД работает; `pg_ctl` из git-bash падает с error 487). Без БД сервер поднимается в DEMO-режиме (in-memory).
+Приложение: <http://localhost:3000><br>
+Healthcheck: <http://localhost:3000/api/health>
 
-```bash
-npm run dev                  # http://localhost:3000
-curl http://localhost:3000/api/health
-```
+На Windows PostgreSQL запускается двойным кликом по scripts/start-pg.bat в отдельной консоли. Окно PostgreSQL должно оставаться открытым.
 
-**Docker (всё сразу: PostgreSQL + приложение):**
+### Docker
 
-```bash
+~~~bash
 docker compose up -d --build
-```
+docker compose run --rm app npm run db:push
+~~~
 
-## Скрипты
+После запуска приложение доступно на <http://localhost:3000>.
 
-| Команда | Что делает |
-|---|---|
-| `npm run dev` | dev-сервер (tsx watch, порт 3000) |
-| `npm run build` | Vite-бандл фронтенда + esbuild-бандл сервера в `dist/` |
-| `npm start` | прод-сервер (`node dist/server.cjs`) |
-| `npm run lint` | `tsc --noEmit` — должен быть 0 ошибок |
-| `npm run db:push` | применить схему Drizzle к PostgreSQL |
+### Переменные окружения
 
-## Структура проекта
+Начните с [.env.example](.env.example). Основные группы настроек:
 
-```
-server.ts               # тонкий bootstrap: Express + Socket.IO + Vite
+- BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET — Telegram и webhook;
+- SQL_HOST, SQL_USER, SQL_PASSWORD, SQL_DB_NAME — PostgreSQL;
+- VITE_API_URL — публичный URL Mini App;
+- SENTRY_DSN — необязательный мониторинг;
+- S3_* — необязательное внешнее хранилище ассетов.
+
+.env не коммитится. Секреты нельзя добавлять в исходники, README, логи или память агента.
+
+## Команды
+
+| Команда | Назначение |
+| --- | --- |
+| npm run dev | Vite/Express dev-сервер на порту 3000 |
+| npm run build | Production-бандл frontend и server в dist/ |
+| npm start | Запуск собранного production-сервера |
+| npm run lint | Проверка TypeScript без генерации файлов |
+| npm test | Запуск Vitest |
+| npm run db:push | Применение актуальной Drizzle-схемы к PostgreSQL |
+| npm run db:migrate | Запуск журналируемых SQL-миграций |
+| npm run unpack-local | Распаковка локальных asset-архивов |
+
+Перед отправкой изменений в GitHub выполните:
+
+~~~bash
+npm run lint
+npm test
+npm run build
+~~~
+
+Эти же проверки запускаются в [GitHub Actions](.github/workflows/ci.yml) на push в main и для pull request.
+
+## Архитектура
+
+~~~text
+server.ts                  Express + Socket.IO + Vite + bootstrap
 src/
-  api/                  # Express-роутеры по доменам (state, tasks, shop, users...)
-  services/             # бизнес-логика (taskService, streakService, progressService...)
+  api/                     HTTP-роутеры по доменам
+  services/                Бизнес-логика и persistence helpers
+  bot/                     Telegram webhook, notifications, cron
+  db/                      Drizzle schema, seed и database access
   components/
-    scenes/             # 3 сцены: FamilyHubScene, BossRaidScene, WardrobeCustomizationScene
-    ui/                 # дизайн-система (PixelButton, PixelCard — >=44px, WCAG AA)
-    legacy/             # изолированные старые аватары (НЕ использовать в новом коде)
-  bot/                  # Telegram-бот (webhook, accessControl, Stars)
-  db/                   # Drizzle schema + миграции
-  utils/                # unifiedLook, shopLookMap, haptics...
-  config/               # централизованная конфигурация (.env)
-public/assets/game/     # только файлы, которые грузит игра (см. docs/ASSET_MANIFEST.md)
-docs/                   # документация (карта ниже)
-scripts/                # start-pg.bat, вспомогательные скрипты
-migrations/             # SQL-миграции
-```
+    scenes/                Family Hub, Boss Raid, Wardrobe
+    ui/                    PixelButton, PixelCard и UI primitives
+  utils/                   auth, API transport, assets, haptics, look mapping
+  data/                    demo/catalog data
+public/assets/game/        Runtime-ассеты игры
+tests/                     Unit и service tests
+docs/                      Deploy, asset manifest, roadmap и audit notes
+~~~
 
-## Документация — карта
+Клиентские запросы к собственному API проходят через src/utils/apiFetch.ts. В production auth guard требует Telegram initData; mutation-роуты проверяют actor и права администратора. Идентификатор пользователя из body запроса сам по себе не считается доказательством доступа.
 
-| Документ | О чём |
-|---|---|
-| [AGENTS.md](AGENTS.md) | Гайд для агентов/разработчиков: квирки, silent-failure, правила |
-| [docs/DEPLOY.md](docs/DEPLOY.md) | Чеклист деплоя (webhook, секреты, прод-режим) |
-| [docs/MAX_LAUNCH_PLAN.md](docs/MAX_LAUNCH_PLAN.md) | MAX-first роадмап M1–M8 (идентичность, платежи, модерация) |
-| [docs/MONETIZATION_AUDIT.md](docs/MONETIZATION_AUDIT.md) | Модель монетизации (Habitica-подход: косметика, не pay-to-win) |
-| [docs/REVENUE_FORECAST.md](docs/REVENUE_FORECAST.md) | Прогноз выручки по бенчмаркам |
-| [docs/INFRA_COSTS.md](docs/INFRA_COSTS.md) | Варианты инфраструктуры (0₽ vs mini-VPS) |
-| [docs/ASSET_MANIFEST.md](docs/ASSET_MANIFEST.md) | Реестр ассетов: Name/Size/Path/Used-by |
-| [docs/archive/](docs/archive/README.md) | Устаревшие решения (не источник правды) |
+## Ассеты и визуальный канон
 
-## Продакшен-режим и безопасность
+Основной визуальный канон — стиль Habitica. Вспомогательные LPC/ULPC-ассеты используются для отдельных питомцев, иконок магазина и torso items. Эмодзи в интерфейсе и игровых сообщениях не используются.
 
-- TMA-auth включается только при `NODE_ENV=production` + `BOT_TOKEN` (`src/utils/apiAuth.ts`); dev остаётся открытым.
-- Подпись initData Telegram проверяется HMAC-SHA256 (`src/utils/telegramAuth.ts`) — та же схема переиспользуется для MAX initData.
-- Stars-webhook fail-closed на `TELEGRAM_WEBHOOK_SECRET`; дедупликация charge_id; покупка через `db.transaction` с условным списанием.
-- Whitelist бота: `TELEGRAM_ALLOWED_USERS` (пусто = выключен).
+Полный реестр ассетов с назначением, размерами и runtime-потребителями находится в [docs/ASSET_MANIFEST.md](docs/ASSET_MANIFEST.md). Перед изменением или удалением ассета необходимо проверить ссылки в src/ и production-сборке.
 
-## Лицензии
+## Текущий статус
 
-- Код: **MIT** (см. [LICENSE](LICENSE)).
-- Ассеты: пиксель-арт из открытого пака **Habitica** (HabitRPG) — лицензия **CC-BY-SA 3.0/4.0**, © HabitRPG Inc. и контрибьюторы; иконки интерфейса — **lucide-react** (ISC). Ассеты LPC/Kenney — CC-BY-SA / CC0. Полная разбивка — `docs/ASSET_MANIFEST.md`.
+Текущий working tree проходит:
+
+- TypeScript lint без ошибок;
+- 46 unit/service tests;
+- production build frontend и backend;
+- локальный healthcheck и ручной проход сцен Дом, Арена и Гардероб.
+
+Перед полноценным production-релизом ещё требуется закрыть технический backlog: довести family isolation до всех маршрутов, сделать миграции самодостаточными для чистой БД, усилить Socket.IO auth/CORS, завершить интеграционные тесты HTTP-роутов и разделить крупный frontend bundle.
+
+План MAX-интеграции и двухканальной архитектуры: [docs/MAX_LAUNCH_PLAN.md](docs/MAX_LAUNCH_PLAN.md).
+
+## Документация
+
+- [AGENTS.md](AGENTS.md) — правила разработки и известные project quirks;
+- [docs/DEPLOY.md](docs/DEPLOY.md) — deployment checklist;
+- [docs/ASSET_MANIFEST.md](docs/ASSET_MANIFEST.md) — asset registry;
+- [docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md) — краткая память для следующих рабочих сессий;
+- [docs/archive/](docs/archive/README.md) — исторические материалы, не источник правды.
+
+## Лицензия
+
+Исходный код распространяется по [MIT License](LICENSE).
+
+Игровые ассеты имеют отдельные условия: Habitica — CC-BY-SA, Lucide — ISC, LPC/ULPC — согласно исходным наборам, отдельные Kenney-ассеты — CC0. Проверяйте атрибуцию перед публичным коммерческим релизом.

@@ -5,6 +5,7 @@ import { DAYS_OF_WEEK, TASK_CATEGORY_ICONS } from '../data/initialData';
 import { ConfirmModal } from './ConfirmModal';
 import { triggerHaptic } from '../utils/haptics';
 import { valueColor } from '../services/habitService';
+import { apiFetch } from '../utils/apiFetch';
 
 // ============================================================
 // API-типы (GET /api/users/:id/tasks/today)
@@ -101,7 +102,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
   const fetchTasks = useCallback(async (userId: number) => {
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/users/${userId}/tasks/today`);
+      const res = await apiFetch(`/api/users/${userId}/tasks/today`);
       if (!res.ok) throw new Error('API error');
       const json = await res.json();
       if (json?.data) {
@@ -125,7 +126,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
   // Загрузка привычек (Habitica)
   const fetchHabits = useCallback(async () => {
     try {
-      const res = await fetch(`/api/habits?userId=${activeUser.id}`);
+      const res = await apiFetch(`/api/habits?userId=${activeUser.id}`);
       const json = await res.json();
       if (json?.success) setHabits(json.habits || []);
     } catch { /* тихо — привычки не критичны */ }
@@ -139,7 +140,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
   const scoreHabit = async (habitId: number, direction: 'up' | 'down') => {
     triggerHaptic('impact', 'medium');
     try {
-      const res = await fetch(`/api/habits/${habitId}/score`, {
+      const res = await apiFetch(`/api/habits/${habitId}/score`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ direction, userId: activeUser.id }),
@@ -162,7 +163,7 @@ export const TodayTasks: React.FC<TodayTasksProps> = ({
   const addHabit = async () => {
     const title = window.prompt('Название новой привычки:');
     if (!title || !title.trim()) return;
-    await fetch('/api/habits/add', {
+    await apiFetch('/api/habits/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: activeUser.id, title: title.trim() }),

@@ -12,6 +12,7 @@ import { User } from '../types';
 import { EGGS, POTIONS, SPECIES_RU, petSpriteUrl, mountIconUrl } from '../services/zooService';
 import { Sparkles, Apple, Shirt, Egg as EggIcon, Fish, Drumstick, Beef, UtensilsCrossed, Cookie, Croissant } from 'lucide-react';
 import { sfxCoin, sfxFeed, sfxError, sfxLevelUp } from '../utils/sfx';
+import { apiFetch } from '../utils/apiFetch';
 
 interface MyPet {
   id: number;
@@ -69,7 +70,7 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, u
     setLoading(true);
     setFeedErr(null);
     try {
-      const res = await fetch(`/api/zoo/list?userId=${userId}`);
+      const res = await apiFetch(`/api/zoo/list?userId=${userId}`);
       const json = await res.json();
       if (json.success) {
         setMyPets(json.pets || []);
@@ -97,7 +98,7 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, u
     if (isParent || activatingId !== null || activePetId === petId) return;
     setActivatingId(petId);
     try {
-      const res = await fetch('/api/zoo/active', {
+      const res = await apiFetch('/api/zoo/active', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, petId }),
@@ -124,7 +125,7 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, u
     setHatchErr(null);
     setHatchOk(null);
     try {
-      const res = await fetch('/api/zoo/hatch', {
+      const res = await apiFetch('/api/zoo/hatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, species: hatchSpecies, eggId: hatchEgg, potionId: hatchPotion }),
@@ -158,7 +159,7 @@ export const PetsTab: React.FC<PetsTabProps> = ({ activeUser, userOwnedPetIds, u
     setFeedingId(petId);
     setFeedErr(null);
     try {
-      const res = await fetch('/api/zoo/feed', {
+      const res = await apiFetch('/api/zoo/feed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, petId }),

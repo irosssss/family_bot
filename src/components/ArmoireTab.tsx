@@ -15,6 +15,7 @@ import { User } from '../types';
 import { Gift, Sparkles, Apple, Shirt, Egg as EggIcon, Loader2, Coins } from 'lucide-react';
 import { triggerHaptic } from '../utils/haptics';
 import { sfxChest, sfxCoin, sfxError } from '../utils/sfx';
+import { apiFetch } from '../utils/apiFetch';
 
 interface ArmoireTabProps {
   activeUser: User;
@@ -60,7 +61,7 @@ export const ArmoireTab: React.FC<ArmoireTabProps> = ({ activeUser, onOpen }) =>
     triggerHaptic('impact', 'medium');
 
     try {
-      const res = await fetch('/api/armoire/open', {
+      const res = await apiFetch('/api/armoire/open', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUser.id }),

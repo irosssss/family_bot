@@ -10,6 +10,7 @@ import HabiticaAnimatedAvatar from './HabiticaAnimatedAvatar';
 import { DEFAULT_LOOKS } from '../utils/habiticaAssets';
 import { PetsTab } from './PetsTab';
 import { ArmoireTab } from './ArmoireTab';
+import { apiFetch } from '../utils/apiFetch';
 
 interface ShopAndRewardsModalProps {
   isOpen: boolean;
@@ -388,10 +389,10 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                       setFreezeBusy(true);
                       setFreezeMsg(null);
                       try {
-                        const res = await fetch(`/api/users/${activeUser.id}/streak/freeze`, {
+                        const res = await apiFetch(`/api/users/${activeUser.id}/streak/freeze`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ paymentType: 'crystals' }),
+                          body: JSON.stringify({ actorId: activeUser.id, paymentType: 'crystals' }),
                         });
                         const json = await res.json();
                         setFreezeMsg({ ok: !!json.success, text: json.success ? 'Заморозка куплена за 50 кристаллов!' : (json.error || 'Не удалось купить') });
@@ -436,7 +437,7 @@ export const ShopAndRewardsModal: React.FC<ShopAndRewardsModalProps> = ({
                         onClick={async () => {
                           setStarsBusy(pack.sku);
                           try {
-                            const res = await fetch('/api/stars/create-invoice', {
+                            const res = await apiFetch('/api/stars/create-invoice', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ userId: activeUser.id, sku: pack.sku }),

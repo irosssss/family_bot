@@ -53,7 +53,7 @@ import {
 import { DAYS_OF_WEEK } from './data/initialData';
 
 import { initTelegramWebApp, triggerHaptic } from './utils/haptics';
-import { getTelegramInitData } from './utils/apiFetch';
+import { apiFetch, getTelegramInitData } from './utils/apiFetch';
 import { io } from 'socket.io-client';
 
 // Simple Web Audio Sound Synth
@@ -318,10 +318,10 @@ export function App() {
   }) => {
     if (!activeUser) return;
     try {
-      await fetch('/api/users/update-character', {
+      await apiFetch('/api/users/update-character', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: activeUser.id, ...updates }),
+        body: JSON.stringify({ actorId: activeUser.id, userId: activeUser.id, ...updates }),
       });
       triggerHaptic('notification', 'success');
       showToast('Внешность персонажа успешно сохранена!');
@@ -334,10 +334,10 @@ export function App() {
   const handleUpdateUserBackground = async (bgUrl: string) => {
     if (!activeUser) return;
     try {
-      const res = await fetch('/api/users/custom-background', {
+      const res = await apiFetch('/api/users/custom-background', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: activeUser.id, bgUrl }),
+        body: JSON.stringify({ actorId: activeUser.id, userId: activeUser.id, bgUrl }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -355,10 +355,10 @@ export function App() {
   const handleUpdateUserAvatar = async (avatarUrl: string) => {
     if (!activeUser) return;
     try {
-      const res = await fetch('/api/users/custom-avatar', {
+      const res = await apiFetch('/api/users/custom-avatar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: activeUser.id, avatarUrl }),
+        body: JSON.stringify({ actorId: activeUser.id, userId: activeUser.id, avatarUrl }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -384,11 +384,15 @@ export function App() {
     refCode?: string;
   }) => {
     try {
-      const res = await fetch('/api/users/register', {
+      const res = await apiFetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...userData,
+          display_name: userData.name,
+          classKey: userData.classKey,
+          gender: userData.gender,
+          invite_code: userData.familyCode,
+          customAvatarUrl: userData.customAvatarUrl,
           character_color: userData.characterColor || userData.color,
         }),
       });
@@ -399,6 +403,8 @@ export function App() {
       }
       if (data.user) {
         setActiveUserId(data.user.id);
+        if (data.family_id) localStorage.setItem('family_id', String(data.family_id));
+        if (data.family_code) localStorage.setItem('family_code', data.family_code);
         if (data.referralMessage) {
           showToast(`${data.referralMessage}`);
         } else {
@@ -425,8 +431,8 @@ export function App() {
       // === Этап 9: параллельно тянем state + family ===
       const myFamilyId = Number(localStorage.getItem('family_id') || 1);
       const [stateRes, familyRes] = await Promise.all([
-        fetch(`/api/state?userId=${activeUserId}`),
-        fetch(`/api/family/${myFamilyId}`).catch(() => null),
+        apiFetch(`/api/state?userId=${activeUserId}`),
+        apiFetch(`/api/family/${myFamilyId}`).catch(() => null),
       ]);
       const data = await stateRes.json();
       if (familyRes && familyRes.ok) {
@@ -458,7 +464,7 @@ export function App() {
   const handleCompleteTask = async (taskId: number) => {
     if (!activeUser) return;
     try {
-      const res = await fetch('/api/tasks/complete', {
+      const res = await apiFetch('/api/tasks/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUser.id, taskId }),
@@ -502,7 +508,7 @@ export function App() {
   const handleToggleUndo = async (taskId: number) => {
     if (!activeUser) return;
     try {
-      await fetch('/api/tasks/toggle', {
+      await apiFetch('/api/tasks/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUser.id, taskId }),
@@ -518,7 +524,7 @@ export function App() {
   const handleUseSkill = async () => {
     if (!activeUser) return;
     try {
-      const res = await fetch('/api/skills/use', {
+      const res = await apiFetch('/api/skills/use', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUser.id }),
@@ -541,10 +547,10 @@ export function App() {
   const handleSelectClass = async (className: ClassKey) => {
     if (!activeUser) return;
     try {
-      await fetch('/api/users/class', {
+      await apiFetch('/api/users/class', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: activeUser.id, className }),
+        body: JSON.stringify({ actorId: activeUser.id, userId: activeUser.id, className }),
       });
       const names: Record<string, string> = {
         warrior: 'Воина',
@@ -563,10 +569,10 @@ export function App() {
   const handleToggleGender = async (gender: 'male' | 'female') => {
     if (!activeUser) return;
     try {
-      await fetch('/api/users/gender', {
+      await apiFetch('/api/users/gender', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: activeUser.id, gender }),
+        body: JSON.stringify({ actorId: activeUser.id, userId: activeUser.id, gender }),
       });
       showToast(`Пол изменён на ${gender === 'female' ? 'Женский' : 'Мужской'}!`);
       loadState();
@@ -579,7 +585,7 @@ export function App() {
   const handleBuyReward = async (rewardId: number) => {
     if (!activeUser) return;
     try {
-      const res = await fetch('/api/rewards/buy', {
+      const res = await apiFetch('/api/rewards/buy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUser.id, rewardId }),
@@ -602,7 +608,7 @@ export function App() {
   const handleBuyShopItem = async (itemId: number) => {
     if (!activeUser) return;
     try {
-      const res = await fetch('/api/shop/buy', {
+      const res = await apiFetch('/api/shop/buy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUser.id, itemId }),
@@ -625,7 +631,7 @@ export function App() {
   const handleEquipItem = async (itemId: number) => {
     if (!activeUser) return;
     try {
-      const res = await fetch('/api/shop/equip', {
+      const res = await apiFetch('/api/shop/equip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUser.id, itemId }),
@@ -649,7 +655,7 @@ export function App() {
   const handleSetActivePet = async (petId: number) => {
     if (!activeUser) return;
     try {
-      const res = await fetch('/api/zoo/active', {
+      const res = await apiFetch('/api/zoo/active', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUser.id, petId }),
@@ -670,7 +676,7 @@ export function App() {
   // Add Task
   const handleAddTask = async (taskData: any) => {
     try {
-      await fetch('/api/tasks/add', {
+      await apiFetch('/api/tasks/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(taskData),
@@ -686,7 +692,7 @@ export function App() {
   // Add Reward
   const handleAddReward = async (rewardData: any) => {
     try {
-      await fetch('/api/rewards/add', {
+      await apiFetch('/api/rewards/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rewardData),
@@ -702,10 +708,10 @@ export function App() {
   const handleResetProgress = async () => {
     if (!activeUser) return;
     try {
-      await fetch('/api/user/reset', {
+      await apiFetch('/api/users/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: activeUser.id }),
+        body: JSON.stringify({ actorId: activeUser.id, userId: activeUser.id }),
       });
       showToast('Прогресс сброшен для тестирования');
       loadState();
@@ -718,12 +724,12 @@ export function App() {
   const handleAddUserToFamily = async (name: string, role: 'parent' | 'child', classKey: string = 'warrior') => {
     if (!appState) return;
     try {
-      await fetch('/api/users/register', {
+      await apiFetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
-          classKey,
+          actorId: activeUserId,
+          display_name: name,
           gender: 'male',
           familyCode: 'FAM-1234',
         }),

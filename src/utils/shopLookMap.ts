@@ -2,8 +2,8 @@
  * Маппинг кодов предметов магазина на Habitica-тиры (прослойка «предмет → образ»).
  *
  * Два мира спрайтов:
- *  - ULPC-торсы (slot body, SHOP_TORSO_MAP) рендерятся UlpcAvatar'ом —
- *    гардероб показывает их живой примеркой;
+ *  - ULPC-торсы (slot body, SHOP_TORSO_MAP) сохраняют отдельный shop mapping;
+ *    гардероб использует его для живой примерки;
  *  - оружие/щиты/шляпы (и старые 16-bit вещи) рендерятся Habitica-аватаром
  *    через tiers (weaponTier/shieldTier/headTier/armorTier) в users.habitica_equipped.
  *
@@ -179,4 +179,3 @@ export function habiticaPetSprite(code: string | undefined): string {
   const species = PET_SPECIES[c] || 'Cat';
   return `/assets/game/habitica/pets/Pet-${species}-Base.png`;
 }
-

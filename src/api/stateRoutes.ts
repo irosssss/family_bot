@@ -13,6 +13,7 @@ import { appState } from '../services/stateService';
 import { getTodayStr, getWeekKey } from '../lib/dateUtils';
 import { getWeeklyBoss } from '../utils/habiticaCatalog';
 import type { FeedEntry, ShopItem } from '../types';
+import { toStateUser } from '../services/userStateHydration';
 
 export const stateRoutes = Router();
 
@@ -46,9 +47,9 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
       return (a.id ?? 0) - (b.id ?? 0);
     });
 
-    if (dbUsers.length > 0) {
-      appState.users = dbUsers.map(u => ({ ...u, class: u.class_type })) as any;
-    }
+    // Единый маппер со стартовой гидрацией. Не оставляем demo-пользователей,
+    // если БД пока пуста.
+    appState.users = dbUsers.map(toStateUser);
 
     if (dbItems.length > 0) {
       appState.shopItems = dbItems.map((i: any) => ({

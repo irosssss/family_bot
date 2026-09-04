@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { User, GenderKey, FamilyRole } from '../../types';
 import { X, Shield, UserMinus, UserPlus, Save, Edit3, Users } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
+import { apiFetch } from '../../utils/apiFetch';
 
 interface ApiUser {
   id: number;
@@ -62,7 +63,7 @@ export const FamilySettings: React.FC<FamilySettingsProps> = ({
   const fetchMembers = useCallback(async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/users');
+      const res = await apiFetch('/api/users');
       const json = await res.json();
       if (json.success) {
         setMembers(json.users || json.data || []);
@@ -93,7 +94,7 @@ export const FamilySettings: React.FC<FamilySettingsProps> = ({
     }
     try {
       setIsSaving(true);
-      const res = await fetch('/api/users', {
+      const res = await apiFetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ actorId: activeUser.id, display_name: newName.trim(), age: newAge, gender: newGender }),
@@ -125,7 +126,7 @@ export const FamilySettings: React.FC<FamilySettingsProps> = ({
     if (!editUser) return;
     try {
       setIsSaving(true);
-      const res = await fetch(`/api/users/${editUser.id}`, {
+      const res = await apiFetch(`/api/users/${editUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ actorId: activeUser.id, display_name: editName.trim(), age: editAge, gender: editGender }),
@@ -153,7 +154,7 @@ export const FamilySettings: React.FC<FamilySettingsProps> = ({
     if (!isAdmin) return;
     try {
       setIsDeleting(true);
-      const res = await fetch(`/api/users/${userId}`, {
+      const res = await apiFetch(`/api/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ actorId: activeUser.id }),

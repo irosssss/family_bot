@@ -185,8 +185,8 @@ export const bosses = pgTable('bosses', {
 
 ## 4. SQL-скрипт Сидирования (Database Seed)
 
-Скрипт автоматически заполняет базу начальными предметами после того, как они загружены в S3.
-Создайте файл `src/db/seed-assets.ts`:
+Исторический пример. Скрипт `src/db/seed-assets.ts` удалён как устаревший и не является
+частью текущего проекта; этот блок оставлен только для истории интеграции.
 
 ```typescript
 import { db } from './index'; // Экземпляр подключения drizzle
@@ -285,4 +285,4 @@ seedAssets()
 2. Настройте S3 переменные окружения в `.env`.
 3. Запустите uploader: `npx tsx scripts/upload-assets.ts`
 4. Обновите схему БД: `npm run db:push`
-5. Запустите seed: `npx tsx src/db/seed-assets.ts`
+5. Не запускайте исторический seed: `src/db/seed-assets.ts` удалён.

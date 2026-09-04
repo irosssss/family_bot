@@ -17,7 +17,7 @@ export interface User {
   skin_tone?: string;
   hair_style?: string;
   hair_color?: string;
-  ulpc_hair?: string;       // ULPC причёска (стиль из ulpcHairCatalog)
+  ulpc_hair?: string;       // ULPC причёска (стиль из каталога ассетов)
   ulpc_hair_color?: string; // ULPC цвет волос (blonde/red/brown/dark/black/gray)
   eye_color?: string;
   hp?: number;

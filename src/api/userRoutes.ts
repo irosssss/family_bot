@@ -47,6 +47,14 @@ function isAdmin(req: AuthedRequest, actorId: number | undefined): boolean {
  return !!actor && (actor.is_admin || actor.family_role === 'parent');
 }
 
+/** Все мутации этого роутера совершаются родителем и подписываются actorId. */
+function requireAdminActor(req: AuthedRequest, res: Response): boolean {
+ const actorId = Number(req.body?.actorId);
+ if (isAdmin(req, actorId)) return true;
+ res.status(403).json({ error: 'Только родитель (админ) может изменять профили' });
+ return false;
+}
+
 /** GET /api/users — все пользователи семьи */
 userRoutes.get('/', (req: Request, res: Response) => {
  const users = appState.users.map((u) => ({
@@ -271,10 +279,11 @@ userRoutes.get('/:id/streak', async (req: Request, res: Response) => {
  }
 });
 
-userRoutes.post('/:id/streak/freeze', async (req: Request, res: Response) => {
+userRoutes.post('/:id/streak/freeze', async (req: AuthedRequest, res: Response) => {
  try {
  const userId = parseInt(req.params.id);
  const { paymentType } = req.body;
+ if (!requireAdminActor(req, res)) return;
 
  if (!paymentType || !['gold', 'crystals'].includes(paymentType)) {
  return res.status(400).json({ 
@@ -398,8 +407,9 @@ userRoutes.get('/:id/tasks/today', async (req: Request, res: Response) => {
  }
 });
 
-userRoutes.post('/class', (req: Request, res: Response) => {
+userRoutes.post('/class', (req: AuthedRequest, res: Response) => {
  const { userId, className } = req.body;
+ if (!requireAdminActor(req, res)) return;
  const user = appState.users.find((u) => u.id === Number(userId));
  if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -410,8 +420,9 @@ userRoutes.post('/class', (req: Request, res: Response) => {
  res.json({ success: true, user });
 });
 
-userRoutes.post('/gender', (req: Request, res: Response) => {
+userRoutes.post('/gender', (req: AuthedRequest, res: Response) => {
  const { userId, gender } = req.body;
+ if (!requireAdminActor(req, res)) return;
  const user = appState.users.find((u) => u.id === Number(userId));
  if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -422,8 +433,9 @@ userRoutes.post('/gender', (req: Request, res: Response) => {
  res.json({ success: true, user });
 });
 
-userRoutes.post('/update-character', (req: Request, res: Response) => {
+userRoutes.post('/update-character', (req: AuthedRequest, res: Response) => {
  const { userId, gender, character_color, skin_tone, hair_style, hair_color, eye_color, custom_avatar_url, habitica_equipped } = req.body;
+ if (!requireAdminActor(req, res)) return;
  const user = appState.users.find((u) => u.id === Number(userId));
  if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -445,8 +457,9 @@ userRoutes.post('/update-character', (req: Request, res: Response) => {
  res.json({ success: true, user });
 });
 
-userRoutes.post('/custom-background', (req: Request, res: Response) => {
+userRoutes.post('/custom-background', (req: AuthedRequest, res: Response) => {
  const { userId, bgUrl } = req.body;
+ if (!requireAdminActor(req, res)) return;
  const user = appState.users.find((u) => u.id === Number(userId));
  if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
@@ -483,8 +496,9 @@ userRoutes.post('/custom-background', (req: Request, res: Response) => {
  res.json({ success: true, message: 'Установлен новый AI фон !' });
 });
 
-userRoutes.post('/custom-avatar', (req: Request, res: Response) => {
+userRoutes.post('/custom-avatar', (req: AuthedRequest, res: Response) => {
  const { userId, avatarUrl } = req.body;
+ if (!requireAdminActor(req, res)) return;
  const user = appState.users.find((u) => u.id === Number(userId));
  if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
@@ -495,8 +509,9 @@ userRoutes.post('/custom-avatar', (req: Request, res: Response) => {
  res.json({ success: true, message: 'Аватар успешно обновлён!' });
 });
 
-userRoutes.post('/reset', (req: Request, res: Response) => {
+userRoutes.post('/reset', (req: AuthedRequest, res: Response) => {
  const { userId } = req.body;
+ if (!requireAdminActor(req, res)) return;
  const user = appState.users.find((u) => u.id === Number(userId));
  if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -508,7 +523,8 @@ userRoutes.post('/reset', (req: Request, res: Response) => {
  res.json({ success: true, user });
 });
 
-userRoutes.post('/register', async (req: Request, res: Response) => {
+userRoutes.post('/register', async (req: AuthedRequest, res: Response) => {
+ if (!requireAdminActor(req, res)) return;
  const {
  name,
  classKey = 'warrior',

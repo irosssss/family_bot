@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Crown, Key, Copy, CheckCircle, Sparkles, Shield, UserPlus, CreditCard, Zap, Gift, Check, Bell, Send, CheckCircle2, Smartphone, Settings, Volume2, VolumeX, RefreshCw, RotateCcw, UploadCloud } from 'lucide-react';
 import { User } from '../types';
 import { UploadAssets } from './UploadAssets';
+import { apiFetch } from '../utils/apiFetch';
 
 interface FamilyManagementModalProps {
  isOpen: boolean;
@@ -52,7 +53,7 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
 
  useEffect(() => {
  if (isOpen) {
- fetch('/api/haptics/config')
+ apiFetch('/api/haptics/config')
  .then((res) => res.json())
  .then((data) => {
  if (data) {
@@ -64,7 +65,7 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
  .catch((err) => console.warn('Failed to load telegram config:', err));
 
  // ARC-02: реальный код семьи вместо хардкода
- fetch(`/api/family/code/${activeUser.id}`)
+ apiFetch(`/api/family/code/${activeUser.id}`)
  .then((res) => (res.ok ? res.json() : null))
  .then((data) => {
  if (data?.family_code) setFamilyCode(data.family_code);
@@ -96,7 +97,7 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
  setIsSavingTg(true);
  setTgSaveStatus(null);
  try {
- const res = await fetch('/api/haptics/config', {
+ const res = await apiFetch('/api/haptics/config', {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
  body: JSON.stringify({ botToken, chatId, enabled: pushEnabled }),
@@ -117,7 +118,7 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
  const handleTestTelegramPush = async () => {
  setIsTestingTg(true);
  try {
- const res = await fetch('/api/haptics/test', { method: 'POST' });
+ const res = await apiFetch('/api/haptics/test', { method: 'POST' });
  const data = await res.json();
  alert(data.message || 'Тестовое push-уведомление отправлено!');
  } catch (e) {
