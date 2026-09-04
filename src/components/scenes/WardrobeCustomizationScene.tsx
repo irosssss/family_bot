@@ -1,413 +1,428 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { User, ShopItem, Pet, AppState } from '../../types';
+import React, { useMemo, useState } from 'react';
+import { User, AppState } from '../../types';
 import HabiticaAnimatedAvatar from '../HabiticaAnimatedAvatar';
 import { HabiticaLook } from '../../utils/habiticaAssets';
 import { getUnifiedLook } from '../../utils/unifiedLook';
 import { applyItemLook, habiticaItemIcon, habiticaPetSprite, ULPC_TORSO_TIER } from '../../utils/shopLookMap';
-import { Shirt, Shield, Crown, Wand2, Sparkles, Check, X, Package, PawPrint, Star } from 'lucide-react';
+import { Check, Crown, Package, PawPrint, Shirt, Sparkles, Star, X } from 'lucide-react';
 import { triggerHaptic } from '../../utils/haptics';
 
 interface WardrobeCustomizationSceneProps {
- appState: AppState;
- activeUser: User;
- onEquipItem: (itemId: number) => void;
- onBuyItem?: (itemId: number) => void;
- /** Выбрать питомца-компаньона (POST /api/zoo/active) */
- onSetActivePet?: (petId: number) => void;
+  appState: AppState;
+  activeUser: User;
+  onEquipItem: (itemId: number) => void;
+  /** Купить предмет после примерки. */
+  onBuyItem?: (itemId: number) => void;
+  /** Выбрать питомца-компаньона (POST /api/zoo/active). */
+  onSetActivePet?: (petId: number) => void;
 }
 
-/** Кадр 0 выбранного ряда спрайтшита → квадратная иконка (без «полосатых» превью). */
-const SheetThumb: React.FC<{ src?: string; size?: number; row?: number; className?: string }> = ({
- src, size = 40, row = 2, className = '',
-}) => {
- const ref = useRef<HTMLCanvasElement>(null);
- useEffect(() => {
-   const canvas = ref.current;
-   if (!canvas || !src) return;
-   let dead = false;
-   const img = new Image();
-   img.onload = () => {
-     if (dead) return;
-     const ctx = canvas.getContext('2d');
-     if (!ctx) return;
-     ctx.imageSmoothingEnabled = false;
-     ctx.clearRect(0, 0, canvas.width, canvas.height);
-     const fw = img.width / Math.round(img.width / 64);
-     const rows = Math.round(img.height / 64);
-     const r = Math.min(row, rows - 1);
-     ctx.drawImage(img, 0, r * 64, fw, 64, 0, 0, canvas.width, canvas.height);
-   };
-   img.src = src;
-   return () => { dead = true; };
- }, [src, row]);
- if (!src) return null;
- return <canvas ref={ref} width={size} height={size} className={`[image-rendering:pixelated] shrink-0 ${className}`} />;
+type WorkshopTab = 'weapon' | 'body' | 'head' | 'pets';
+
+const workshopTabs: Array<{ id: WorkshopTab; label: string; icon: typeof Shirt }> = [
+  { id: 'body', label: 'Одежда', icon: Shirt },
+  { id: 'weapon', label: 'Вещи', icon: Package },
+  { id: 'head', label: 'Шляпы', icon: Crown },
+  { id: 'pets', label: 'Питомцы', icon: PawPrint },
+];
+
+const itemSlotLabel = (slot: string) => {
+  if (slot === 'body' || slot === 'cloak') return 'Одежда';
+  if (slot === 'head') return 'Шляпа';
+  return 'Вещь';
 };
 
 export const WardrobeCustomizationScene: React.FC<WardrobeCustomizationSceneProps> = ({
- appState,
- activeUser,
- onEquipItem,
- onBuyItem,
- onSetActivePet,
+  appState,
+  activeUser,
+  onEquipItem,
+  onBuyItem,
+  onSetActivePet,
 }) => {
- const [activeTab, setActiveTab] = useState<'weapon' | 'body' | 'head' | 'pets'>('body');
- // Превью до покупки (UX-аудит P1): выбранный некупленный предмет показывается на персонаже,
- // покупка подтверждается только после явного «Купить» — никакого «кота в мешке».
- const [previewItemId, setPreviewItemId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<WorkshopTab>('body');
+  // Примерка не меняет инвентарь: предмет становится купленным только через явную покупку.
+  const [previewItemId, setPreviewItemId] = useState<number | null>(null);
 
- const userItems = appState.userItems.filter((ui) => ui.user_id === activeUser.id);
- const equippedItemIds = userItems.filter((ui) => ui.equipped === 1).map((ui) => ui.item_id);
+  const userItems = appState.userItems.filter((userItem) => userItem.user_id === activeUser.id);
+  const equippedItemIds = userItems.filter((userItem) => userItem.equipped === 1).map((userItem) => userItem.item_id);
 
- // Get items based on slot
- const categoryItems = appState.shopItems.filter((item) => {
-  if (activeTab === 'weapon') return item.slot === 'weapon' || item.slot === 'shield';
-  if (activeTab === 'body') return item.slot === 'body' || item.slot === 'cloak';
-  if (activeTab === 'head') return item.slot === 'head';
-  return false;
- });
+  const categoryItems = appState.shopItems.filter((item) => {
+    if (activeTab === 'weapon') return item.slot === 'weapon' || item.slot === 'shield';
+    if (activeTab === 'body') return item.slot === 'body' || item.slot === 'cloak';
+    if (activeTab === 'head') return item.slot === 'head';
+    return false;
+  });
 
- // Коды надетых предметов (для маппинга «предмет → образ»)
- const equippedCodes = (activeUser as any).equipped_codes || {};
- // Предмет в режиме примерки
- const previewItem = previewItemId != null ? categoryItems.find((i) => i.id === previewItemId) || null : null;
+  const equippedCodes = (activeUser as any).equipped_codes || {};
+  const previewItem = previewItemId != null
+    ? categoryItems.find((item) => item.id === previewItemId) || null
+    : null;
 
- // === Образ зеркала: единый look приложения + тиры надетых предметов + живая примерка ===
- const hLook = useMemo(() => {
-   let base: HabiticaLook = getUnifiedLook(activeUser);
-   // Тиры надетых предметов (weapon/shield/head, старые 16-bit брони)
-   base = applyItemLook(base, equippedCodes.weapon);
-   base = applyItemLook(base, equippedCodes.shield);
-   base = applyItemLook(base, equippedCodes.head);
-   // body: ULPC-торсы не входят в ITEM_LOOK_MAP (их тир поднимает getUnifiedLook),
-   // старые 16-bit брони — входят; applyItemLook сам игнорирует неизвестные коды.
-   base = applyItemLook(base, equippedCodes.body);
-   // Живая примерка: предмет в примерке перекрывает свой слот
-   if (previewItem) {
-     base = applyItemLook(base, previewItem.code);
-     // ULPC-торсы не входят в ITEM_LOOK_MAP — их тир поднимаем по ULPC_TORSO_TIER
-     const ut = ULPC_TORSO_TIER[previewItem.code];
-     if (ut != null && (base.armorTier ?? 0) < ut) base.armorTier = ut;
-   }
-   return base;
- }, [activeUser, previewItem, equippedCodes]);
+  // Один и тот же слой персонажа используется во всех сценах, а примерка только временно
+  // перекрывает нужный слот. Для ULPC-торсов отдельный тир нужен до покупки.
+  const hLook = useMemo(() => {
+    let base: HabiticaLook = getUnifiedLook(activeUser);
+    base = applyItemLook(base, equippedCodes.weapon);
+    base = applyItemLook(base, equippedCodes.shield);
+    base = applyItemLook(base, equippedCodes.head);
+    base = applyItemLook(base, equippedCodes.body);
 
- // Питомцы: свои (владельцы) + активный
- const myPets = appState.userPets.filter((up) => up.user_id === activeUser.id);
- const myPetIds = new Set(myPets.map((up) => up.pet_id));
- const activePetId = myPets.find((up) => up.is_active)?.pet_id ?? null;
+    if (previewItem) {
+      base = applyItemLook(base, previewItem.code);
+      const torsoTier = ULPC_TORSO_TIER[previewItem.code];
+      if (torsoTier != null && (base.armorTier ?? 0) < torsoTier) {
+        base.armorTier = torsoTier;
+      }
+    }
 
- // Сброс примерки при смене вкладки
- const changeTab = (tab: typeof activeTab) => {
-   triggerHaptic('impact', 'light');
-   setPreviewItemId(null);
-   setActiveTab(tab);
- };
+    return base;
+  }, [activeUser, equippedCodes, previewItem]);
 
- return (
- <div className="relative w-full rounded-3xl overflow-hidden border-2 border-indigo-500/40 bg-slate-950 shadow-2xl transition-[colors,transform,box-shadow]">
- {/* Real Game Background Image: /assets/game/wardrobe_bg.png */}
- <div
-   className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-   style={{
-     backgroundImage: `url('/assets/game/habitica/backgrounds/background_castle_keep_with_banners.png')`,
-     backgroundSize: 'cover',
-     backgroundColor: '#0f172a'
-   }}
- />
+  const myPets = appState.userPets.filter((userPet) => userPet.user_id === activeUser.id);
+  const myPetIds = new Set(myPets.map((userPet) => userPet.pet_id));
+  const activePetId = myPets.find((userPet) => userPet.is_active)?.pet_id ?? null;
+  const activePet = activePetId != null ? appState.pets.find((pet) => pet.id === activePetId) : null;
 
- {/* Mirror Room Vignette Overlay */}
- <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/70 via-slate-950/80 to-slate-950/90 pointer-events-none" />
+  const changeTab = (tab: WorkshopTab) => {
+    triggerHaptic('impact', 'light');
+    setPreviewItemId(null);
+    setActiveTab(tab);
+  };
 
- {/* Top Header */}
- <div className="relative z-10 p-3 sm:p-6 flex flex-wrap items-center justify-between gap-3 bg-slate-950/80 backdrop-blur-md border-b border-indigo-500/30">
- <div className="flex items-center gap-2.5 sm:gap-3">
- <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-indigo-300 shadow-lg shrink-0">
- <Shirt className="w-5 h-5 sm:w-6 sm:h-6" />
- </div>
- <div>
- <h2 className="text-sm sm:text-lg font-bold text-white font-pixel-sub flex items-center gap-2">
-   Гардероб и кастомизация
- </h2>
- <p className="text-[11px] sm:text-xs text-slate-400">
-   Сборка персонажа • Персональные настройки стиля
- </p>
- </div>
- </div>
+  const clearPreview = () => {
+    triggerHaptic('impact', 'light');
+    setPreviewItemId(null);
+  };
 
- <div className="flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-amber-400/10 border border-amber-400/30 text-[11px] sm:text-xs font-bold text-amber-300 shrink-0">
- <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
- <span>Баланс: {activeUser.gold} </span>
- </div>
- </div>
+  const buyPreview = (itemId: number) => {
+    triggerHaptic('notification', 'success');
+    onBuyItem?.(itemId);
+    setPreviewItemId(null);
+  };
 
- {/* Main Studio View: Left Mirror Frame + Right Inventory Grid */}
- <div className="relative z-10 p-3 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 items-start">
- {/* Left Column: Player Mirror — sticky на мобиле, чтобы примерка всегда в поле зрения */}
- <div className="lg:col-span-5 flex flex-col items-center justify-center p-4 sm:p-6 bg-slate-900/90 backdrop-blur-md rounded-2xl sm:rounded-3xl border-2 border-indigo-500/30 shadow-2xl relative lg:sticky lg:top-2">
- <div className="absolute top-2.5 left-3 text-[9px] sm:text-[10px] uppercase font-bold text-indigo-300 font-pixel-sub flex items-center gap-1">
- <Shirt className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-400" />
- <span>Зеркало Персонажа</span>
- </div>
+  return (
+    <section className="relative isolate w-full overflow-hidden rounded-[28px] border-2 border-[#5f4934] bg-[#eadfc7] text-[#35291f] shadow-[0_10px_0_#5f4934]">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-45"
+        style={{
+          backgroundImage: 'radial-gradient(#a88b68 0.8px, transparent 0.8px)',
+          backgroundSize: '7px 7px',
+        }}
+      />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-2 bg-[#b88652]" />
 
- {previewItem && (
-   <div className="absolute top-2.5 right-3 flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[9px] sm:text-[10px] font-bold uppercase">
-     Примерка: {previewItem.title}
-   </div>
- )}
+      <header className="relative border-b-2 border-[#5f4934] bg-[#765638] px-4 pb-4 pt-5 text-[#fff8e8] sm:px-6 sm:py-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border-2 border-[#402f20] bg-[#eac98f] text-[#4d3826] shadow-[3px_3px_0_#402f20]">
+              <Shirt className="h-5 w-5" strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0">
+              <p className="font-pixel-sub text-[10px] uppercase tracking-[0.16em] text-[#f6d89b]">Личный уголок</p>
+              <h2 className="mt-0.5 font-pixel-sub text-base font-bold leading-tight sm:text-lg">Домашняя мастерская</h2>
+              <p className="mt-1 text-xs leading-snug text-[#f4e5c6]">Примеряй вещи у верстака и собирай свой образ.</p>
+            </div>
+          </div>
 
- <div className="my-3 sm:my-6 relative">
- <div className="absolute -inset-4 rounded-full bg-indigo-500/20 blur-xl animate-pulse" />
- {/* Зеркало: единый Habitica-персонаж (дизайн-канон — один стиль ассетов) */}
- <HabiticaAnimatedAvatar look={hLook} cls={activeUser.class || 'warrior'} size={150} state="idle"  gender={activeUser.gender} />
- </div>
+          <div className="shrink-0 rounded-lg border border-[#f2d093]/70 bg-[#4d3826]/55 px-2.5 py-2 text-right shadow-inner">
+            <p className="text-[9px] font-bold uppercase tracking-wide text-[#f4d99f]">В запасе</p>
+            <p className="font-pixel-sub text-xs font-bold text-[#fff5d8]">{activeUser.gold} монет</p>
+          </div>
+        </div>
+      </header>
 
- {/* Активный питомец-компаньон у ног (как в хабе) */}
- {(() => {
-   const ap = activePetId != null ? appState.pets.find((p) => p.id === activePetId) : null;
-   return ap ? (
-     <div className="mb-2 flex items-center gap-2">
-       <img src={habiticaPetSprite(ap.code)} alt="" className="w-10 h-12 [image-rendering:pixelated] object-contain" draggable={false} />
-       <span className="text-[10px] text-slate-400">Рядом: {ap.title}</span>
-     </div>
-   ) : null;
- })()}
+      <div className="relative grid gap-4 p-3 sm:p-5 lg:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.2fr)] lg:gap-5">
+        <aside className="relative overflow-hidden rounded-2xl border-2 border-[#8b6948] bg-[#f8eed9] p-3 shadow-[4px_4px_0_#8b6948] sm:p-4">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-3 top-12 bottom-24 rounded-xl opacity-35"
+            style={{ backgroundImage: 'repeating-linear-gradient(45deg, #d9c198 0, #d9c198 1px, transparent 1px, transparent 10px)' }}
+          />
+          <div className="relative flex items-center justify-between gap-2">
+            <div>
+              <p className="font-pixel-sub text-[10px] uppercase tracking-[0.12em] text-[#896747]">Зеркало у верстака</p>
+              <p className="mt-0.5 text-[11px] leading-snug text-[#735a41]">Так образ выглядит прямо сейчас.</p>
+            </div>
+            {previewItem && (
+              <div className="max-w-[126px] rounded-md border border-[#b87435] bg-[#fff0c6] px-2 py-1 text-right text-[10px] font-bold leading-tight text-[#704318]">
+                Примерка: {previewItem.title}
+              </div>
+            )}
+          </div>
 
- <div className="text-center space-y-0.5 sm:space-y-1">
- <h3 className="text-sm sm:text-base font-bold text-white font-pixel-sub">
- {activeUser.display_name}
- </h3>
- <p className="text-[11px] sm:text-xs text-slate-400">
- {activeUser.class === 'warrior' ? 'Воин' : 'Маг'} • Уровень {Math.floor(activeUser.xp / 100) + 1}
- </p>
- </div>
+          <div className="relative mx-auto mt-3 flex min-h-[192px] max-w-[242px] items-center justify-center rounded-[30px] border-[9px] border-[#765638] bg-[#d9c198] shadow-[inset_0_0_0_2px_#f8e5ba,4px_4px_0_#4d3826]">
+            <div className="absolute inset-2 rounded-[19px] border border-[#97714e] bg-[#eadfc7]" />
+            <div className="relative translate-y-2 scale-95 sm:scale-100">
+              <HabiticaAnimatedAvatar
+                look={hLook}
+                cls={activeUser.class || 'warrior'}
+                size={150}
+                state="idle"
+                gender={activeUser.gender}
+              />
+            </div>
+          </div>
 
- {/* Панель управления примеркой: только когда предмет выбран для покупки */}
- {previewItem && (
-   <div className="w-full mt-3 sm:mt-4 flex items-center gap-2">
-     <button
-       onClick={() => {
-         triggerHaptic('notification', 'success');
-         if (onBuyItem) onBuyItem(previewItem.id);
-         setPreviewItemId(null);
-       }}
-       className="flex-1 min-h-[44px] rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-slate-950 text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/30"
-     >
-       <Package className="w-3.5 h-3.5" />
-       Купить за {previewItem.cost}
-     </button>
-     <button
-       onClick={() => {
-         triggerHaptic('impact', 'light');
-         setPreviewItemId(null);
-       }}
-       className="min-h-[44px] px-4 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition text-slate-300 text-xs font-bold flex items-center justify-center gap-1 border border-white/10"
-     >
-       <X className="w-3.5 h-3.5" />
-       Отмена
-     </button>
-   </div>
- )}
- </div>
+          <div className="relative mt-3 flex items-center gap-2 rounded-xl border border-[#c5aa81] bg-[#fff8e8]/85 px-3 py-2">
+            {activePet ? (
+              <>
+                <img
+                  src={habiticaPetSprite(activePet.code)}
+                  alt=""
+                  className="h-10 w-9 shrink-0 object-contain [image-rendering:pixelated]"
+                  draggable={false}
+                />
+                <p className="min-w-0 text-[11px] leading-snug text-[#614931]">
+                  <span className="font-bold">Рядом {activePet.title}</span>
+                  <br />
+                  Помогает выбирать вещи.
+                </p>
+              </>
+            ) : (
+              <>
+                <PawPrint className="h-5 w-5 shrink-0 text-[#896747]" />
+                <p className="text-[11px] leading-snug text-[#614931]">Выбери питомца на соседней полке.</p>
+              </>
+            )}
+          </div>
 
- {/* Right Column: Wardrobe Inventory Tabs & Items Grid */}
- <div className="lg:col-span-7 space-y-3 sm:space-y-4">
- {/* Inventory Category Tabs */}
- <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-white/10">
- <button
- onClick={() => changeTab('body')}
- className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold font-pixel-sub transition flex items-center gap-1 sm:gap-1.5 shrink-0 ${
- activeTab === 'body'
- ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
- : 'bg-white/5 text-slate-400 hover:text-white'
- }`}
- >
- <Shirt className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
- <span>Одежда</span>
- </button>
+          <div className="relative mt-3 text-center">
+            <h3 className="font-pixel-sub text-sm font-bold text-[#3e2e20]">{activeUser.display_name}</h3>
+            <p className="mt-0.5 text-[11px] text-[#765638]">Уровень {Math.floor(activeUser.xp / 100) + 1}</p>
+          </div>
 
- <button
- onClick={() => changeTab('weapon')}
- className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold font-pixel-sub transition flex items-center gap-1 sm:gap-1.5 shrink-0 ${
- activeTab === 'weapon'
- ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
- : 'bg-white/5 text-slate-400 hover:text-white'
- }`}
- >
- <Wand2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
- <span>Оружие</span>
- </button>
+          {previewItem ? (
+            <div className="relative mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => buyPreview(previewItem.id)}
+                className="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-xl border-2 border-[#80501e] bg-[#dfa651] px-3 text-xs font-bold text-[#3f2a14] shadow-[2px_2px_0_#80501e] transition active:translate-x-px active:translate-y-px active:shadow-none"
+              >
+                <Package className="h-3.5 w-3.5" />
+                Купить за {previewItem.cost}
+              </button>
+              <button
+                type="button"
+                onClick={clearPreview}
+                className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border-2 border-[#9c8060] bg-[#fff8e8] text-[#604831] shadow-[2px_2px_0_#9c8060] transition active:translate-x-px active:translate-y-px active:shadow-none"
+                aria-label="Отменить примерку"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <p className="relative mt-3 rounded-lg border border-dashed border-[#b99b75] bg-[#f4e7cb] px-3 py-2 text-center text-[10px] leading-snug text-[#72583e]">
+              Новую вещь можно сначала спокойно примерить.
+            </p>
+          )}
+        </aside>
 
- <button
- onClick={() => changeTab('head')}
- className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold font-pixel-sub transition flex items-center gap-1 sm:gap-1.5 shrink-0 ${
- activeTab === 'head'
- ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
- : 'bg-white/5 text-slate-400 hover:text-white'
- }`}
- >
- <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
- <span>Шляпы</span>
- </button>
+        <div className="min-w-0 rounded-2xl border-2 border-[#8b6948] bg-[#f8eed9] p-3 shadow-[4px_4px_0_#8b6948] sm:p-4">
+          <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
+            <div>
+              <p className="font-pixel-sub text-[10px] uppercase tracking-[0.12em] text-[#896747]">Полка с находками</p>
+              <h3 className="mt-0.5 font-pixel-sub text-sm font-bold text-[#3e2e20]">
+                {activeTab === 'pets' ? 'Кто пойдёт рядом' : 'Вещи для твоего уголка'}
+              </h3>
+            </div>
+            <p className="text-[10px] text-[#765638]">Сначала потрогай глазами, потом решай.</p>
+          </div>
 
- <button
- onClick={() => changeTab('pets')}
- className={`px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold font-pixel-sub transition flex items-center gap-1 sm:gap-1.5 shrink-0 ${
- activeTab === 'pets'
- ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
- : 'bg-white/5 text-slate-400 hover:text-white'
- }`}
- >
- <PawPrint className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
- <span>Питомцы</span>
- </button>
- </div>
+          <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]" aria-label="Разделы мастерской">
+            {workshopTabs.map((tab) => {
+              const TabIcon = tab.icon;
+              const selected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => changeTab(tab.id)}
+                  aria-pressed={selected}
+                  className={`flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl border-2 px-3 text-xs font-bold transition ${
+                    selected
+                      ? 'border-[#5d7b45] bg-[#dce9bd] text-[#38512c] shadow-[2px_2px_0_#5d7b45]'
+                      : 'border-[#c3a77e] bg-[#fff8e8] text-[#684e36] shadow-[2px_2px_0_#c3a77e] active:translate-x-px active:translate-y-px active:shadow-none'
+                  }`}
+                >
+                  <TabIcon className="h-4 w-4" strokeWidth={2.25} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </nav>
 
- {/* Items Grid */}
- <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 lg:max-h-[480px] lg:overflow-y-auto p-1 pr-2">
- {activeTab !== 'pets' ? (
- categoryItems.map((item) => {
- const isOwned = userItems.some((ui) => ui.item_id === item.id);
- const isEquipped = equippedItemIds.includes(item.id);
- const isPreviewing = previewItemId === item.id;
+          {activeTab !== 'pets' ? (
+            categoryItems.length ? (
+              <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:max-h-[508px] lg:overflow-y-auto lg:pr-2">
+                {categoryItems.map((item) => {
+                  const isOwned = userItems.some((userItem) => userItem.item_id === item.id);
+                  const isEquipped = equippedItemIds.includes(item.id);
+                  const isPreviewing = previewItemId === item.id;
 
- return (
- <div
- key={item.id}
- className={`p-3 rounded-2xl border transition flex flex-col justify-between ${
- isEquipped
- ? 'bg-indigo-600/20 border-indigo-400 shadow-lg shadow-indigo-500/20'
- : isPreviewing
-   ? 'bg-amber-500/15 border-amber-400 shadow-lg shadow-amber-500/20'
-   : isOwned
-     ? 'bg-slate-900/90 border-slate-700 hover:border-indigo-500/50'
-     : 'bg-slate-950/60 border-slate-800 opacity-80'
- }`}
- >
- <div className="flex items-center gap-2 mb-2">
- {/* Иконка: Habitica-спрайт того же тира, что надевается (единый стиль) */}
- <img src={habiticaItemIcon(item.code, item.slot)} alt="" className="w-9 h-9 [image-rendering:pixelated] object-contain shrink-0" draggable={false} />
- <div className="min-w-0">
- <p className="text-xs font-semibold text-slate-100 truncate">{item.title}</p>
- <span className="text-[10px] text-slate-400">{item.slot}</span>
- </div>
- </div>
+                  const itemCardClass = isEquipped
+                    ? 'border-[#66864a] bg-[#e6efce] shadow-[3px_3px_0_#66864a]'
+                    : isPreviewing
+                      ? 'border-[#b87435] bg-[#fff0c6] shadow-[3px_3px_0_#b87435]'
+                      : isOwned
+                        ? 'border-[#ae9170] bg-[#fffaf0] shadow-[3px_3px_0_#ae9170]'
+                        : 'border-[#c7aa82] bg-[#f1e6d1] shadow-[3px_3px_0_#c7aa82]';
 
- {isEquipped ? (
- <button
- onClick={() => {
- triggerHaptic('impact', 'medium');
- onEquipItem(item.id);
- }}
- className="w-full py-2.5 min-h-[44px] rounded-xl bg-indigo-500 text-white text-[10px] font-bold flex items-center justify-center gap-1"
- >
- <Check className="w-3 h-3" />
- <span>Надето</span>
- </button>
- ) : isOwned ? (
- <button
- onClick={() => {
- triggerHaptic('impact', 'medium');
- onEquipItem(item.id);
- }}
- className="w-full py-2.5 min-h-[44px] rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 active:scale-95 transition text-indigo-200 border border-indigo-500/40 text-[10px] font-bold"
- >
- Надеть
- </button>
- ) : (
- <div className="flex items-center gap-1.5">
-   {isPreviewing ? (
-     <>
-       <button
-         onClick={() => {
-           triggerHaptic('notification', 'success');
-           if (onBuyItem) onBuyItem(item.id);
-           setPreviewItemId(null);
-         }}
-         className="flex-1 py-2.5 min-h-[44px] rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 transition text-slate-950 text-[10px] font-bold flex items-center justify-center gap-1"
-       >
-         <Package className="w-3 h-3" />
-         Купить
-       </button>
-       <button
-         onClick={() => {
-           triggerHaptic('impact', 'light');
-           setPreviewItemId(null);
-         }}
-         className="p-2.5 min-h-[44px] rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition text-slate-400 border border-white/10"
-         aria-label="Отменить примерку"
-       >
-         <X className="w-3.5 h-3.5" />
-       </button>
-     </>
-   ) : (
-     <button
-       onClick={() => {
-         triggerHaptic('impact', 'medium');
-         setPreviewItemId(item.id);
-       }}
-       className="w-full py-2.5 min-h-[44px] rounded-xl bg-amber-500/20 hover:bg-amber-500/30 active:scale-95 transition text-amber-300 border border-amber-400/40 text-[10px] font-bold flex items-center justify-center gap-1"
-     >
-       Примерка (бесплатно)
-       </button>
-   )}
- </div>
- )}
- </div>
- );
- })
- ) : (
- <>
- {appState.pets.map((pet) => {
-   const owned = myPetIds.has(pet.id);
-   const isActive = activePetId === pet.id;
-   return (
-   <div
-   key={pet.id}
-   className={`p-3 rounded-2xl border flex flex-col justify-between ${
-     isActive
-       ? 'border-emerald-400 bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
-       : owned
-         ? 'border-amber-500/30 bg-slate-900/90'
-         : 'border-slate-800 bg-slate-950/60 opacity-75'
-   }`}
-   >
-   <div className="flex items-center gap-2 mb-2">
-   <img src={habiticaPetSprite(pet.code)} alt="" className="w-10 h-12 [image-rendering:pixelated] object-contain" draggable={false} />
-   <div className="min-w-0">
-   <p className="text-xs font-bold text-amber-200 truncate">{pet.title}</p>
-   <span className="text-[10px] text-slate-400">
-     {isActive ? 'Активный компаньон' : owned ? 'Живёт в зоопарке' : 'Ещё не вылупился'}
-   </span>
-   </div>
-   </div>
-   {owned && onSetActivePet && (
-     isActive ? (
-       <div className="w-full py-2.5 min-h-[44px] rounded-xl bg-emerald-500/20 text-emerald-300 text-[10px] font-bold flex items-center justify-center gap-1">
-         <Check className="w-3.5 h-3.5" />
-         <span>С тобой</span>
-       </div>
-     ) : (
-       <button
-         onClick={() => {
-           triggerHaptic('notification', 'success');
-           onSetActivePet(pet.id);
-         }}
-         className="w-full py-2.5 min-h-[44px] rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 active:scale-95 transition text-emerald-200 border border-emerald-500/40 text-[10px] font-bold flex items-center justify-center gap-1"
-       >
-         <Star className="w-3.5 h-3.5" />
-         Взять с собой
-       </button>
-     )
-   )}
-   </div>
-   );
- })}
- </>
- )}
- </div>
- </div>
- </div>
- </div>
- );
+                  return (
+                    <article key={item.id} className={`flex min-w-0 flex-col rounded-xl border-2 p-2.5 ${itemCardClass}`}>
+                      <div className="flex min-w-0 items-start gap-2">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#c3a77e] bg-[#ead8b7]">
+                          <img
+                            src={habiticaItemIcon(item.code, item.slot)}
+                            alt=""
+                            className="h-9 w-9 object-contain [image-rendering:pixelated]"
+                            draggable={false}
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-bold text-[#3e2e20]">{item.title}</p>
+                          <p className="mt-0.5 text-[10px] text-[#765638]">{itemSlotLabel(item.slot)}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 min-h-[22px]">
+                        {isEquipped ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-[#cde2a8] px-1.5 py-1 text-[9px] font-bold text-[#3f5b2d]">
+                            <Check className="h-3 w-3" /> Сейчас на тебе
+                          </span>
+                        ) : isPreviewing ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-[#ffe1a1] px-1.5 py-1 text-[9px] font-bold text-[#754818]">
+                            <Sparkles className="h-3 w-3" /> На примерке
+                          </span>
+                        ) : isOwned ? (
+                          <span className="inline-flex rounded-md bg-[#ede2cc] px-1.5 py-1 text-[9px] font-bold text-[#70563d]">Твоя вещь</span>
+                        ) : (
+                          <span className="inline-flex rounded-md bg-[#e5d4b7] px-1.5 py-1 text-[9px] font-bold text-[#7a5a37]">{item.cost} монет</span>
+                        )}
+                      </div>
+
+                      <div className="mt-auto pt-2">
+                        {isEquipped ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHaptic('impact', 'medium');
+                              onEquipItem(item.id);
+                            }}
+                            className="flex min-h-[44px] w-full items-center justify-center gap-1 rounded-lg border-2 border-[#66864a] bg-[#d7e8b5] px-2 text-[10px] font-bold text-[#39512b] shadow-[2px_2px_0_#66864a] transition active:translate-x-px active:translate-y-px active:shadow-none"
+                          >
+                            <Check className="h-3.5 w-3.5" /> Надето
+                          </button>
+                        ) : isOwned ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHaptic('impact', 'medium');
+                              onEquipItem(item.id);
+                            }}
+                            className="min-h-[44px] w-full rounded-lg border-2 border-[#77593e] bg-[#e7c783] px-2 text-[10px] font-bold text-[#44301e] shadow-[2px_2px_0_#77593e] transition active:translate-x-px active:translate-y-px active:shadow-none"
+                          >
+                            Надеть
+                          </button>
+                        ) : isPreviewing ? (
+                          <div className="flex gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => buyPreview(item.id)}
+                              className="flex min-h-[44px] flex-1 items-center justify-center gap-1 rounded-lg border-2 border-[#80501e] bg-[#dfa651] px-2 text-[10px] font-bold text-[#3f2a14] shadow-[2px_2px_0_#80501e] transition active:translate-x-px active:translate-y-px active:shadow-none"
+                            >
+                              <Package className="h-3.5 w-3.5" /> Купить
+                            </button>
+                            <button
+                              type="button"
+                              onClick={clearPreview}
+                              aria-label="Отменить примерку"
+                              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border-2 border-[#9c8060] bg-[#fff8e8] text-[#604831] shadow-[2px_2px_0_#9c8060] transition active:translate-x-px active:translate-y-px active:shadow-none"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHaptic('impact', 'medium');
+                              setPreviewItemId(item.id);
+                            }}
+                            className="min-h-[44px] w-full rounded-lg border-2 border-[#a66b2c] bg-[#f5d59a] px-2 text-[10px] font-bold text-[#623b16] shadow-[2px_2px_0_#a66b2c] transition active:translate-x-px active:translate-y-px active:shadow-none"
+                          >
+                            Примерить
+                          </button>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-3 flex min-h-[180px] flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#c3a77e] bg-[#fff8e8]/70 p-5 text-center">
+                <Package className="h-7 w-7 text-[#9b7753]" />
+                <p className="mt-2 text-xs font-bold text-[#5d4733]">На этой полке пока пусто</p>
+                <p className="mt-1 text-[11px] leading-snug text-[#806247]">Новые находки появятся здесь, когда они будут готовы.</p>
+              </div>
+            )
+          ) : (
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:max-h-[508px] lg:overflow-y-auto lg:pr-2">
+              {appState.pets.map((pet) => {
+                const owned = myPetIds.has(pet.id);
+                const isActive = activePetId === pet.id;
+                const petCardClass = isActive
+                  ? 'border-[#66864a] bg-[#e6efce] shadow-[3px_3px_0_#66864a]'
+                  : owned
+                    ? 'border-[#ae9170] bg-[#fffaf0] shadow-[3px_3px_0_#ae9170]'
+                    : 'border-[#c7aa82] bg-[#f1e6d1] shadow-[3px_3px_0_#c7aa82]';
+
+                return (
+                  <article key={pet.id} className={`flex min-w-0 flex-col rounded-xl border-2 p-2.5 ${petCardClass}`}>
+                    <div className="flex min-w-0 items-start gap-2">
+                      <div className="flex h-12 w-11 shrink-0 items-center justify-center rounded-lg border border-[#c3a77e] bg-[#ead8b7]">
+                        <img
+                          src={habiticaPetSprite(pet.code)}
+                          alt=""
+                          className="h-11 w-10 object-contain [image-rendering:pixelated]"
+                          draggable={false}
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-bold text-[#3e2e20]">{pet.title}</p>
+                        <p className="mt-0.5 text-[10px] leading-snug text-[#765638]">
+                          {isActive ? 'Рядом сейчас' : owned ? 'Ждёт в уголке' : 'Пока не знакомы'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto pt-3">
+                      {owned && onSetActivePet && (
+                        isActive ? (
+                          <div className="flex min-h-[44px] w-full items-center justify-center gap-1 rounded-lg border-2 border-[#66864a] bg-[#d7e8b5] px-2 text-[10px] font-bold text-[#39512b] shadow-[2px_2px_0_#66864a]">
+                            <Check className="h-3.5 w-3.5" /> Рядом
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHaptic('notification', 'success');
+                              onSetActivePet(pet.id);
+                            }}
+                            className="flex min-h-[44px] w-full items-center justify-center gap-1 rounded-lg border-2 border-[#5d7b45] bg-[#dce9bd] px-2 text-[10px] font-bold text-[#38512c] shadow-[2px_2px_0_#5d7b45] transition active:translate-x-px active:translate-y-px active:shadow-none"
+                          >
+                            <Star className="h-3.5 w-3.5" /> Позвать рядом
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
 };

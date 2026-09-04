@@ -82,6 +82,10 @@ describe('validateTelegramWebAppData', () => {
     expect(validateTelegramWebAppData(freshInitData(), '')).toBe(false);
   });
 
+  it('отклоняет мусор после корректного 64-символьного hash', () => {
+    expect(validateTelegramWebAppData(`${freshInitData()}broken`, BOT_TOKEN)).toBe(false);
+  });
+
   it('URL-декодирование значений не ломает подпись (сырые пары)', () => {
     // Специально: значение с закодированным пробелом — проверяем, что валидатор
     // подписывает СЫРЫЕ пары (официальный алгоритм), а не декодированные
@@ -103,5 +107,13 @@ describe('parseInitDataUser', () => {
 
   it('возвращает null без user-поля', () => {
     expect(parseInitDataUser(signInitData({ auth_date: '1' }))).toBeNull();
+  });
+
+  it('не декодирует user повторно, если имя содержит знак процента', () => {
+    const initData = signInitData({
+      auth_date: String(Math.floor(Date.now() / 1000)),
+      user: encodeURIComponent(JSON.stringify({ id: 17, first_name: 'Скидка 50%' })),
+    });
+    expect(parseInitDataUser(initData)).toMatchObject({ id: 17, first_name: 'Скидка 50%' });
   });
 });

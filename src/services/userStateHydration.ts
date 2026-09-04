@@ -14,6 +14,7 @@ export function toStateUser(dbUser: typeof usersTable.$inferSelect): User {
   return {
     id: dbUser.id,
     telegram_id: dbUser.telegram_id,
+    family_id: dbUser.family_id ?? undefined,
     display_name: dbUser.display_name,
     family_role: dbUser.family_role === 'parent' ? 'parent' : 'child',
     is_admin: dbUser.is_admin,

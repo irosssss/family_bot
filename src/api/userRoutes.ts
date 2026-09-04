@@ -11,18 +11,28 @@
  * Примечание: /api/user/reset из оригинала перенесён в /api/users/reset
  * для единообразия путей (был единственным роутом с единственным числом).
  */
-import { Request, Response, Router } from 'express';
+import { randomInt } from 'node:crypto';
+import { Response, Router } from 'express';
 import { db } from '../db';
 import * as schema from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { appState } from '../services/stateService';
 import { persistProfile } from '../services/userService';
+import { toStateUser } from '../services/userStateHydration';
 import { processReferral } from '../services/referralService';
-import { getStreakBonus, checkAllTasksCompleted, getTasksForDate, purchaseStreakFreeze } from '../services/streakService';
-import { generateDailyTasks, calculateReward, seededRandom, getEffectiveTaskType } from '../services/taskGenerator';
-import { valueColor } from '../services/habitService';
+import { getStreakBonus, checkAllTasksCompleted, purchaseStreakFreeze } from '../services/streakService';
+import { generateDailyTasks } from '../services/taskGenerator';
+import { buildTodayTasksData } from '../services/todayTasksService';
 import { getTodayStr } from '../lib/dateUtils';
-import { isAuthEnforced, type AuthedRequest } from '../utils/apiAuth';
+import {
+ canAccessUser,
+ canActOn,
+ getAuthFamilyId,
+ getUserFamilyId,
+ isAuthEnforced,
+ requireAdmin,
+ type AuthedRequest,
+} from '../utils/apiAuth';
 import type { ShopItem, User } from '../types';
 
 export const userRoutes = Router();
@@ -48,16 +58,45 @@ function isAdmin(req: AuthedRequest, actorId: number | undefined): boolean {
 }
 
 /** Все мутации этого роутера совершаются родителем и подписываются actorId. */
-function requireAdminActor(req: AuthedRequest, res: Response): boolean {
+function requireAdminActor(req: AuthedRequest, res: Response, targetUserId?: number): boolean {
  const actorId = Number(req.body?.actorId);
- if (isAdmin(req, actorId)) return true;
+ if (isAdmin(req, actorId)) {
+   if (targetUserId === undefined) return true;
+   if (isAuthEnforced()) {
+     if (canActOn(req, targetUserId)) return true;
+   } else {
+     const actor = appState.users.find((u) => u.id === actorId);
+     const target = appState.users.find((u) => u.id === targetUserId);
+     const actorFamilyId = getUserFamilyId(actor) ?? appState.family?.id ?? null;
+     const targetFamilyId = getUserFamilyId(target);
+     if (actorFamilyId !== null && targetFamilyId === actorFamilyId) return true;
+   }
+ }
  res.status(403).json({ error: 'Только родитель (админ) может изменять профили' });
  return false;
 }
 
+async function commitProfileChange(user: User, change: (draft: User) => void): Promise<boolean> {
+ const draft = structuredClone(user);
+ change(draft);
+ if (!(await persistProfile(draft))) return false;
+ Object.assign(user, draft);
+ return true;
+}
+
 /** GET /api/users — все пользователи семьи */
-userRoutes.get('/', (req: Request, res: Response) => {
- const users = appState.users.map((u) => ({
+userRoutes.get('/', (req: AuthedRequest, res: Response) => {
+ if (!requireAdmin(req)) {
+   return res.status(403).json({ error: 'Forbidden: admin only' });
+ }
+ const authFamilyId = getAuthFamilyId(req);
+ if (isAuthEnforced() && authFamilyId === null) {
+   return res.status(403).json({ error: 'Forbidden: user has no family' });
+ }
+ const visibleUsers = isAuthEnforced()
+   ? appState.users.filter((u) => getUserFamilyId(u) === authFamilyId)
+   : appState.users;
+ const users = visibleUsers.map((u) => ({
  id: u.id,
  telegram_id: u.telegram_id,
  display_name: u.display_name,
@@ -78,10 +117,11 @@ userRoutes.get('/', (req: Request, res: Response) => {
 });
 
 /** GET /api/users/:id — один пользователь */
-userRoutes.get('/:id', (req: Request, res: Response) => {
+userRoutes.get('/:id', (req: AuthedRequest, res: Response) => {
  const userId = parseInt(req.params.id);
  const user = appState.users.find((u) => u.id === userId);
  if (!user) return res.status(404).json({ error: 'User not found' });
+ if (!canAccessUser(req, userId)) return res.status(403).json({ error: 'Forbidden: not your family' });
  res.json({ success: true, data: user });
 });
 
@@ -93,71 +133,65 @@ userRoutes.post('/', async (req: AuthedRequest, res: Response) => {
  return res.status(403).json({ error: 'Только родитель (админ) может добавлять пользователей' });
  }
  const actor = appState.users.find((u) => u.id === Number(actorId));
- const actorFamilyId = (actor as any)?.family_id ?? 1;
+ const actorFamilyId = getUserFamilyId(actor) ?? (!isAuthEnforced() ? appState.family?.id ?? null : null);
+ if (actorFamilyId === null) {
+ return res.status(400).json({ error: 'У родителя не назначена семья' });
+ }
  if (!display_name || typeof display_name !== 'string' || !display_name.trim()) {
  return res.status(400).json({ error: 'Укажите имя' });
  }
 
  const nameExists = appState.users.some(
- (u) => u.display_name.trim().toLowerCase() === display_name.trim().toLowerCase()
+ (u) => getUserFamilyId(u) === actorFamilyId && u.display_name.trim().toLowerCase() === display_name.trim().toLowerCase()
  );
  if (nameExists) {
  return res.status(400).json({ error: 'Имя уже занято' });
  }
 
- const newId = Math.max(...appState.users.map((u) => u.id), 0) + 1;
- const newUser: User = {
- id: newId,
- telegram_id: 100000 + newId,
- display_name: display_name.trim(),
- family_role: 'child',
- is_admin: false,
- assignee: 'both',
- gender: gender === 'female' ? 'female' : gender === 'male' ? 'male' : undefined,
- age: age && Number(age) > 0 ? Number(age) : 8,
- gold: 0,
- xp: 0,
- crystals: 0,
- current_streak: 0,
- best_streak: 0,
- streak_status: 'active',
- class: 'warrior',
- skill_date: null,
- notify_partner: 1,
- equipped: {},
- pets: [],
- };
-
- appState.users.push(newUser);
-
- // ARC-01: await БД-вставку; при ошибке — откат памяти (ребёнок не «существует»)
+ let newUser: User;
  try {
- await db.insert(schema.users).values({
- telegram_id: newUser.telegram_id,
- family_id: actorFamilyId,
- role: 'child',
- family_role: 'child',
- is_admin: false,
- display_name: newUser.display_name,
- class_type: newUser.class || 'warrior',
- gold: newUser.gold,
- xp: newUser.xp,
- crystals: newUser.crystals || 0,
- hp: newUser.hp || 50,
- max_hp: newUser.max_hp || 50,
- mp: newUser.mp || 30,
- max_mp: newUser.max_mp || 30,
- current_streak: newUser.current_streak || 0,
- best_streak: newUser.best_streak || 0,
- streak_status: 'active',
- gender: newUser.gender,
- assignee: 'both',
- notify_partner: 1,
- age: newUser.age,
+ const created = await db.transaction(async (tx) => {
+   const familyUsers = await tx.select({ display_name: schema.users.display_name })
+     .from(schema.users)
+     .where(eq(schema.users.family_id, actorFamilyId))
+     .for('update');
+   if (familyUsers.some((candidate) =>
+     candidate.display_name.trim().toLowerCase() === display_name.trim().toLowerCase()
+   )) {
+     throw new Error('NAME_TAKEN');
+   }
+   const [row] = await tx.insert(schema.users).values({
+     telegram_id: -(Date.now() * 1000 + randomInt(1000)),
+     family_id: actorFamilyId,
+     role: 'child',
+     family_role: 'child',
+     is_admin: false,
+     display_name: display_name.trim(),
+     class_type: 'warrior',
+     gold: 0,
+     xp: 0,
+     crystals: 0,
+     hp: 50,
+     max_hp: 50,
+     mp: 30,
+     max_mp: 30,
+     current_streak: 0,
+     best_streak: 0,
+     streak_status: 'active',
+     gender: gender === 'female' ? 'female' : gender === 'male' ? 'male' : undefined,
+     assignee: 'both',
+     notify_partner: 1,
+     age: age && Number(age) > 0 ? Number(age) : 8,
+   }).returning();
+   return row;
  });
+ newUser = toStateUser(created);
+ appState.users.push(newUser);
  } catch (e) {
- console.error('[arc01] DB Insert error (new child), rolling back memory:', e);
- appState.users = appState.users.filter((u) => u.id !== newId);
+ if (e instanceof Error && e.message === 'NAME_TAKEN') {
+   return res.status(409).json({ error: 'Имя уже занято' });
+ }
+ console.error('[users] DB insert failed for managed child:', e);
  return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
  }
 
@@ -173,39 +207,45 @@ userRoutes.put('/:id', async (req: AuthedRequest, res: Response) => {
  try {
  const userId = parseInt(req.params.id);
  const { actorId, display_name, age, gender } = req.body;
- if (!isAdmin(req, Number(actorId))) {
- return res.status(403).json({ error: 'Только родитель (админ) может редактировать' });
- }
  const user = appState.users.find((u) => u.id === userId);
  if (!user) return res.status(404).json({ error: 'User not found' });
+ if (!requireAdminActor(req, res, userId)) return;
 
+ let nextDisplayName = user.display_name;
+ let nextAge = user.age;
+ let nextGender = user.gender;
  if (display_name !== undefined) {
  if (typeof display_name !== 'string' || !display_name.trim()) {
  return res.status(400).json({ error: 'Некорректное имя' });
  }
- user.display_name = display_name.trim();
+ nextDisplayName = display_name.trim();
+ const duplicateName = appState.users.some((candidate) =>
+   candidate.id !== user.id
+   && candidate.family_id === user.family_id
+   && candidate.display_name.trim().toLowerCase() === nextDisplayName.toLowerCase()
+ );
+ if (duplicateName) return res.status(409).json({ error: 'Имя уже занято' });
  }
  if (age !== undefined) {
  const a = Number(age);
  if (!Number.isFinite(a) || a < 4 || a > 99) {
  return res.status(400).json({ error: 'Возраст должен быть от 4 до 99' });
  }
- user.age = a;
+ nextAge = a;
  }
  if (gender !== undefined) {
- user.gender = gender === 'female' ? 'female' : gender === 'male' ? 'male' : user.gender;
+ nextGender = gender === 'female' ? 'female' : gender === 'male' ? 'male' : user.gender;
  }
 
- // ARC-01: await обновление; ошибка — лог с userId (память — зеркало)
- try {
- await db.update(schema.users).set({
- display_name: user.display_name,
- age: user.age,
- gender: user.gender,
- }).where(eq(schema.users.id, userId));
- } catch (e) {
- console.error(`[arc01] DB Update error (user ${userId}):`, e);
- }
+ const updated = await db.update(schema.users).set({
+ display_name: nextDisplayName,
+ age: nextAge,
+ gender: nextGender,
+ }).where(eq(schema.users.id, userId)).returning({ id: schema.users.id });
+ if (updated.length === 0) return res.status(404).json({ error: 'User not found' });
+ user.display_name = nextDisplayName;
+ user.age = nextAge;
+ user.gender = nextGender;
 
  res.json({ success: true, user });
  } catch (error: any) {
@@ -219,18 +259,17 @@ userRoutes.delete('/:id', async (req: AuthedRequest, res: Response) => {
  try {
  const userId = parseInt(req.params.id);
  const { actorId } = req.body;
- if (!isAdmin(req, Number(actorId))) {
- return res.status(403).json({ error: 'Только родитель (админ) может удалять' });
- }
  const user = appState.users.find((u) => u.id === userId);
  if (!user) return res.status(404).json({ error: 'User not found' });
+ if (!requireAdminActor(req, res, userId)) return;
  if (user.is_admin || user.family_role === 'parent') {
  return res.status(400).json({ error: 'Нельзя удалить родителя' });
  }
 
+ const deleted = await db.delete(schema.users).where(eq(schema.users.id, userId))
+ .returning({ id: schema.users.id });
+ if (deleted.length === 0) return res.status(404).json({ error: 'User not found' });
  appState.users = appState.users.filter((u) => u.id !== userId);
- db.delete(schema.users).where(eq(schema.users.id, userId)).execute()
- .catch((e) => console.error('DB Delete error (user):', e));
 
  res.json({ success: true, message: 'Пользователь удалён' });
  } catch (error: any) {
@@ -239,11 +278,12 @@ userRoutes.delete('/:id', async (req: AuthedRequest, res: Response) => {
  }
 });
 
-userRoutes.get('/:id/streak', async (req: Request, res: Response) => {
+userRoutes.get('/:id/streak', async (req: AuthedRequest, res: Response) => {
  try {
  const userId = parseInt(req.params.id);
  const user = appState.users.find((u) => u.id === userId);
  if (!user) return res.status(404).json({ error: 'User not found' });
+ if (!canAccessUser(req, userId)) return res.status(403).json({ error: 'Forbidden: not your family' });
 
  const todayStr = getTodayStr();
  // БАГ #5 FIX: единый источник правды — generateDailyTasks (как в tasks/today)
@@ -283,7 +323,7 @@ userRoutes.post('/:id/streak/freeze', async (req: AuthedRequest, res: Response) 
  try {
  const userId = parseInt(req.params.id);
  const { paymentType } = req.body;
- if (!requireAdminActor(req, res)) return;
+ if (!requireAdminActor(req, res, userId)) return;
 
  if (!paymentType || !['gold', 'crystals'].includes(paymentType)) {
  return res.status(400).json({ 
@@ -300,8 +340,9 @@ userRoutes.post('/:id/streak/freeze', async (req: AuthedRequest, res: Response) 
 
  // Broadcast update
  const io = req.app.get('io');
- if (io) {
- io.emit('stateUpdate');
+ const familyId = getUserFamilyId(appState.users.find((user) => user.id === userId));
+ if (io && familyId !== null) {
+ io.to(`family:${familyId}`).emit('stateUpdate');
  }
 
  res.json({
@@ -319,206 +360,185 @@ userRoutes.post('/:id/streak/freeze', async (req: AuthedRequest, res: Response) 
  * Возвращает сгенерированный список задач на сегодня (или на переданную дату)
  * с разделением: required / choice / quests + summary.
  */
-userRoutes.get('/:id/tasks/today', async (req: Request, res: Response) => {
+userRoutes.get('/:id/tasks/today', async (req: AuthedRequest, res: Response) => {
  try {
  const userId = parseInt(req.params.id);
  const user = appState.users.find((u) => u.id === userId);
  if (!user) return res.status(404).json({ error: 'User not found' });
+ if (!canAccessUser(req, userId)) return res.status(403).json({ error: 'Forbidden: not your family' });
 
  // Поддержка ?date=YYYY-MM-DD для тестирования
- const dateParam = typeof req.query.date === 'string' ? req.query.date : null;
- const date = dateParam ? new Date(dateParam) : new Date();
- const dateStr = dateParam || getTodayStr();
-
- const tasks = generateDailyTasks(user, appState.tasks, date);
-
- const completedTaskIds = appState.completions
- .filter((c) => c.user_id === userId && c.completed_at === dateStr)
- .map((c) => c.task_id);
-
- // Вспомогательная функция: сериализуем задачу для API
- // БАГ #3 FIX: seeded random от (date+userId+taskId) — детерминированная награда
- const serializeTask = (t: (typeof tasks)[number]) => {
- const rewardRand = seededRandom(`${dateStr}:${user.id}:${t.id}`);
- const reward = calculateReward(t, user, rewardRand);
- // Habitica decay (Этап 4): ценность задачи влияет на награду и цвет
- const tAny = t as any;
- const taskValue = typeof tAny.value === 'number' ? tAny.value : 0;
- const vMult = valueColor(taskValue).goldMultiplier;
- return {
- id: t.id,
- code: t.code,
- title: t.title,
- points: Math.max(1, Math.round(reward.gold * vMult)), // итоговая награда с учётом decay
- value: taskValue,
- category: t.category ?? null,
- task_type: t.task_type,
- is_required: !!t.is_required,
- done: completedTaskIds.includes(t.id),
- crystals: reward.crystals,
- };
- };
-
- // БАГ #2 (продолжение): разделение по типам с учётом нормализации старых задач
- const required = tasks
- .filter((t) => getEffectiveTaskType(t) === 'personal' && t.is_required)
- .map(serializeTask);
- const choice = tasks
- .filter((t) => {
- const et = getEffectiveTaskType(t);
- return et === 'core' || (et === 'personal' && !t.is_required);
- })
- .map(serializeTask);
- const quests = tasks
- .filter((t) => getEffectiveTaskType(t) === 'quest')
- .map(serializeTask);
-
- const requiredTotal = required.length;
- const requiredDone = required.filter((t) => t.done).length;
- const allRequiredDone = requiredTotal > 0 && requiredDone === requiredTotal;
- const total = tasks.length;
- const doneTotal = tasks.filter((t) => completedTaskIds.includes(t.id)).length;
- const progressPercent = total === 0 ? 0 : Math.round((doneTotal / total) * 100);
-
- res.json({
- success: true,
- data: {
- date: dateStr,
- user: {
- id: user.id,
- display_name: user.display_name,
- age: user.age ?? 8,
- },
- required,
- choice,
- quests,
- summary: {
- total,
- required_done: requiredDone,
- required_total: requiredTotal,
- all_required_done: allRequiredDone,
- progress_percent: progressPercent,
- },
- },
- });
+ const dateParam = typeof req.query.date === 'string' ? req.query.date : undefined;
+ const data = buildTodayTasksData(userId, dateParam);
+ if (!data) return res.status(400).json({ error: 'Invalid date' });
+ res.json({ success: true, data });
  } catch (error: any) {
  console.error('Error fetching today tasks:', error);
  res.status(500).json({ success: false, error: error.message });
  }
 });
 
-userRoutes.post('/class', (req: AuthedRequest, res: Response) => {
+userRoutes.post('/class', async (req: AuthedRequest, res: Response) => {
  const { userId, className } = req.body;
- if (!requireAdminActor(req, res)) return;
+ if (!requireAdminActor(req, res, Number(userId))) return;
  const user = appState.users.find((u) => u.id === Number(userId));
  if (!user) return res.status(404).json({ error: 'User not found' });
-
- user.class = className;
- // Сохранить профиль в БД
- persistProfile(user);
-
- res.json({ success: true, user });
-});
-
-userRoutes.post('/gender', (req: AuthedRequest, res: Response) => {
- const { userId, gender } = req.body;
- if (!requireAdminActor(req, res)) return;
- const user = appState.users.find((u) => u.id === Number(userId));
- if (!user) return res.status(404).json({ error: 'User not found' });
-
- user.gender = gender === 'female' ? 'female' : 'male';
- // Сохранить профиль в БД
- persistProfile(user);
-
- res.json({ success: true, user });
-});
-
-userRoutes.post('/update-character', (req: AuthedRequest, res: Response) => {
- const { userId, gender, character_color, skin_tone, hair_style, hair_color, eye_color, custom_avatar_url, habitica_equipped } = req.body;
- if (!requireAdminActor(req, res)) return;
- const user = appState.users.find((u) => u.id === Number(userId));
- if (!user) return res.status(404).json({ error: 'User not found' });
-
- if (gender) user.gender = gender;
- if (character_color) user.character_color = character_color;
- if (skin_tone) user.skin_tone = skin_tone;
- if (hair_style) user.hair_style = hair_style;
- if (hair_color) user.hair_color = hair_color;
- if (eye_color) user.eye_color = eye_color;
- if (custom_avatar_url !== undefined) user.custom_avatar_url = custom_avatar_url;
- // Habitica V3: образ (кожа/причёска/сет) хранится как jsonb
- if (habitica_equipped !== undefined) {
-   const merged = { ...((user as any).habitica_equipped || {}), ...habitica_equipped };
-   (user as any).habitica_equipped = merged;
+ if (!['warrior', 'mage', 'rogue', 'healer'].includes(className)) {
+ return res.status(400).json({ error: 'Некорректный класс' });
  }
- // Сохранить профиль в БД
- persistProfile(user);
+
+ if (!(await commitProfileChange(user, (draft) => { draft.class = className; }))) {
+ return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
+ }
 
  res.json({ success: true, user });
 });
 
-userRoutes.post('/custom-background', (req: AuthedRequest, res: Response) => {
+userRoutes.post('/gender', async (req: AuthedRequest, res: Response) => {
+ const { userId, gender } = req.body;
+ if (!requireAdminActor(req, res, Number(userId))) return;
+ const user = appState.users.find((u) => u.id === Number(userId));
+ if (!user) return res.status(404).json({ error: 'User not found' });
+
+ if (!(await commitProfileChange(user, (draft) => {
+ draft.gender = gender === 'female' ? 'female' : 'male';
+ }))) return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
+
+ res.json({ success: true, user });
+});
+
+userRoutes.post('/update-character', async (req: AuthedRequest, res: Response) => {
+ const { userId, gender, character_color, skin_tone, hair_style, hair_color, eye_color, custom_avatar_url, habitica_equipped } = req.body;
+ if (!requireAdminActor(req, res, Number(userId))) return;
+ const user = appState.users.find((u) => u.id === Number(userId));
+ if (!user) return res.status(404).json({ error: 'User not found' });
+
+ const saved = await commitProfileChange(user, (draft) => {
+ if (gender) draft.gender = gender;
+ if (character_color) draft.character_color = character_color;
+ if (skin_tone) draft.skin_tone = skin_tone;
+ if (hair_style) draft.hair_style = hair_style;
+ if (hair_color) draft.hair_color = hair_color;
+ if (eye_color) draft.eye_color = eye_color;
+ if (custom_avatar_url !== undefined) draft.custom_avatar_url = custom_avatar_url;
+ if (habitica_equipped !== undefined) {
+   (draft as any).habitica_equipped = {
+     ...((draft as any).habitica_equipped || {}),
+     ...habitica_equipped,
+   };
+ }
+ });
+ if (!saved) return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
+
+ res.json({ success: true, user });
+});
+
+userRoutes.post('/custom-background', async (req: AuthedRequest, res: Response) => {
  const { userId, bgUrl } = req.body;
- if (!requireAdminActor(req, res)) return;
+ if (!requireAdminActor(req, res, Number(userId))) return;
  const user = appState.users.find((u) => u.id === Number(userId));
  if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+ if (typeof bgUrl !== 'string' || !bgUrl.trim()) {
+ return res.status(400).json({ error: 'Некорректный URL фона' });
+ }
 
- // Create a custom background item in shop, then own & equip it
- const newBackgroundId = appState.shopItems.length + 1000 + Math.floor(Math.random() * 9000);
+ let created: typeof schema.items.$inferSelect;
+ try {
+ created = await db.transaction(async (tx) => {
+   const [dbUser] = await tx.select({ id: schema.users.id }).from(schema.users)
+     .where(eq(schema.users.id, user.id)).for('update').limit(1);
+   if (!dbUser) throw new Error('USER_NOT_FOUND');
+   const [item] = await tx.insert(schema.items).values({
+     name: 'Пользовательский фон',
+     code: `custom_background_${user.id}_${Date.now()}`,
+     type: 'background',
+     sprite_url: bgUrl.trim(),
+     cost_coins: 0,
+   }).returning();
+   const backgroundRows = await tx.select({ id: schema.items.id }).from(schema.items)
+     .where(eq(schema.items.type, 'background'));
+   const backgroundIds = backgroundRows.map((row) => row.id);
+   if (backgroundIds.length > 0) {
+     await tx.update(schema.character_inventory).set({ is_equipped: false })
+       .where(and(
+         eq(schema.character_inventory.character_id, user.id),
+         inArray(schema.character_inventory.item_id, backgroundIds),
+       ));
+   }
+   await tx.insert(schema.character_inventory).values({
+     character_id: user.id,
+     item_id: item.id,
+     is_equipped: true,
+   });
+   return item;
+ });
+ } catch (error) {
+ console.error('[users] custom background transaction failed:', error);
+ return res.status(error instanceof Error && error.message === 'USER_NOT_FOUND' ? 404 : 500)
+   .json({ error: 'Не удалось сохранить фон' });
+ }
+
  const newBgItem: ShopItem = {
- id: newBackgroundId,
- code: bgUrl,
- title: 'Пользовательский Фон',
- emoji: '',
- slot: 'background',
- cost: 0,
+ id: created.id,
+ code: created.code || `custom_background_${created.id}`,
+ title: created.name,
+  emoji: '',
+ imageUrl: created.sprite_url,
+  slot: 'background',
+  cost: 0,
  };
-
  appState.shopItems.push(newBgItem);
-
- // Unequip current backgrounds for user
  for (const ui of appState.userItems) {
- if (ui.user_id === user.id && ui.equipped) {
+ if (ui.user_id === user.id) {
  const item = appState.shopItems.find((s) => s.id === ui.item_id);
- if (item && item.slot === 'background') {
- ui.equipped = 0;
+ if (item?.slot === 'background') ui.equipped = 0;
  }
  }
- }
-
- // Add and equip
  appState.userItems.push({
  user_id: user.id,
- item_id: newBackgroundId,
+ item_id: created.id,
  equipped: 1,
  });
 
- res.json({ success: true, message: 'Установлен новый AI фон !' });
+ res.json({ success: true, message: 'Установлен новый фон' });
 });
 
-userRoutes.post('/custom-avatar', (req: AuthedRequest, res: Response) => {
+userRoutes.post('/custom-avatar', async (req: AuthedRequest, res: Response) => {
  const { userId, avatarUrl } = req.body;
- if (!requireAdminActor(req, res)) return;
+ if (!requireAdminActor(req, res, Number(userId))) return;
  const user = appState.users.find((u) => u.id === Number(userId));
  if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
- user.custom_avatar_url = avatarUrl;
- // Сохранить профиль в БД
- persistProfile(user);
+ if (!(await commitProfileChange(user, (draft) => { draft.custom_avatar_url = avatarUrl; }))) {
+ return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
+ }
 
  res.json({ success: true, message: 'Аватар успешно обновлён!' });
 });
 
-userRoutes.post('/reset', (req: AuthedRequest, res: Response) => {
+userRoutes.post('/reset', async (req: AuthedRequest, res: Response) => {
  const { userId } = req.body;
- if (!requireAdminActor(req, res)) return;
+ if (!requireAdminActor(req, res, Number(userId))) return;
  const user = appState.users.find((u) => u.id === Number(userId));
  if (!user) return res.status(404).json({ error: 'User not found' });
 
+ const updated = await db.update(schema.users).set({
+ gold: 0,
+ xp: 0,
+ current_streak: 0,
+ best_streak: 0,
+ streak_status: 'active',
+ skill_date: null,
+ last_streak_update: null,
+ }).where(eq(schema.users.id, user.id)).returning({ id: schema.users.id });
+ if (updated.length === 0) return res.status(404).json({ error: 'User not found' });
  user.gold = 0;
  user.xp = 0;
  user.current_streak = 0;
+ user.best_streak = 0;
+ user.streak_status = 'active';
  user.skill_date = null;
+ user.last_streak_update = undefined;
 
  res.json({ success: true, user });
 });
@@ -535,8 +555,13 @@ userRoutes.post('/register', async (req: AuthedRequest, res: Response) => {
  color,
  refCode,
  age,
- telegram_id,
  } = req.body;
+
+ const actor = appState.users.find((u) => u.id === Number(req.body.actorId));
+ const actorFamilyId = getUserFamilyId(actor) ?? (!isAuthEnforced() ? appState.family?.id ?? null : null);
+ if (actorFamilyId === null) {
+ return res.status(400).json({ error: 'У родителя не назначена семья' });
+ }
 
  if (!name || typeof name !== 'string' || !name.trim()) {
  return res.status(400).json({ error: 'Укажите корректное имя пользователя' });
@@ -546,7 +571,7 @@ userRoutes.post('/register', async (req: AuthedRequest, res: Response) => {
 
  // Check name uniqueness (case-insensitive)
  const nameExists = appState.users.some(
- (u) => u.display_name.trim().toLowerCase() === trimmedName.toLowerCase()
+ (u) => getUserFamilyId(u) === actorFamilyId && u.display_name.trim().toLowerCase() === trimmedName.toLowerCase()
  );
  if (nameExists) {
  return res.status(400).json({
@@ -555,28 +580,29 @@ userRoutes.post('/register', async (req: AuthedRequest, res: Response) => {
  }
 
  const selectedColor = character_color || color || '#f59e0b';
- const newId = Math.max(...appState.users.map((u) => u.id), 0) + 1;
+ const syntheticTelegramId = -(Date.now() * 1000 + randomInt(1000));
 
- // РОЛЕВАЯ МОДЕЛЬ (Этап R1): первый пользователь — родитель (admin), остальные — дети
- const isFirstUser = appState.users.length === 0;
- const familyRole: 'parent' | 'child' = isFirstUser ? 'parent' : 'child';
- const isAdmin = isFirstUser;
+ // Этот legacy endpoint вызывается уже авторизованным родителем и создаёт только ребёнка.
+ // Первого parent/admin создаёт публичный POST /api/auth/register.
+ const familyRole: 'child' = 'child';
+ const isAdmin = false;
 
  const newUser: User = {
- id: newId,
- telegram_id: 100000 + newId,
+ id: 0,
+ telegram_id: syntheticTelegramId,
+ family_id: actorFamilyId,
  display_name: trimmedName,
  family_role: familyRole,
  is_admin: isAdmin,
  assignee: 'both',
- gold: isFirstUser ? 0 : 50,
+ gold: 50,
  xp: 0,
- crystals: isFirstUser ? 0 : 10,
+ crystals: 10,
  current_streak: 0,
  best_streak: 0,
- streak_status: isFirstUser ? 'paused' : 'active',
+ streak_status: 'active',
  streak_freeze_available: false,
- class: isFirstUser ? '' : ((classKey as any) || 'warrior'),
+ class: ((classKey as any) || 'warrior'),
  gender: gender === 'female' ? 'female' : 'male',
  character_color: selectedColor,
  color: selectedColor,
@@ -590,40 +616,40 @@ userRoutes.post('/register', async (req: AuthedRequest, res: Response) => {
  age: age && Number(age) > 0 ? Number(age) : 8,
  equipped: {},
  pets: [],
- referral_code: `ref_${newId}`,
+ referral_code: undefined,
  referrals_count: 0,
  referral_earnings_gold: 0,
  referral_earnings_crystals: 0,
  };
 
- appState.users.push(newUser);
-
  // ARC-02: family_id резолвится по коду семьи (не хардкод 1).
  // Код из body (RegistrationModal) → поиск в families; не найден → 404;
  // не передан → первая существующая семья (совместимость с текущей демо-семьёй).
- let resolvedFamilyId = 1;
+ let resolvedFamilyId = actorFamilyId;
  try {
  if (familyCode) {
  const famRows = await db.select().from(schema.families)
  .where(eq(schema.families.family_code, String(familyCode).trim())).limit(1);
  if (famRows.length > 0) {
- resolvedFamilyId = famRows[0].id;
+ if (famRows[0].id !== actorFamilyId) {
+ return res.status(403).json({ error: 'Нельзя добавлять пользователя в другую семью' });
+ }
+ resolvedFamilyId = actorFamilyId;
  } else {
- // откат in-memory добавления — семья не найдена
- appState.users.pop();
  return res.status(404).json({ error: 'Код семьи не найден. Проверьте код у родителя.' });
  }
  }
  } catch (e) {
  console.error('[users/register] family lookup failed:', e);
+ return res.status(500).json({ error: 'Не удалось проверить семью' });
  }
 
- // ARC-01: await вставки; при ошибке — откат памяти + стартовый предмет
  try {
- await db.insert(schema.users).values({
+ const created = await db.transaction(async (tx) => {
+ const [row] = await tx.insert(schema.users).values({
  telegram_id: newUser.telegram_id,
  family_id: resolvedFamilyId,
- role: familyRole === 'parent' ? 'parent' : 'child',
+ role: 'child',
  family_role: familyRole,
  is_admin: isAdmin,
  display_name: newUser.display_name,
@@ -645,25 +671,36 @@ userRoutes.post('/register', async (req: AuthedRequest, res: Response) => {
  notify_partner: newUser.notify_partner,
  age: newUser.age,
  referral_code: newUser.referral_code,
- referred_by: newUser.referred_by
+ referred_by: newUser.referred_by,
+ }).returning();
+ const referralCode = `ref_${row.id}`;
+ await tx.update(schema.users).set({ referral_code: referralCode })
+ .where(eq(schema.users.id, row.id));
+ await tx.insert(schema.character_inventory).values({
+ character_id: row.id,
+ item_id: classKey === 'mage' ? 2 : 1,
+ is_equipped: true,
+ }).onConflictDoNothing();
+ return { ...row, referral_code: referralCode };
  });
+ newUser.id = created.id;
+ newUser.telegram_id = created.telegram_id;
+ newUser.referral_code = created.referral_code;
  } catch (e) {
- console.error('[arc01] DB Insert error (user), rolling back memory:', e);
- appState.users = appState.users.filter((u) => u.id !== newId);
- appState.userItems = appState.userItems.filter((ui) => ui.user_id !== newId);
+ console.error('[users/register] child transaction failed:', e);
  return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
  }
 
- // Give starter item to new user
+ appState.users.push(newUser);
  appState.userItems.push({
- user_id: newId,
+ user_id: newUser.id,
  item_id: classKey === 'mage' ? 2 : 1, // Staff or Sword
  equipped: 1,
  });
 
  let referralMessage = '';
  if (refCode) {
- const refResult = processReferral(newUser, refCode);
+ const refResult = await processReferral(newUser, refCode);
  if (refResult.success) {
  referralMessage = refResult.message;
  }

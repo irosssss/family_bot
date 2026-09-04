@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   AppState,
-  Boss,
-  Challenge,
   ClassKey,
   GenderKey,
   Completion,
@@ -14,9 +12,7 @@ import {
   User,
 } from './types';
 import { Navbar } from './components/Navbar';
-import { TodayTasks } from './components/TodayTasks';
 import { PartyView } from './components/PartyView';
-import { FeedJournal } from './components/FeedJournal';
 import { ShopAndRewardsModal } from './components/ShopAndRewardsModal';
 import { AddTaskModal } from './components/AddTaskModal';
 import { AddRewardModal } from './components/AddRewardModal';
@@ -28,9 +24,9 @@ import { ReferralModal } from './components/ReferralModal';
 import { MobileChecklistModal } from './components/MobileChecklistModal';
 import { CharacterEditorModal } from './components/CharacterEditorModal';
 import { UpgradeGuideModal } from './components/UpgradeGuideModal';
-import { FamilyHubScene } from './components/scenes/FamilyHubScene';
-import { BossRaidScene } from './components/scenes/BossRaidScene';
+import { DomovoyHouseProjectScene } from './components/scenes/DomovoyHouseProjectScene';
 import { WardrobeCustomizationScene } from './components/scenes/WardrobeCustomizationScene';
+import { DomovoyJournalScene } from './components/scenes/DomovoyJournalScene';
 import {
   Sparkles,
   LayoutDashboard,
@@ -43,7 +39,6 @@ import {
   Smartphone,
   Settings,
   Home,
-  Swords,
   Shirt,
   Layers,
   X,
@@ -129,31 +124,20 @@ export function App() {
   const [streakData, setStreakData] = useState<{ streak: number; bonusPercent: number } | null>(null);
   
   useEffect(() => {
-    const socket = io('/'); // connects to current host
-    socket.on('taskApproved', (data) => {
-      console.log('Task approved via Telegram:', data);
-      alert('Родитель подтвердил квест! Золото начислено.');
-      loadState(); // reload state
-      triggerHaptic('notification', 'success');
-      sounds.playLevelUp();
-    });
+    const tmaInitData = getTelegramInitData();
+    const socket = io('/', {
+      auth: tmaInitData ? { tma: tmaInitData } : undefined,
+    }); // connects to current host
     socket.on('stateUpdate', () => {
       console.log('Real-time update received');
       loadState();
-    });
-    socket.on('taskRejected', (data) => {
-      console.log('Task rejected via Telegram:', data);
-      alert('Родитель отклонил квест. Придется переделать!');
-      loadState();
-      triggerHaptic('notification', 'error');
     });
 
     // === Этап 10 + SEC-06: присоединяемся к комнате семьи ===
     // familyId берём из localStorage (dev-песочница); в проде сервер резолвит
     // семью из проверенного initData (tma) и игнорирует client value.
     const myFamilyId = Number(localStorage.getItem('family_id') || 1);
-    const tmaInitData = getTelegramInitData();
-    socket.emit('join:family', { familyId: myFamilyId, tma: tmaInitData || undefined });
+    socket.emit('join:family', { familyId: myFamilyId });
     console.log(`[Socket] requested join:family ${myFamilyId}`);
 
     // === Этап 10: party:boss_damaged — удар одного ребёнка виден всем в realtime ===
@@ -462,7 +446,7 @@ export function App() {
 
   // Complete Task Handler
   const handleCompleteTask = async (taskId: number) => {
-    if (!activeUser) return;
+    if (!activeUser || activeUser.family_role === 'parent' || activeUser.is_admin) return;
     try {
       const res = await apiFetch('/api/tasks/complete', {
         method: 'POST',
@@ -490,15 +474,15 @@ export function App() {
         alertText += ` НАЙДЕН ПИТОМЕЦ: ${result.pet.title}!`;
       }
       if (result.bossDefeated) {
-        sounds.playBossHit();
-        alertText += ` БОСС ПОВЕРЖЕН (+20 обоим)!`;
+        sounds.playLevelUp();
+        alertText += ' Семейный проект заметно продвинулся!';
       }
       if (result.challengeCompleted) {
         alertText += ` Челлендж недели выполнен (+${result.challengeCompleted.bonus})!`;
       }
 
       showToast(alertText);
-      loadState();
+      await loadState();
     } catch (e) {
       showToast('Ошибка сети');
     }
@@ -506,40 +490,22 @@ export function App() {
 
   // Toggle/Undo Task
   const handleToggleUndo = async (taskId: number) => {
-    if (!activeUser) return;
+    if (!activeUser || activeUser.family_role === 'parent' || activeUser.is_admin) return;
     try {
-      await apiFetch('/api/tasks/toggle', {
+      const res = await apiFetch('/api/tasks/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: activeUser.id, taskId }),
       });
-      showToast('Отметка выполнения отменена');
-      loadState();
-    } catch (e) {
-      showToast('Ошибка');
-    }
-  };
-
-  // Use Class Skill
-  const handleUseSkill = async () => {
-    if (!activeUser) return;
-    try {
-      const res = await apiFetch('/api/skills/use', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: activeUser.id }),
-      });
       const result = await res.json();
       if (!res.ok) {
-        showToast(result.error);
+        showToast(`Внимание: ${result.error || 'Не удалось отменить отметку'}`);
         return;
       }
-      sounds.playBossHit();
-      triggerHaptic('impact', 'medium');
-      showToast(result.message);
-      loadState();
+      showToast('Отметка выполнения отменена');
+      await loadState();
     } catch (e) {
-      showToast('Ошибка применения скилла');
+      showToast('Ошибка');
     }
   };
 
@@ -731,7 +697,6 @@ export function App() {
           actorId: activeUserId,
           display_name: name,
           gender: 'male',
-          familyCode: 'FAM-1234',
         }),
       });
       await loadState();
@@ -756,61 +721,50 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-slate-200 pb-24 sm:pb-16">
+    <div className="tg-screen-height bg-[#ecdfc3] text-[#2f241c] pb-24 sm:pb-16">
       {/* Top Navbar */}
       <Navbar
         activeUser={activeUser}
         users={appState.users}
-        onSelectUser={(u) => setActiveUserId(u.id)}
-        boss={appState.boss}
-        soundEnabled={soundEnabled}
-        onToggleSound={() => {
-          sounds.enabled = !soundEnabled;
-          setSoundEnabled(!soundEnabled);
+        onSelectUser={(u) => {
+          setActiveUserId(u.id);
+          setActiveNavTab('dashboard');
+          setActiveScene('hub');
+          setIsMoreSheetOpen(false);
         }}
-        onRefresh={loadState}
-        isRefreshing={isRefreshing}
-        onOpenAddModal={() => setIsAddTaskModalOpen(true)}
-        onOpenFamilyModal={() => setIsFamilyModalOpen(true)}
         onOpenFamilySettings={() => setIsFamilySettingsOpen(true)}
         onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
-        onOpenReferralModal={() => setIsReferralModalOpen(true)}
-        onOpenChecklistModal={() => setIsChecklistModalOpen(true)}
-        onOpenUpgradeGuide={() => setIsUpgradeGuideOpen(true)}
       />
 
       {/* Floating Notification Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 max-w-md bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-white/20 text-xs font-semibold animate-bounce flex items-center gap-3">
-          <Sparkles className="w-4 h-4 text-amber-300 flex-shrink-0" />
+        <div className="fixed bottom-24 right-3 z-50 flex max-w-[calc(100vw-1.5rem)] items-center gap-3 rounded-[16px] border-2 border-[#2f241c] bg-[#42614f] px-4 py-3 text-xs font-bold text-[#fff8e8] shadow-[3px_3px_0_#2f241c] animate-bounce sm:bottom-6 sm:right-6 sm:max-w-md">
+          <Sparkles className="w-4 h-4 flex-shrink-0 text-[#f3cf82]" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 pt-3 sm:pt-6 pb-28 sm:pb-20 space-y-4 sm:space-y-6">
+      <main className="mx-auto max-w-7xl space-y-4 px-2 pb-28 pt-3 sm:space-y-6 sm:px-4 sm:pb-20 sm:pt-6 lg:px-8">
         {/* TAB 1: Main Dashboard */}
         {activeNavTab === 'dashboard' && (
           <div className="space-y-4 sm:space-y-6">
-            {/* Scene Selector Router Tabs (32-bit RPG 3 Scenes) */}
+            {/* Desktop journal navigation. On phones the bottom bar is the only scene switcher. */}
             <div className="relative">
-            <div className="flex items-center justify-between bg-slate-900/90 p-1.5 sm:p-2 rounded-2xl border border-amber-500/30 overflow-x-auto gap-1.5 sm:gap-2 shadow-xl scrollbar-none">
+            <div className="hidden sm:flex items-center justify-between gap-2 overflow-x-auto rounded-[20px] border-2 border-[#2f241c] bg-[#f5e7c8] p-2 shadow-[3px_3px_0_#b9834d] scrollbar-none">
               <button
                 onClick={() => {
                   triggerHaptic('impact', 'light');
                   setActiveScene('hub');
                 }}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold font-pixel-sub transition shrink-0 ${
+                className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-[12px] px-3 text-xs font-bold transition sm:px-4 ${
                   activeScene === 'hub'
-                    ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#42614f] text-[#fff8e8] shadow-[2px_2px_0_#2f241c]'
+                    : 'text-[#61401e] hover:bg-[#ead4ab]'
                 }`}
               >
-                <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span>
-                  <span className="hidden sm:inline">1. Семейный дом</span>
-                  <span className="sm:hidden">1. Дом</span>
-                </span>
+                <Home className="h-4 w-4 shrink-0" />
+                <span>Сегодня</span>
               </button>
 
               <button
@@ -818,80 +772,94 @@ export function App() {
                   triggerHaptic('impact', 'light');
                   setActiveScene('boss');
                 }}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold font-pixel-sub transition shrink-0 ${
+                className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-[12px] px-3 text-xs font-bold transition sm:px-4 ${
                   activeScene === 'boss'
-                    ? 'bg-red-600 text-white shadow-lg shadow-red-500/30'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#c4774d] text-[#fff8e8] shadow-[2px_2px_0_#2f241c]'
+                    : 'text-[#61401e] hover:bg-[#ead4ab]'
                 }`}
               >
-                <Swords className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span>
-                  <span className="hidden sm:inline">2. Битва с боссом</span>
-                  <span className="sm:hidden">2. Арена</span>
-                </span>
+                <Layers className="h-4 w-4 shrink-0" />
+                <span>Дом</span>
               </button>
 
-              <button
-                onClick={() => {
-                  triggerHaptic('impact', 'light');
-                  setActiveScene('wardrobe');
-                }}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold font-pixel-sub transition shrink-0 ${
-                  activeScene === 'wardrobe'
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Shirt className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span>
-                  <span className="hidden sm:inline">3. Гардероб</span>
-                  <span className="sm:hidden">Гардероб</span>
-                </span>
-              </button>
+              {activeUser.family_role === 'parent' || activeUser.is_admin ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('impact', 'light');
+                    setIsFamilySettingsOpen(true);
+                  }}
+                  className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-[12px] px-3 text-xs font-bold text-[#61401e] transition hover:bg-[#ead4ab] sm:px-4"
+                >
+                  <Settings className="h-4 w-4 shrink-0" />
+                  <span>Семья</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic('impact', 'light');
+                    setActiveScene('wardrobe');
+                  }}
+                  className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-[12px] px-3 text-xs font-bold transition sm:px-4 ${
+                    activeScene === 'wardrobe'
+                      ? 'bg-[#7e698b] text-[#fff8e8] shadow-[2px_2px_0_#2f241c]'
+                      : 'text-[#61401e] hover:bg-[#ead4ab]'
+                  }`}
+                >
+                  <Shirt className="h-4 w-4 shrink-0" />
+                  <span>Стиль</span>
+                </button>
+              )}
 
               <button
                 onClick={() => {
                   triggerHaptic('impact', 'light');
                   setActiveScene('overview');
                 }}
-                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold font-pixel-sub transition shrink-0 ${
+                className={`flex min-h-11 shrink-0 items-center gap-1.5 rounded-[12px] px-3 text-xs font-bold transition sm:px-4 ${
                   activeScene === 'overview'
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#7d9db5] text-[#1f3443] shadow-[2px_2px_0_#2f241c]'
+                    : 'text-[#61401e] hover:bg-[#ead4ab]'
                 }`}
               >
-                <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                <span>
-                  <span className="hidden sm:inline">Обзор карточек</span>
-                  <span className="sm:hidden">Обзор</span>
-                </span>
+                <LayoutDashboard className="h-4 w-4 shrink-0" />
+                <span>Семья</span>
               </button>
-              {/* Скролл-хинт: обрезанный таб — сигнал, что есть прокрутка (WIG navigation) */}
-              <div className="sm:hidden pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-2xl bg-gradient-to-l from-slate-900/95 to-transparent" aria-hidden="true" />
             </div>
             </div>
 
-            {/* Render 32-bit RPG Scene based on activeScene */}
+            {/* The journal is the daily loop; the house visualises only positive family progress. */}
             {activeScene === 'hub' && (
-              <FamilyHubScene
+              <DomovoyJournalScene
                 appState={appState}
                 activeUser={activeUser}
-                onSelectUser={(u) => setActiveUserId(u.id)}
                 onCompleteTask={handleCompleteTask}
+                onUndoTask={handleToggleUndo}
                 onOpenAddTask={() => setIsAddTaskModalOpen(true)}
+                onOpenShop={() => {
+                  setShopModalTab('rewards');
+                  setIsShopModalOpen(true);
+                }}
+                onOpenFamilySettings={() => setIsFamilySettingsOpen(true)}
               />
             )}
 
             {activeScene === 'boss' && (
-              <BossRaidScene
+              <DomovoyHouseProjectScene
                 appState={appState}
                 activeUser={activeUser}
-                onUseSkill={handleUseSkill}
-                familyHp={appState?.family ?? null}
+                onOpenAddTask={() => setIsAddTaskModalOpen(true)}
+                onOpenFamilySettings={() => setIsFamilySettingsOpen(true)}
+                onOpenFamilyOverview={() => setActiveScene('overview')}
+                onOpenShop={() => {
+                  setShopModalTab('rewards');
+                  setIsShopModalOpen(true);
+                }}
               />
             )}
 
-            {activeScene === 'wardrobe' && (
+            {activeScene === 'wardrobe' && activeUser.family_role !== 'parent' && !activeUser.is_admin && (
               <WardrobeCustomizationScene
                 appState={appState}
                 activeUser={activeUser}
@@ -915,23 +883,6 @@ export function App() {
               />
             )}
 
-            {/* Today's Tasks: только на вкладке ДОМ (hub) — на Арена/Гардероб/Обзор дубли не нужны */}
-            {activeScene === 'hub' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <TodayTasks
-                    tasks={appState.tasks}
-                    activeUser={activeUser}
-                    onCompleteTask={handleCompleteTask}
-                    onOpenAddModal={() => setIsAddTaskModalOpen(true)}
-                    onToggleUndoTask={handleToggleUndo}
-                  />
-                </div>
-                <div>
-                  <FeedJournal feed={appState.feed || []} />
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -940,37 +891,40 @@ export function App() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white tracking-tight">Полное расписание недели</h2>
-                <p className="text-xs text-slate-400">
-                  Все ежедневные и еженедельные дела Миши и Регины
+                <h2 className="text-xl font-black tracking-tight text-[#2f241c]">План на неделю</h2>
+                <p className="text-xs text-[#735941]">
+                  Все ежедневные и еженедельные дела семьи
                 </p>
               </div>
-              <button
-                onClick={() => setIsAddTaskModalOpen(true)}
-                className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-blue-500/20"
-              >
-                + Создать задачу
-              </button>
+              {(activeUser.family_role === 'parent' || activeUser.is_admin) && (
+                <button
+                  type="button"
+                  onClick={() => setIsAddTaskModalOpen(true)}
+                  className="min-h-11 rounded-[13px] border-2 border-[#2f241c] bg-[#5b8d68] px-4 text-xs font-black text-[#fff8e8] shadow-[2px_2px_0_#2f241c] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                >
+                  Добавить дело
+                </button>
+              )}
             </div>
 
             {/* Daily Routine section */}
-            <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-white mb-3">Ежедневные дела</h3>
+            <div className="rounded-[20px] border-2 border-[#2f241c] bg-[#f5e7c8] p-4 shadow-[3px_3px_0_#b9834d] sm:p-5">
+              <h3 className="mb-3 text-sm font-black text-[#2f241c]">Ежедневные дела</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {appState.tasks
                   .filter((t) => t.task_type === 'daily')
                   .map((t) => (
                     <div
                       key={t.id}
-                      className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between"
+                      className="flex items-center justify-between rounded-[14px] border-2 border-[#c69b68] bg-[#fff7e5] p-3"
                     >
                       <div>
-                        <p className="text-sm font-semibold text-white">{t.title}</p>
-                        <span className="text-[11px] text-slate-400">
+                        <p className="text-sm font-black text-[#2f241c]">{t.title}</p>
+                        <span className="text-[11px] text-[#735941]">
                           {t.assignee === 'misha' ? 'Миша' : t.assignee === 'regina' ? 'Регина' : 'Вместе'}
                         </span>
                       </div>
-                      <span className="px-2.5 py-1 rounded-lg bg-amber-400/10 text-amber-300 text-xs font-bold border border-amber-400/20">
+                      <span className="rounded-lg border border-[#b9834d] bg-[#f7deb0] px-2.5 py-1 text-xs font-black text-[#855529]">
                         +{t.points}
                       </span>
                     </div>
@@ -987,23 +941,23 @@ export function App() {
                 return (
                   <div
                     key={dayIdx}
-                    className="bg-slate-900/60 border border-white/10 rounded-2xl p-4 flex flex-col justify-between"
+                    className="flex flex-col justify-between rounded-[18px] border-2 border-[#c69b68] bg-[#f5e7c8] p-4 shadow-[2px_2px_0_#d7b47a]"
                   >
                     <div>
-                      <h4 className="text-sm font-bold text-blue-300 mb-2.5 pb-2 border-b border-white/5">
+                      <h4 className="mb-2.5 border-b border-[#c69b68] pb-2 text-sm font-black text-[#42614f]">
                         {dayName}
                       </h4>
                       <div className="space-y-2">
                         {dayTasks.length === 0 ? (
-                          <p className="text-xs text-slate-500 italic py-2">Свободный день</p>
+                          <p className="py-2 text-xs italic text-[#735941]">Свободный день</p>
                         ) : (
                           dayTasks.map((t) => (
                             <div
                               key={t.id}
-                              className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-xs flex items-center justify-between"
+                              className="flex items-center justify-between rounded-xl border border-[#d7b47a] bg-[#fff7e5] p-2.5 text-xs"
                             >
-                              <span className="text-slate-200 truncate mr-2">{t.title}</span>
-                              <span className="text-amber-400 font-semibold whitespace-nowrap">
+                              <span className="mr-2 truncate text-[#2f241c]">{t.title}</span>
+                              <span className="whitespace-nowrap font-bold text-[#855529]">
                                 +{t.points}
                               </span>
                             </div>
@@ -1131,67 +1085,83 @@ export function App() {
         onClose={() => setIsUpgradeGuideOpen(false)}
       />
 
-      {/* Sticky Mobile Bottom Navigation Bar for Telegram Mini App.
-          UX-аудит: 4 таба (Дом | Арена | Гардероб | Ещё) — один экран = одно действие.
-          Сцены переключаются прямо отсюда, второстепенное — в шторке «Ещё». */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0c1017]/95 backdrop-blur-lg border-t border-white/10 px-2 py-1 flex items-center justify-around tg-safe-padding shadow-2xl">
+      {/* Telegram-first primary navigation: four large, stable destinations. */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t-2 border-[#2f241c] bg-[#f5e7c8]/95 px-2 py-1 text-[#61401e] shadow-[0_-2px_0_rgba(47,36,28,.14)] backdrop-blur-lg tg-safe-padding sm:hidden">
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('impact', 'light');
             setActiveNavTab('dashboard');
             setActiveScene('hub');
           }}
-          className={`flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] py-1 px-2 rounded-xl transition ${
+          className={`flex min-h-12 min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-[12px] px-2 py-1 transition ${
             activeNavTab === 'dashboard' && activeScene === 'hub'
-              ? 'text-amber-400 font-bold bg-amber-500/15 shadow-sm shadow-amber-500/20'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#42614f] font-bold text-[#fff8e8] shadow-[1px_1px_0_#2f241c]'
+              : 'text-[#735941] hover:bg-[#ead4ab]'
           }`}
         >
           <Home className="w-5 h-5" />
-          <span className="text-[10px]">Дом</span>
+          <span className="text-[10px]">Сегодня</span>
         </button>
 
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('impact', 'light');
             setActiveNavTab('dashboard');
             setActiveScene('boss');
           }}
-          className={`flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] py-1 px-2 rounded-xl transition ${
+          className={`flex min-h-12 min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-[12px] px-2 py-1 transition ${
             activeNavTab === 'dashboard' && activeScene === 'boss'
-              ? 'text-red-400 font-bold bg-red-500/15 shadow-sm shadow-red-500/20'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#c4774d] font-bold text-[#fff8e8] shadow-[1px_1px_0_#2f241c]'
+              : 'text-[#735941] hover:bg-[#ead4ab]'
           }`}
         >
-          <Swords className="w-5 h-5" />
-          <span className="text-[10px]">Арена</span>
+          <Layers className="h-5 w-5" />
+          <span className="text-[10px]">Дом</span>
         </button>
 
-        <button
-          onClick={() => {
-            triggerHaptic('impact', 'light');
-            setActiveNavTab('dashboard');
-            setActiveScene('wardrobe');
-          }}
-          className={`flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] py-1 px-2 rounded-xl transition ${
-            activeNavTab === 'dashboard' && activeScene === 'wardrobe'
-              ? 'text-indigo-400 font-bold bg-indigo-500/15 shadow-sm shadow-indigo-500/20'
-              : 'text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <Shirt className="w-5 h-5" />
-          <span className="text-[10px]">Гардероб</span>
-        </button>
+        {activeUser.family_role === 'parent' || activeUser.is_admin ? (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('impact', 'light');
+              setIsFamilySettingsOpen(true);
+            }}
+            className="flex min-h-12 min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-[12px] px-2 py-1 text-[#735941] transition hover:bg-[#ead4ab]"
+          >
+            <Settings className="h-5 w-5" />
+            <span className="text-[10px]">Семья</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic('impact', 'light');
+              setActiveNavTab('dashboard');
+              setActiveScene('wardrobe');
+            }}
+            className={`flex min-h-12 min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-[12px] px-2 py-1 transition ${
+              activeNavTab === 'dashboard' && activeScene === 'wardrobe'
+                ? 'bg-[#7e698b] font-bold text-[#fff8e8] shadow-[1px_1px_0_#2f241c]'
+                : 'text-[#735941] hover:bg-[#ead4ab]'
+            }`}
+          >
+            <Shirt className="h-5 w-5" />
+            <span className="text-[10px]">Стиль</span>
+          </button>
+        )}
 
         <button
+          type="button"
           onClick={() => {
             triggerHaptic('impact', 'light');
             setIsMoreSheetOpen(true);
           }}
-          className={`flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] py-1 px-2 rounded-xl transition ${
+          className={`flex min-h-12 min-w-[64px] flex-col items-center justify-center gap-0.5 rounded-[12px] px-2 py-1 transition ${
             isMoreSheetOpen
-              ? 'text-blue-400 font-bold bg-blue-500/15'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#7d9db5] font-bold text-[#1f3443] shadow-[1px_1px_0_#2f241c]'
+              : 'text-[#735941] hover:bg-[#ead4ab]'
           }`}
         >
           <MoreHorizontal className="w-5 h-5" />
@@ -1206,16 +1176,17 @@ export function App() {
           onClick={() => setIsMoreSheetOpen(false)}
         >
           <div
-            className="absolute bottom-0 left-0 right-0 bg-[#0c1017] border-t border-white/10 rounded-t-3xl p-4 pb-8 tg-safe-padding animate-slideUp"
+            className="absolute bottom-0 left-0 right-0 rounded-t-[28px] border-t-2 border-[#2f241c] bg-[#f5e7c8] p-4 pb-8 text-[#2f241c] shadow-[0_-3px_0_#b9834d] tg-safe-padding animate-slideUp"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Grab handle */}
-            <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-4" />
+            <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-[#b9834d]" />
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-white font-pixel-sub">Ещё</h3>
+              <h3 className="font-pixel-sub text-sm font-bold">Ещё</h3>
               <button
+                type="button"
                 onClick={() => setIsMoreSheetOpen(false)}
-                className="p-2 rounded-xl bg-white/5 text-slate-400 hover:text-white transition min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-[13px] border-2 border-[#2f241c] bg-[#fff7e5] text-[#61401e] shadow-[1px_1px_0_#b9834d] transition hover:bg-[#ead4ab]"
                 aria-label="Закрыть"
               >
                 <X className="w-5 h-5" />
@@ -1224,7 +1195,7 @@ export function App() {
             <div className="grid grid-cols-2 gap-2.5">
               {([
                 {
-                  icon: <CheckSquare className="w-5 h-5 text-emerald-400" />,
+                  icon: <CheckSquare className="h-5 w-5 text-[#42614f]" />,
                   label: 'Задачи',
                   desc: 'Расписание недели',
                   action: () => {
@@ -1233,7 +1204,7 @@ export function App() {
                   },
                 },
                 {
-                  icon: <Gift className="w-5 h-5 text-amber-400" />,
+                  icon: <Gift className="h-5 w-5 text-[#a96632]" />,
                   label: 'Лавка',
                   desc: 'Награды и магазин',
                   action: () => {
@@ -1243,7 +1214,7 @@ export function App() {
                   },
                 },
                 {
-                  icon: <LayoutDashboard className="w-5 h-5 text-blue-400" />,
+                  icon: <LayoutDashboard className="h-5 w-5 text-[#587f99]" />,
                   label: 'Обзор',
                   desc: 'Отряд семьи',
                   action: () => {
@@ -1253,11 +1224,16 @@ export function App() {
                   },
                 },
                 {
-                  icon: <Settings className="w-5 h-5 text-slate-300" />,
-                  label: 'Настройки',
-                  desc: 'Семья и игроки',
+                  icon: <Settings className="h-5 w-5 text-[#7e698b]" />,
+                  label: activeUser.family_role === 'parent' || activeUser.is_admin ? 'Управление' : 'Моя семья',
+                  desc: activeUser.family_role === 'parent' || activeUser.is_admin ? 'Дела и участники' : 'Участники дома',
                   action: () => {
-                    setIsFamilyModalOpen(true);
+                    if (activeUser.family_role === 'parent' || activeUser.is_admin) {
+                      setIsFamilySettingsOpen(true);
+                    } else {
+                      setActiveNavTab('dashboard');
+                      setActiveScene('overview');
+                    }
                     setIsMoreSheetOpen(false);
                   },
                 },
@@ -1268,12 +1244,12 @@ export function App() {
                     triggerHaptic('impact', 'light');
                     item.action();
                   }}
-                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 active:scale-95 transition text-left min-h-[64px]"
+                  className="flex min-h-[64px] items-center gap-3 rounded-[16px] border-2 border-[#c69b68] bg-[#fff7e5] p-3.5 text-left shadow-[2px_2px_0_#d7b47a] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:bg-[#f8ecd2]"
                 >
                   <div className="shrink-0">{item.icon}</div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-white">{item.label}</p>
-                    <p className="text-[10px] text-slate-400 truncate">{item.desc}</p>
+                    <p className="text-sm font-black text-[#2f241c]">{item.label}</p>
+                    <p className="truncate text-[10px] text-[#735941]">{item.desc}</p>
                   </div>
                 </button>
               ))}

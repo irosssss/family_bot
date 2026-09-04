@@ -10,17 +10,19 @@
  * начинала с актуальных значений (раньше терялись при рестарте).
  */
 import { eq } from 'drizzle-orm';
-import { db } from './index';
+import { client, db } from './index';
 import * as schema from './schema';
 import { appState } from '../services/stateService';
 import {
   INITIAL_ACHIEVEMENTS,
+  INITIAL_CHALLENGES,
   INITIAL_PETS,
   INITIAL_REWARDS,
   INITIAL_SHOP_ITEMS,
   INITIAL_TASKS,
 } from '../data/initialData';
-import { getTodayStr, getNowTimestamp } from '../lib/dateUtils';
+import { getTodayStr, getNowTimestamp, getWeekKey } from '../lib/dateUtils';
+import { getWeeklyBoss } from '../utils/habiticaCatalog';
 
 export async function ensureCatalogInDb(): Promise<void> {
   try {
@@ -61,11 +63,19 @@ export async function ensureCatalogInDb(): Promise<void> {
         .insert(schema.pets)
         .values({
           id: pet.id,
+          code: pet.code,
           name: pet.title,
           sprite_sheet_url: (pet as any).spriteSheetUrl || pet.icon || '',
           cost_coins: (pet as any).cost ?? 0,
         })
-        .onConflictDoNothing();
+        .onConflictDoUpdate({
+          target: schema.pets.id,
+          set: {
+            code: pet.code,
+            name: pet.title,
+            sprite_sheet_url: (pet as any).spriteSheetUrl || pet.icon || '',
+          },
+        });
     }
     for (const ach of INITIAL_ACHIEVEMENTS) {
       await db
@@ -78,6 +88,55 @@ export async function ensureCatalogInDb(): Promise<void> {
           bonus: ach.bonus,
         })
         .onConflictDoNothing();
+    }
+    for (const challenge of INITIAL_CHALLENGES) {
+      await db.insert(schema.challenges).values({
+        code: challenge.code,
+        title: challenge.title,
+        description: challenge.description,
+        target: challenge.target,
+        bonus: challenge.bonus,
+      }).onConflictDoUpdate({
+        target: schema.challenges.code,
+        set: {
+          title: challenge.title,
+          description: challenge.description,
+          target: challenge.target,
+          bonus: challenge.bonus,
+        },
+      });
+    }
+
+    // Каталоги используют стабильные явные id. Без синхронизации SERIAL
+    // следующая пользовательская запись могла получить уже занятый id.
+    await Promise.all([
+      client`SELECT setval(pg_get_serial_sequence('items', 'id'), COALESCE(MAX(id), 1), MAX(id) IS NOT NULL) FROM items`,
+      client`SELECT setval(pg_get_serial_sequence('rewards', 'id'), COALESCE(MAX(id), 1), MAX(id) IS NOT NULL) FROM rewards`,
+      client`SELECT setval(pg_get_serial_sequence('pets', 'id'), COALESCE(MAX(id), 1), MAX(id) IS NOT NULL) FROM pets`,
+      client`SELECT setval(pg_get_serial_sequence('achievements', 'id'), COALESCE(MAX(id), 1), MAX(id) IS NOT NULL) FROM achievements`,
+    ]);
+
+    const families = await db.select({ id: schema.families.id }).from(schema.families);
+    const weeklyBoss = getWeeklyBoss();
+    const challenge = INITIAL_CHALLENGES[0];
+    for (const family of families) {
+      await db.insert(schema.bosses).values({
+        family_id: family.id,
+        week_key: getWeekKey(),
+        name: weeklyBoss.name,
+        emoji: '',
+        sprite_url: weeklyBoss.spriteUrl,
+        max_hp: 90,
+        hp: 90,
+        damage: 0,
+        defeated: 0,
+      }).onConflictDoNothing();
+      await db.insert(schema.family_challenges).values({
+        family_id: family.id,
+        challenge_code: challenge.code,
+        progress: 0,
+        completed: false,
+      }).onConflictDoNothing();
     }
     console.log(
       `[Phase6-lite] catalog ensured: ${INITIAL_SHOP_ITEMS.length} items, ${INITIAL_REWARDS.length} rewards, ${INITIAL_PETS.length} pets, ${INITIAL_ACHIEVEMENTS.length} achievements`
@@ -98,6 +157,13 @@ export async function ensureCatalogInDb(): Promise<void> {
  * блок срабатывает только если целевая таблица ПУСТА. Дальше правит БД.
  */
 export async function backfillProgressFromMemory(): Promise<void> {
+  // Это исключительно инструмент миграции старой локальной демо-БД. Автоматически
+  // переносить содержимое INITIAL_* в production недопустимо.
+  if (process.env.BACKFILL_DEMO_DATA !== 'true') {
+    console.log('[Phase6] demo progress backfill skipped (set BACKFILL_DEMO_DATA=true to run once)');
+    return;
+  }
+
   const guard = async (name: string, table: any): Promise<boolean> => {
     const rows = await db.select().from(table).limit(1);
     if (rows.length > 0) return false;
@@ -106,6 +172,11 @@ export async function backfillProgressFromMemory(): Promise<void> {
   };
 
   try {
+    const [demoFamily] = await db.select({ id: schema.families.id }).from(schema.families).limit(1);
+    if (!demoFamily) {
+      console.warn('[Phase6] demo progress backfill skipped: no family exists');
+      return;
+    }
     // Демо-задачи: исторически сидировались только квесты (seed.ts), а
     // ежедневные/еженедельные дела 1-5 жили только в памяти. Завершения
     // ссылаются на них по FK — заливаем до completions (идемпотентно).
@@ -117,7 +188,7 @@ export async function backfillProgressFromMemory(): Promise<void> {
           .insert(schema.tasks)
           .values({
             id: t.id,
-            family_id: 1,
+            family_id: demoFamily.id,
             code: t.code,
             title: t.title,
             description: '',

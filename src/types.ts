@@ -5,6 +5,7 @@ export type FamilyRole = 'parent' | 'child';
 export interface User {
   id: number;
   telegram_id: number;
+  family_id?: number;
   display_name: string;
   family_role?: FamilyRole;          // НОВОЕ: роль в семье (parent | child)
   is_admin?: boolean;                // НОВОЕ: true для родителей
@@ -65,6 +66,7 @@ export type ScheduleType = 'daily' | 'weekly' | 'weekdays' | 'weekend' | 'once' 
 
 export interface Task {
   id: number;
+  family_id?: number;
   code: string;
   title: string;
   description?: string;
@@ -86,6 +88,7 @@ export interface Task {
   max_daily?: number;                   // Лимит выполнений в день
   icon?: string;                        // Путь к спрайту
   recommendedClass?: string;            // Рекомендуемый класс (для атмосферы)
+  value?: number;                       // Habitica decay, -10..+10
 }
 
 export interface Completion {
@@ -101,6 +104,7 @@ export interface Completion {
 
 export interface Reward {
   id: number;
+  family_id?: number | null;
   title: string;
   cost: number;
   reward_type: 'personal' | 'joint';
@@ -248,6 +252,12 @@ export interface AppState {
     max_family_hp: number;
     exhausted_until: string | null;
   } | null;
+  /** Серверный кэш изолированного состояния каждой семьи; в API не сериализуется. */
+  familyGameStates?: Record<number, {
+    family: NonNullable<AppState['family']>;
+    boss: Boss;
+    challenge: Challenge;
+  }>;
 }
 
 export interface CompleteTaskResult {

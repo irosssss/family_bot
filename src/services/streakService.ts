@@ -8,7 +8,7 @@
  * - BUG #5: Socket.IO event name fix (streak:updated → streak_updated)
  */
 import { appState } from './stateService';
-import { grantMilestoneReward, persistUserWallet } from './persistService';
+import { grantMilestoneReward } from './persistService';
 import { getTodayStr } from '../lib/dateUtils';
 import { db } from '../db';
 import * as schema from '../db/schema';
@@ -25,6 +25,12 @@ import {
 import type { Task, User } from '../types';
 
 export type StreakStatus = 'active' | 'paused' | 'broken' | 'frozen';
+
+function emitToUserFamily(io: any, user: User, event: string, payload: unknown): void {
+ const familyId = Number(user.family_id);
+ if (!io || !Number.isInteger(familyId) || familyId <= 0) return;
+ io.to(`family:${familyId}`).emit(event, payload);
+}
 
 /**
  * Получить бонусный процент на основе текущего streak.
@@ -137,16 +143,16 @@ async function notifyMilestone(userId: number, milestone: number, io?: any): Pro
  // Выдать награду. ARC-01: атомарно в БД (начисление + отметка в одной
  // транзакции), память зеркалится только после подтверждения записи.
  const granted = await grantMilestoneReward(userId, milestone, {
- gold: (user.gold || 0) + reward.gold,
- crystals: (user.crystals || 0) + reward.crystals,
+ gold: reward.gold,
+ crystals: reward.crystals,
  });
  if (!granted) {
  console.error(` Milestone ${milestone} reward NOT granted to ${user.display_name} (db failed)`);
  return; // память не мутируем: начисление не подтверждено
  }
 
- user.gold += reward.gold;
- user.crystals = (user.crystals || 0) + reward.crystals;
+ user.gold = granted.gold;
+ user.crystals = granted.crystals;
 
  console.log(` Milestone ${milestone} reached by ${user.display_name}! Reward: ${reward.gold} gold, ${reward.crystals} crystals`);
 
@@ -160,14 +166,12 @@ async function notifyMilestone(userId: number, milestone: number, io?: any): Pro
  }
 
  // Socket.IO событие (BUG #5b FIX: streak:milestone — как слушает frontend)
- if (io) {
- io.emit('streak:milestone', {
+ emitToUserFamily(io, user, 'streak:milestone', {
  userId,
  userName: user.display_name,
  milestone,
  reward,
  });
- }
 }
 
 /**
@@ -182,13 +186,11 @@ async function notifyStreakSaved(userId: number, io?: any): Promise<void> {
  // Telegram уведомление
  await sendStreakSavedTelegram(user.telegram_id, user.current_streak);
 
- if (io) {
- io.emit('streak:saved', {
+ emitToUserFamily(io, user, 'streak:saved', {
  userId,
  userName: user.display_name,
  message: 'Streak Freeze использован! Твоя серия сохранена.',
  });
- }
 }
 
 /**
@@ -203,13 +205,11 @@ async function notifyStreakBroken(userId: number, io?: any): Promise<void> {
  // Telegram уведомление
  await sendStreakBrokenTelegram(user.telegram_id, user.current_streak || 0);
 
- if (io) {
- io.emit('streak:broken', {
+ emitToUserFamily(io, user, 'streak:broken', {
  userId,
  userName: user.display_name,
  message: 'Серия прервана. Начни заново!',
  });
- }
 }
 
 /**
@@ -220,19 +220,17 @@ async function notifyStreakPaused(userId: number, currentStreak: number, io?: an
  const user = appState.users.find(u => u.id === userId);
  if (!user) return;
 
- console.log(`⏸ Streak paused for ${user.display_name} (no tasks today)`);
+ console.log(`Streak paused for ${user.display_name} (no tasks today)`);
 
  // Telegram уведомление
  await sendStreakPausedTelegram(user.telegram_id, currentStreak);
 
- if (io) {
- io.emit('streak:paused', {
+ emitToUserFamily(io, user, 'streak:paused', {
  userId,
  userName: user.display_name,
  current_streak: currentStreak,
  message: 'Сегодня нет задач — серия на паузе. Она не сгорит!',
  });
- }
 }
 
 /**
@@ -247,7 +245,12 @@ async function notifyStreakPaused(userId: number, currentStreak: number, io?: an
  * - Если не все выполнены + нет freeze → сброс streak = 0
  */
 export async function updateStreak(userId: number, date: string, io?: any): Promise<void> {
+ const user = appState.users.find(u => u.id === userId);
+ if (!user) return;
+ const memoryBefore = structuredClone(user);
+ let postCommit: { newStatus: StreakStatus; milestoneReached: number | null } | null = null;
  // BUG #1 FIX: Используем транзакцию с row-level lock
+ try {
  await db.transaction(async (tx) => {
  // Lock row для предотвращения race condition
  const userRows = await tx
@@ -269,10 +272,6 @@ export async function updateStreak(userId: number, date: string, io?: any): Prom
  console.log(` Streak already updated for user ${userId} on ${date}`);
  return; // Идемпотентность
  }
-
- // Синхронизировать с appState
- const user = appState.users.find(u => u.id === userId);
- if (!user) return;
 
  // SPEC 2.4: streak считается ТОЛЬКО по обязательным задачам (personal required)
  const tasksToday = getRequiredTasksForDate(userId, date);
@@ -306,9 +305,7 @@ export async function updateStreak(userId: number, date: string, io?: any): Prom
  .execute();
  user.streak_status = newStatus;
  user.last_streak_update = date;
- console.log(`⏸ No tasks for user ${userId} on ${date} - streak paused`);
- // BUG #6 FIX: Уведомляем пользователя о паузе
- await notifyStreakPaused(userId, user.current_streak || 0, io);
+ console.log(`No tasks for user ${userId} on ${date} - streak paused`);
  } else if (tasksCompleted === tasksAssigned) {
  // Все задачи выполнены
  newStreak += 1;
@@ -385,28 +382,31 @@ export async function updateStreak(userId: number, date: string, io?: any): Prom
  }
  }
 
- // Milestone награды вне транзакции (чтобы не блокировать таблицу users)
- if (milestoneReached) {
- await notifyMilestone(userId, milestoneReached, io);
+ postCommit = { newStatus, milestoneReached };
+ });
+ } catch (error) {
+ Object.assign(user, memoryBefore);
+ throw error;
  }
 
- // Уведомления (async-parallel: не зависят друг от друга — гоним вместе)
+ if (!postCommit) return;
+ const committed = postCommit as { newStatus: StreakStatus; milestoneReached: number | null };
+ // Внешние транзакции и сеть запускаются только после освобождения FOR UPDATE.
+ if (committed.milestoneReached) {
+ await notifyMilestone(userId, committed.milestoneReached, io);
+ }
  await Promise.all([
- newStatus === 'frozen' ? notifyStreakSaved(userId, io) : Promise.resolve(),
- newStatus === 'broken' ? notifyStreakBroken(userId, io) : Promise.resolve(),
+ committed.newStatus === 'frozen' ? notifyStreakSaved(userId, io) : Promise.resolve(),
+ committed.newStatus === 'broken' ? notifyStreakBroken(userId, io) : Promise.resolve(),
+ committed.newStatus === 'paused' ? notifyStreakPaused(userId, user.current_streak || 0, io) : Promise.resolve(),
  ]);
-
- // Socket.IO событие (BUG #5 FIX: streak_updated)
- if (io) {
- io.emit('streak_updated', {
+ emitToUserFamily(io, user, 'streak_updated', {
  userId,
  userName: user.display_name,
  current_streak: user.current_streak,
  status: user.streak_status,
- milestone: milestoneReached,
+ milestone: committed.milestoneReached,
  bonus_percentage: getStreakBonus(user.current_streak || 0),
- });
- }
  });
 }
 
@@ -427,76 +427,63 @@ export async function purchaseStreakFreeze(
  return { success: false, error: 'User not found' };
  }
 
- // Проверка: уже есть freeze?
- if (user.streak_freeze_available) {
- return { success: false, error: 'У вас уже есть активный Streak Freeze' };
- }
+ try {
+ const persisted = await db.transaction(async (tx) => {
+   const [dbUser] = await tx.select().from(schema.users)
+     .where(eq(schema.users.id, userId)).for('update').limit(1);
+   if (!dbUser) return { status: 'missing' as const };
+   if (dbUser.streak_freeze_available) return { status: 'active' as const };
 
- // BUG #3 FIX: Исправлен расчет cooldown с учетом полуночи
- if (user.streak_freeze_last_used) {
- const lastFreezeDate = new Date(user.streak_freeze_last_used);
- const now = new Date();
- 
- // Сбросить время до полуночи для корректного сравнения дней
- lastFreezeDate.setHours(0, 0, 0, 0);
- now.setHours(0, 0, 0, 0);
- 
- const daysSinceFreeze = Math.floor((now.getTime() - lastFreezeDate.getTime()) / (1000 * 60 * 60 * 24));
- 
- if (daysSinceFreeze < 7) {
- const daysLeft = 7 - daysSinceFreeze;
- return { 
- success: false, 
- error: `Streak Freeze можно купить раз в неделю. Осталось: ${daysLeft} дн.` 
- };
- }
- }
+   if (dbUser.streak_freeze_last_used) {
+     const lastFreezeDate = new Date(dbUser.streak_freeze_last_used);
+     const now = new Date();
+     lastFreezeDate.setHours(0, 0, 0, 0);
+     now.setHours(0, 0, 0, 0);
+     const daysSinceFreeze = Math.floor(
+       (now.getTime() - lastFreezeDate.getTime()) / (1000 * 60 * 60 * 24),
+     );
+     if (daysSinceFreeze < 7) {
+       return { status: 'cooldown' as const, daysLeft: 7 - daysSinceFreeze };
+     }
+   }
 
- // Проверка средств и списание
- if (paymentType === 'gold') {
- if (user.gold < 500) {
- return { success: false, error: 'Недостаточно золота (нужно 500)' };
- }
- user.gold -= 500;
- } else if (paymentType === 'crystals') {
- if ((user.crystals || 0) < 50) {
- return { success: false, error: 'Недостаточно кристаллов (нужно 50)' };
- }
- user.crystals = (user.crystals || 0) - 50;
- }
-
- // Выдать freeze
- user.streak_freeze_available = true;
- // BUG #8 FIX: Пишем дату покупки для audit trail и cooldown
- const purchaseDate = new Date().toISOString();
- user.streak_freeze_last_used = purchaseDate;
-
- // Обновить БД. ARC-01: при ошибке — откат списания в памяти.
- const ok = await persistUserWallet(userId, {
- gold: user.gold,
- crystals: user.crystals ?? 0,
+   if (paymentType === 'gold' && dbUser.gold < 500) return { status: 'gold' as const };
+   if (paymentType === 'crystals' && dbUser.crystals < 50) return { status: 'crystals' as const };
+   const purchaseDate = new Date();
+   const [updated] = await tx.update(schema.users).set({
+     gold: paymentType === 'gold' ? dbUser.gold - 500 : dbUser.gold,
+     crystals: paymentType === 'crystals' ? dbUser.crystals - 50 : dbUser.crystals,
+     streak_freeze_available: true,
+     streak_freeze_last_used: purchaseDate,
+   }).where(eq(schema.users.id, userId)).returning();
+   return { status: 'purchased' as const, updated };
  });
- if (!ok) {
- // Откат: вернуть валюту, снять freeze
- if (paymentType === 'gold') user.gold += 500;
- else if (paymentType === 'crystals') user.crystals = (user.crystals || 0) + 50;
- user.streak_freeze_available = false;
- user.streak_freeze_last_used = undefined;
+
+ if (persisted.status === 'missing') return { success: false, error: 'User not found' };
+ if (persisted.status === 'active') {
+   return { success: false, error: 'У вас уже есть активный Streak Freeze' };
+ }
+ if (persisted.status === 'cooldown') {
+   return {
+     success: false,
+     error: `Streak Freeze можно купить раз в неделю. Осталось: ${persisted.daysLeft} дн.`,
+   };
+ }
+ if (persisted.status === 'gold') {
+   return { success: false, error: 'Недостаточно золота (нужно 500)' };
+ }
+ if (persisted.status === 'crystals') {
+   return { success: false, error: 'Недостаточно кристаллов (нужно 50)' };
+ }
+
+ user.gold = persisted.updated.gold;
+ user.crystals = persisted.updated.crystals;
+ user.streak_freeze_available = true;
+ user.streak_freeze_last_used = persisted.updated.streak_freeze_last_used?.toISOString();
+ console.log(`User ${userId} purchased Streak Freeze for ${paymentType}`);
+ return { success: true };
+ } catch (error) {
+ console.error(`[streak] freeze purchase failed for ${userId}:`, error);
  return { success: false, error: 'Ошибка базы данных, попробуйте ещё раз' };
  }
- // freeze-флаги записываем следом (некритично, но подтверждённо)
- try {
- await db.update(schema.users)
- .set({
- streak_freeze_available: true,
- streak_freeze_last_used: new Date(purchaseDate),
- })
- .where(eq(schema.users.id, userId));
- } catch (e) {
- console.error(`[arc01] freeze flags persist failed for ${userId}:`, e);
- }
-
- console.log(` User ${userId} purchased Streak Freeze for ${paymentType}`);
-
- return { success: true };
 }

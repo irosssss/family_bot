@@ -1,80 +1,50 @@
 /**
  * Роуты магазина экипировки.
- * POST /invoice — генерация инвойса Telegram Stars (mock).
  * POST /buy — купить предмет экипировки.
  * POST /equip — экипировать/снять предмет.
  */
-import { Request, Response, Router } from 'express';
-import { AuthedRequest, canActOn } from '../utils/apiAuth';
-import { telegramAuthMiddleware } from '../utils/telegramAuth';
+import { Response, Router } from 'express';
+import { and, eq, inArray } from 'drizzle-orm';
+import { type AuthedRequest, canActOn } from '../utils/apiAuth';
 import { appState } from '../services/stateService';
 import { buyShopItemAtomic } from '../services/walletService';
 import { db } from '../db';
 import * as schema from '../db/schema';
-import { and, eq, inArray } from 'drizzle-orm';
 import { ITEM_LOOK_MAP } from '../utils/shopLookMap';
 import { SHOP_TORSO_MAP } from '../utils/ulpcCharacter';
 
 export const shopRoutes = Router();
 
-// Telegram Stars Invoice Generation (Mock) — требует авторизации
-shopRoutes.post('/invoice', telegramAuthMiddleware, (req: any, res: Response) => {
-  const { userId, productId, amount } = req.body;
-  // In a real app, use bot.createInvoiceLink() from node-telegram-bot-api
-  // with currency: 'XTR' (Telegram Stars)
-  res.json({
-    success: true,
-    invoiceLink: `https://t.me/$INVOICE_LINK_MOCK_${productId}`
-  });
-});
-
-// Buy Shop Equipment Item — атомарно через БД (Фаза 6-lite, H4):
-// транзакция со списанием `WHERE gold >= cost` и авто-ROLLBACK.
-shopRoutes.post('/buy', async (req: Request, res: Response) => {
+shopRoutes.post('/buy', async (req: AuthedRequest, res: Response) => {
   const { userId, itemId } = req.body;
-  // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
-  const __req = req as any;
-  if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+  if (!canActOn(req, Number(userId))) {
     return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
   }
 
   const result = await buyShopItemAtomic(Number(userId), Number(itemId));
   if (!result.ok) {
-    const status = result.reason === 'not_found' ? 404 : 400;
-    const msg =
+    const status = result.reason === 'not_found' ? 404 : result.reason === 'db_error' ? 500 : 400;
+    const message =
       result.reason === 'insufficient_funds' ? 'Недостаточно золота'
       : result.reason === 'already_owned' ? 'Предмет уже куплен'
       : result.reason === 'db_error' ? 'Ошибка базы данных, попробуйте ещё раз'
       : 'Not found';
-    return res.status(status).json({ error: msg });
+    return res.status(status).json({ error: message });
   }
 
-  const item = appState.shopItems.find((s) => s.id === Number(itemId));
-  res.json({ success: true, item, gold: result.gold });
+  const item = appState.shopItems.find((candidate) => candidate.id === Number(itemId));
+  return res.json({ success: true, item, gold: result.gold });
 });
 
-// Equip / Unequip Item
-shopRoutes.post('/equip', async (req: Request, res: Response) => {
+shopRoutes.post('/equip', async (req: AuthedRequest, res: Response) => {
   const { userId, itemId } = req.body;
-  // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
-  const __req = req as any;
-  if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+  if (!canActOn(req, Number(userId))) {
     return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
   }
-  const user = appState.users.find((u) => u.id === Number(userId));
-  const item = appState.shopItems.find((s) => s.id === Number(itemId));
-
+  const user = appState.users.find((candidate) => candidate.id === Number(userId));
+  const item = appState.shopItems.find((candidate) => candidate.id === Number(itemId));
   if (!user || !item) return res.status(404).json({ error: 'Not found' });
 
-  const userItem = appState.userItems.find(
-    (ui) => ui.user_id === user.id && ui.item_id === item.id
-  );
-
-  if (!userItem) {
-    return res.status(400).json({ error: 'Сначала купите этот предмет в лавке' });
-  }
-
-  let message = '';
   const slotNames: Record<string, string> = {
     weapon: 'Оружие',
     head: 'Голова',
@@ -83,108 +53,93 @@ shopRoutes.post('/equip', async (req: Request, res: Response) => {
     background: 'Фон окружения',
   };
   const slotName = slotNames[item.slot] || item.slot;
+  const sameSlotItems = appState.shopItems.filter((candidate) => candidate.slot === item.slot);
+  const sameSlotIds = sameSlotItems.map((candidate) => candidate.id);
 
-  if (userItem.equipped) {
-    userItem.equipped = 0;
-    message = `Снят предмет «${item.title}» (слот: ${slotName})`;
+  try {
+    const persisted = await db.transaction(async (tx) => {
+      const [dbUser] = await tx.select().from(schema.users)
+        .where(eq(schema.users.id, user.id)).for('update').limit(1);
+      const [owned] = await tx.select().from(schema.character_inventory)
+        .where(and(
+          eq(schema.character_inventory.character_id, user.id),
+          eq(schema.character_inventory.item_id, item.id),
+        )).for('update').limit(1);
+      if (!dbUser || !owned) return null;
 
-    // Снятие тира образа (симметрично надеванию)
-    const lookDelta = ITEM_LOOK_MAP[item.code];
-    if (lookDelta) {
-      const he: any = { ...((user as any).habitica_equipped || {}) };
-      if (lookDelta.weaponTier != null) he.weaponTier = 0;
-      if (lookDelta.shieldTier != null) he.shieldTier = 0;
-      if (lookDelta.headTier != null) he.headTier = 0;
-      if (lookDelta.armorTier != null && !SHOP_TORSO_MAP[item.code]) he.armorTier = 0;
-      (user as any).habitica_equipped = he;
-      await db.update(schema.users).set({ habitica_equipped: he })
-        .where(eq(schema.users.id, user.id)).catch((e) => console.error('habitica_equipped persist:', e));
-    }
-  } else {
-    // Unequip any existing item in the same slot
-    let replacedTitle = '';
-    const replacedCodes: string[] = [];
-    for (const ui of appState.userItems) {
-      if (ui.user_id === user.id && ui.equipped) {
-        const matchingItem = appState.shopItems.find((s) => s.id === ui.item_id);
-        if (matchingItem?.slot === item.slot) {
-          ui.equipped = 0;
-          replacedTitle = matchingItem.title;
-          replacedCodes.push(matchingItem.code);
-        }
+      const equippedRows = await tx.select().from(schema.character_inventory)
+        .where(and(
+          eq(schema.character_inventory.character_id, user.id),
+          inArray(schema.character_inventory.item_id, sameSlotIds),
+        )).for('update');
+      const shouldEquip = !owned.is_equipped;
+      const replacedItems = equippedRows
+        .filter((row) => row.is_equipped && row.item_id !== item.id)
+        .map((row) => sameSlotItems.find((candidate) => candidate.id === row.item_id))
+        .filter((candidate): candidate is NonNullable<typeof candidate> => !!candidate);
+      const equipped: Record<string, unknown> = {
+        ...((dbUser.habitica_equipped as Record<string, unknown> | null) || {}),
+      };
+      const clearLook = (code: string) => {
+        const delta = ITEM_LOOK_MAP[code];
+        if (!delta) return;
+        if (delta.weaponTier != null) equipped.weaponTier = 0;
+        if (delta.shieldTier != null) equipped.shieldTier = 0;
+        if (delta.headTier != null) equipped.headTier = 0;
+        if (delta.armorTier != null && !SHOP_TORSO_MAP[code]) equipped.armorTier = 0;
+      };
+
+      if (shouldEquip) {
+        for (const replaced of replacedItems) clearLook(replaced.code);
+        const delta = ITEM_LOOK_MAP[item.code];
+        if (delta?.weaponTier != null) equipped.weaponTier = delta.weaponTier;
+        if (delta?.shieldTier != null) equipped.shieldTier = delta.shieldTier;
+        if (delta?.headTier != null) equipped.headTier = delta.headTier;
+        if (delta?.armorTier != null && !SHOP_TORSO_MAP[item.code]) equipped.armorTier = delta.armorTier;
+        await tx.update(schema.character_inventory).set({ is_equipped: false })
+          .where(and(
+            eq(schema.character_inventory.character_id, user.id),
+            inArray(schema.character_inventory.item_id, sameSlotIds),
+          ));
+      } else {
+        clearLook(item.code);
       }
-    }
-    userItem.equipped = 1;
 
-    // Тир заменённого предмета обнуляется (иначе старая броня «прилипает» к образу)
-    for (const rc of replacedCodes) {
-      const rd = ITEM_LOOK_MAP[rc];
-      if (rd) {
-        const he: any = { ...((user as any).habitica_equipped || {}) };
-        if (rd.weaponTier != null) he.weaponTier = 0;
-        if (rd.shieldTier != null) he.shieldTier = 0;
-        if (rd.headTier != null) he.headTier = 0;
-        if (rd.armorTier != null && !SHOP_TORSO_MAP[rc]) he.armorTier = 0;
-        (user as any).habitica_equipped = he;
-      }
-    }
+      await tx.update(schema.character_inventory).set({ is_equipped: shouldEquip })
+        .where(and(
+          eq(schema.character_inventory.character_id, user.id),
+          eq(schema.character_inventory.item_id, item.id),
+        ));
+      await tx.update(schema.users).set({ habitica_equipped: equipped })
+        .where(eq(schema.users.id, user.id));
+      return { shouldEquip, replacedItems, equipped };
+    });
 
-    if (replacedTitle) {
-      message = `Надет «${item.title}»! («${replacedTitle}» снят из слота ${slotName})`;
-    } else {
-      message = `Надет «${item.title}» (слот: ${slotName})`;
+    if (!persisted) {
+      return res.status(400).json({ error: 'Сначала купите этот предмет в лавке' });
     }
-
-    // Habitica-тир предмета (weapon/head/shield/старые брони) — в habitica_equipped,
-    // чтобы образ собирался на хабе/арене (HabiticaAnimatedAvatar) без доп. запросов.
-    const lookDelta = ITEM_LOOK_MAP[item.code];
-    if (lookDelta) {
-      const he: any = { ...((user as any).habitica_equipped || {}) };
-      if (lookDelta.weaponTier != null) he.weaponTier = lookDelta.weaponTier;
-      if (lookDelta.shieldTier != null) he.shieldTier = lookDelta.shieldTier;
-      if (lookDelta.headTier != null) he.headTier = lookDelta.headTier;
-      if (lookDelta.armorTier != null && !SHOP_TORSO_MAP[item.code]) he.armorTier = lookDelta.armorTier;
-      (user as any).habitica_equipped = he;
-      await db.update(schema.users).set({ habitica_equipped: he })
-        .where(eq(schema.users.id, user.id)).catch((e) => console.error('habitica_equipped persist:', e));
+    for (const inventoryItem of appState.userItems) {
+      if (inventoryItem.user_id !== user.id || !sameSlotIds.includes(inventoryItem.item_id)) continue;
+      inventoryItem.equipped = inventoryItem.item_id === item.id && persisted.shouldEquip ? 1 : 0;
     }
-    // ULPC-торсы визуализируются через equipped_codes.body (см. stateRoutes) — тут persist не нужен.
-
-    // Persist в БД (character_inventory.is_equipped). Без этого в DB-режиме
-    // следующий loadState() перечитывал БД и предмет «снимался сам».
-    // Best-effort: DEMO-режим (БД недоступна) должен работать как раньше —
-    // память остаётся зеркалом; в DB-режиме запись подтверждается фактом.
-    try {
-      await db.transaction(async (tx) => {
-        const sameSlotIds = appState.shopItems
-          .filter((s) => s.slot === item.slot && s.id !== item.id)
-          .map((s) => s.id);
-        if (sameSlotIds.length > 0) {
-          await tx
-            .update(schema.character_inventory)
-            .set({ is_equipped: false })
-            .where(
-              and(
-                eq(schema.character_inventory.character_id, user.id),
-                inArray(schema.character_inventory.item_id, sameSlotIds)
-              )
-            );
-        }
-        await tx
-          .update(schema.character_inventory)
-          .set({ is_equipped: true })
-          .where(
-            and(
-              eq(schema.character_inventory.character_id, user.id),
-              eq(schema.character_inventory.item_id, item.id)
-            )
-          );
+    if (!appState.userItems.some((row) => row.user_id === user.id && row.item_id === item.id)) {
+      appState.userItems.push({
+        user_id: user.id,
+        item_id: item.id,
+        equipped: persisted.shouldEquip ? 1 : 0,
       });
-    } catch (e) {
-      // Не 500: игра продолжается из памяти (демо/офлайн), но факт залогирован.
-      console.error('Equip persist error (best-effort):', (e as any)?.message || e);
     }
-  }
+    (user as any).habitica_equipped = persisted.equipped;
 
-  res.json({ success: true, message });
+    const replacedTitle = persisted.replacedItems[0]?.title;
+    const message = persisted.shouldEquip
+      ? replacedTitle
+        ? `Надет «${item.title}»! («${replacedTitle}» снят из слота ${slotName})`
+        : `Надет «${item.title}» (слот: ${slotName})`
+      : `Снят предмет «${item.title}» (слот: ${slotName})`;
+    return res.json({ success: true, message });
+  } catch (error) {
+    console.error('[shop] equip transaction failed:', error);
+    return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
+  }
 });

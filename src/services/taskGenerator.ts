@@ -176,6 +176,7 @@ export function getEffectiveTaskType(task: Task): Task['task_type'] {
 export function getTasksForUser(user: User, tasks: Task[], date: Date): Task[] {
   return tasks.filter(
     (t) =>
+      (t.family_id == null || t.family_id === user.family_id) &&
       matchesAge(t, user.age ?? 8) &&
       matchesSchedule(t, date) &&
       matchesAssignee(t, user)

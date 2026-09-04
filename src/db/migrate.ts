@@ -60,8 +60,10 @@ export async function runMigrations(): Promise<void> {
     const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf-8');
     console.log(`[migrate] applying ${file}...`);
     try {
-      await client.unsafe(sql);
-      await client`INSERT INTO __migrations (name) VALUES (${file}) ON CONFLICT DO NOTHING`;
+      await client.begin(async (tx) => {
+        await tx.unsafe(sql);
+        await tx`INSERT INTO __migrations (name) VALUES (${file}) ON CONFLICT DO NOTHING`;
+      });
       console.log(`[migrate] OK ${file}`);
     } catch (e) {
       console.error(`[migrate] FAILED ${file}:`, e);
@@ -75,5 +77,8 @@ export async function runMigrations(): Promise<void> {
 if (process.argv[1] && process.argv[1].endsWith('migrate.ts')) {
   runMigrations()
     .then(() => process.exit(0))
-    .catch(() => process.exit(1));
+    .catch((error) => {
+      console.error('[migrate] fatal:', error);
+      process.exit(1);
+    });
 }

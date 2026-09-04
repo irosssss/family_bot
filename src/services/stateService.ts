@@ -25,8 +25,8 @@ import { getWeekKey, getTodayStr, getNowTimestamp } from '../lib/dateUtils';
 import type { AppState } from '../types';
 
 export const appState: AppState = {
- users: JSON.parse(JSON.stringify(INITIAL_USERS)),
- tasks: JSON.parse(JSON.stringify(INITIAL_TASKS)),
+ users: INITIAL_USERS.map((user) => ({ ...JSON.parse(JSON.stringify(user)), family_id: 1 })),
+ tasks: INITIAL_TASKS.map((task) => ({ ...JSON.parse(JSON.stringify(task)), family_id: 1 })),
  habits: [],
  completions: [
  {
@@ -120,4 +120,12 @@ export const appState: AppState = {
    max_family_hp: 100,
    exhausted_until: null,
  },
- };
+ familyGameStates: {},
+};
+
+// Локальная песочница тоже использует тот же family-scoped контракт, что production.
+appState.familyGameStates![1] = {
+ family: JSON.parse(JSON.stringify(appState.family)),
+ boss: JSON.parse(JSON.stringify(appState.boss)),
+ challenge: JSON.parse(JSON.stringify(appState.challenge)),
+};

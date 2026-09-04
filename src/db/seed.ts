@@ -1,74 +1,90 @@
+import { eq } from 'drizzle-orm';
 import { db } from './index';
-import { users as usersTable, families as familiesTable } from './schema';
-import { INITIAL_USERS } from '../data/initialData';
+import * as schema from './schema';
+import { INITIAL_TASKS, INITIAL_USERS } from '../data/initialData';
 
 export async function seedDatabase() {
-  try {
-    const existingUsers = await db.select().from(usersTable);
-    if (existingUsers.length === 0) {
-      console.log('Seeding initial data...');
-      
-      // Seed Family
-      const [family] = await db.insert(familiesTable).values({
-        family_code: 'FAM-1234',
-        name: 'Моя Семья'
-      }).returning();
-      
-      // Seed Users
-      for (const u of INITIAL_USERS) {
-        await db.insert(usersTable).values({
-          telegram_id: u.telegram_id || (Math.floor(Math.random() * 1000000)),
-          family_id: family.id,
-          role: u.family_role === 'parent' ? 'parent' : 'child',
-          family_role: u.family_role || 'child',
-          is_admin: !!u.is_admin,
-          display_name: u.display_name,
-          class_type: u.class || 'warrior',
-          gold: u.gold || 0,
-          xp: u.xp || 0,
-          hp: u.hp || 50,
-          max_hp: u.max_hp || 50,
-          mp: u.mp || 30,
-          max_mp: u.max_mp || 30,
-          current_streak: u.current_streak || 0,
-          best_streak: u.best_streak || 0,
-          streak_status: u.streak_status || 'active',
-          streak_freeze_available: u.streak_freeze_available || false,
-          skill_date: u.skill_date,
-          gender: u.gender,
-          custom_avatar_url: u.custom_avatar_url,
-          character_color: u.character_color || u.color,
-          skin_tone: u.skin_tone,
-          hair_style: u.hair_style,
-          hair_color: u.hair_color,
-          eye_color: u.eye_color,
-          assignee: u.assignee,
-          notify_partner: u.notify_partner || 1,
-          age: u.age || 8,
-          referral_code: u.referral_code,
-          referred_by: u.referred_by,
-        });
-      }
-      // Seed Tasks
-      const { INITIAL_TASKS } = require('../data/initialData');
-      for (const t of INITIAL_TASKS) {
-        await db.insert(require('./schema').tasks).values({
-          family_id: family.id,
-          code: t.code,
-          title: t.title,
-          description: '',
-          points: t.points,
-          assignee: t.assignee,
-          task_type: t.task_type,
-          day_of_week: t.day_of_week,
-          done: t.done || false
-        });
-      }
-      console.log('Seeding complete.');
-    } else {
-      console.log('Database already seeded.');
-    }
-  } catch (e) {
-    console.error('Error seeding database:', e);
+  const existingUsers = await db.select({ id: schema.users.id }).from(schema.users).limit(1);
+  if (existingUsers.length > 0) {
+    console.log('Database already seeded.');
+    return;
   }
+
+  console.log('Seeding initial data...');
+  await db.transaction(async (tx) => {
+    const [family] = await tx
+      .insert(schema.families)
+      .values({ family_code: 'FAM-1234', name: 'Моя Семья' })
+      .onConflictDoUpdate({
+        target: schema.families.family_code,
+        set: { name: 'Моя Семья' },
+      })
+      .returning();
+
+    for (const user of INITIAL_USERS) {
+      await tx.insert(schema.users).values({
+        telegram_id: user.telegram_id || Math.floor(Math.random() * 1_000_000),
+        family_id: family.id,
+        role: user.family_role === 'parent' ? 'parent' : 'child',
+        family_role: user.family_role || 'child',
+        is_admin: !!user.is_admin,
+        display_name: user.display_name,
+        class_type: user.class || 'warrior',
+        gold: user.gold || 0,
+        xp: user.xp || 0,
+        hp: user.hp || 50,
+        max_hp: user.max_hp || 50,
+        mp: user.mp || 30,
+        max_mp: user.max_mp || 30,
+        current_streak: user.current_streak || 0,
+        best_streak: user.best_streak || 0,
+        streak_status: user.streak_status || 'active',
+        streak_freeze_available: user.streak_freeze_available || false,
+        skill_date: user.skill_date,
+        gender: user.gender,
+        custom_avatar_url: user.custom_avatar_url,
+        character_color: user.character_color || user.color,
+        skin_tone: user.skin_tone,
+        hair_style: user.hair_style,
+        hair_color: user.hair_color,
+        eye_color: user.eye_color,
+        assignee: user.assignee,
+        notify_partner: user.notify_partner || 1,
+        age: user.age || 8,
+        referral_code: user.referral_code,
+        referred_by: user.referred_by,
+      }).onConflictDoNothing({ target: schema.users.telegram_id });
+    }
+
+    const existingTasks = await tx
+      .select({ code: schema.tasks.code })
+      .from(schema.tasks)
+      .where(eq(schema.tasks.family_id, family.id));
+    const existingCodes = new Set(existingTasks.map((task) => task.code));
+    for (const task of INITIAL_TASKS) {
+      if (existingCodes.has(task.code)) continue;
+      await tx.insert(schema.tasks).values({
+        family_id: family.id,
+        code: task.code,
+        title: task.title,
+        description: '',
+        points: task.points,
+        assignee: task.assignee,
+        task_type: task.task_type,
+        day_of_week: Array.isArray(task.day_of_week) ? null : (task.day_of_week ?? null),
+        done: task.done || false,
+        category: task.category,
+        assignee_type: task.assignee_type,
+        age_min: task.age_min,
+        age_max: task.age_max,
+        schedule_type: task.schedule_type,
+        is_required: task.is_required,
+        is_repeatable: task.is_repeatable,
+        max_daily: task.max_daily,
+        icon: task.icon,
+        recommended_class: task.recommendedClass,
+      });
+    }
+  });
+  console.log('Seeding complete.');
 }

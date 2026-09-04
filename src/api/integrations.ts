@@ -4,7 +4,8 @@ import { db } from '../db';
 import * as schema from '../db/schema';
 import fs from 'fs';
 import path from 'path';
-import { AuthedRequest, requireAdmin } from '../utils/apiAuth';
+import { eq, inArray } from 'drizzle-orm';
+import { type AuthedRequest, getAuthFamilyId, requireAdmin } from '../utils/apiAuth';
 
 export const integrationsRouter = Router();
 
@@ -22,7 +23,9 @@ integrationsRouter.use((req: AuthedRequest, res: Response, next: () => void) => 
 
 // Helper to get OAuth2 client
 const getOAuth2Client = (req: Request) => {
-  const token = req.headers.authorization?.split('Bearer ')[1];
+  // Authorization занят TMA-сессией приложения. Google OAuth передаётся отдельно.
+  const rawHeader = req.headers['x-google-access-token'];
+  const token = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
   if (!token) throw new Error('Unauthorized: No token provided');
   const oauth2Client = new google.auth.OAuth2();
   oauth2Client.setCredentials({ access_token: token });
@@ -34,11 +37,13 @@ integrationsRouter.post('/drive/backup', async (req: Request, res: Response) => 
   try {
     const oauth2Client = getOAuth2Client(req);
     const drive = google.drive({ version: 'v3', auth: oauth2Client });
+    const familyId = getAuthFamilyId(req as AuthedRequest);
+    if (familyId === null) return res.status(403).json({ error: 'Forbidden: user has no family' });
 
     // Fetch data
-    const families = await db.select().from(schema.families);
-    const users = await db.select().from(schema.users);
-    const tasks = await db.select().from(schema.tasks);
+    const families = await db.select().from(schema.families).where(eq(schema.families.id, familyId));
+    const users = await db.select().from(schema.users).where(eq(schema.users.family_id, familyId));
+    const tasks = await db.select().from(schema.tasks).where(eq(schema.tasks.family_id, familyId));
     const items = await db.select().from(schema.items);
 
     const backupData = {
@@ -164,10 +169,19 @@ integrationsRouter.post('/sheets/reports', async (req: Request, res: Response) =
   try {
     const oauth2Client = getOAuth2Client(req);
     const sheets = google.sheets({ version: 'v4', auth: oauth2Client });
+    const familyId = getAuthFamilyId(req as AuthedRequest);
+    if (familyId === null) return res.status(403).json({ error: 'Forbidden: user has no family' });
     
     // Fetch data
-    const completionsData = await db.select().from(schema.completions);
-    const purchasesData = await db.select().from(schema.purchases);
+    const familyUsers = await db.select({ id: schema.users.id }).from(schema.users)
+      .where(eq(schema.users.family_id, familyId));
+    const userIds = familyUsers.map((user) => user.id);
+    const completionsData = userIds.length > 0
+      ? await db.select().from(schema.completions).where(inArray(schema.completions.user_id, userIds))
+      : [];
+    const purchasesData = userIds.length > 0
+      ? await db.select().from(schema.purchases).where(inArray(schema.purchases.user_id, userIds))
+      : [];
     
     // Create new spreadsheet
     const spreadsheet = await sheets.spreadsheets.create({

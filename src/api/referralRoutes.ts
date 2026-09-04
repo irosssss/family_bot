@@ -3,17 +3,23 @@
  * GET /info — код/ссылка/статистика рефералов.
  * POST /apply — активировать реферальный код.
  */
-import { Request, Response, Router } from 'express';
-import { AuthedRequest, canActOn } from '../utils/apiAuth';
+import { Response, Router } from 'express';
+import { type AuthedRequest, canAccessUser, canActOn } from '../utils/apiAuth';
 import { appState } from '../services/stateService';
 import { processReferral } from '../services/referralService';
 
 export const referralRoutes = Router();
 
-referralRoutes.get('/info', (req: Request, res: Response) => {
-  const userId = Number(req.query.userId) || 1;
+referralRoutes.get('/info', (req: AuthedRequest, res: Response) => {
+  const userId = Number(req.query.userId);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return res.status(400).json({ error: 'Valid userId is required' });
+  }
   const user = appState.users.find((u) => u.id === userId);
   if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+  if (!canAccessUser(req, userId)) {
+    return res.status(403).json({ error: 'Forbidden: not your family' });
+  }
 
   const referralCode = user.referral_code || `ref_${user.id}`;
   if (!user.referral_code) user.referral_code = referralCode;
@@ -48,17 +54,16 @@ referralRoutes.get('/info', (req: Request, res: Response) => {
   });
 });
 
-referralRoutes.post('/apply', (req: Request, res: Response) => {
+referralRoutes.post('/apply', async (req: AuthedRequest, res: Response) => {
   const { userId, refCode } = req.body;
   // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
-  const __req = req as any;
-  if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+  if (!canActOn(req, Number(userId))) {
     return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
   }
   const user = appState.users.find((u) => u.id === Number(userId));
   if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
-  const result = processReferral(user, refCode);
+  const result = await processReferral(user, refCode);
   if (!result.success) {
     return res.status(400).json({ error: result.message });
   }

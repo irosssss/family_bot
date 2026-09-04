@@ -30,7 +30,7 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
  onOpenResetModal,
 }) => {
  const [activeTab, setActiveTab] = useState<'family' | 'app_settings' | 'add_member' | 'plans' | 'mobile_ux' | 'assets'>('family');
- const [familyCode, setFamilyCode] = useState('FAM-1234');
+ const [familyCode, setFamilyCode] = useState('');
  const [familyName, setFamilyName] = useState('Семья Героев');
  const [isCopied, setIsCopied] = useState(false);
 
@@ -583,7 +583,7 @@ export const FamilyManagementModal: React.FC<FamilyManagementModalProps> = ({
  {/* TAB 6: UPLOAD ASSETS */}
  {activeTab === 'assets' && (
  <div className="space-y-6">
- <UploadAssets />
+ <UploadAssets actorId={activeUser.id} />
  </div>
  )}
  </div>

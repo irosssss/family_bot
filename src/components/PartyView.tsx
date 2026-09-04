@@ -1,18 +1,10 @@
-/**
- * PartyView — экран «Обзор» в стиле Habitica.
- *
- * У Habitica нет «обзора карточек»: вместо него — список партии (Party):
- * компактная строка на игрока: мини-аватар, имя, Lvl, класс, питомец у ног.
- * Подробные статы (HP/MP/XP) — только у СВОЕГО персонажа (активного),
- * раскрываются по тапу; чужие — кратко, по тапу профильное действие.
- */
-import React, { useState } from 'react';
-import { User, AppState } from '../types';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronDown, ChevronUp, Home, Palette, Settings, Sparkles, Users } from 'lucide-react';
+import { AppState, User } from '../types';
 import HabiticaAnimatedAvatar from './HabiticaAnimatedAvatar';
 import { getUnifiedLook } from '../utils/unifiedLook';
 import { habiticaPetSprite } from '../utils/shopLookMap';
-import { CLASSES_CONFIG } from '../data/initialData';
-import { Swords, Wand2, Sparkles, Flame, ChevronDown, ChevronUp } from 'lucide-react';
+import { triggerHaptic } from '../utils/haptics';
 
 interface PartyViewProps {
   appState: AppState;
@@ -21,206 +13,193 @@ interface PartyViewProps {
   onOpenCharacterEditor: () => void;
 }
 
-const CLASS_ICON: Record<string, typeof Swords> = {
-  warrior: Swords,
-  mage: Wand2,
-  rogue: Wand2,
-  healer: Wand2,
-};
+function isParent(user: User): boolean {
+  return user.family_role === 'parent' || user.is_admin === true;
+}
 
-const CLASS_RU: Record<string, string> = {
-  warrior: 'Воин',
-  mage: 'Маг',
-  rogue: 'Разбойник',
-  healer: 'Целитель',
-};
+function roleLabel(user: User): string {
+  return isParent(user) ? 'Родитель' : 'Хранитель дома';
+}
 
-/** Строка члена партии (Habitica party list). Разворачивается только у активного игрока. */
-const PartyMemberRow: React.FC<{
+function childWord(count: number): string {
+  if (count % 10 === 1 && count % 100 !== 11) return 'ребёнок';
+  if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14)) return 'ребёнка';
+  return 'детей';
+}
+
+type FamilyMember = {
   user: User;
-  isMe: boolean;
+  petTitle?: string;
+  petSprite?: string;
+};
+
+function FamilyMemberCard({
+  member,
+  isActive,
+  expanded,
+  onToggle,
+}: {
+  member: FamilyMember;
+  isActive: boolean;
   expanded: boolean;
   onToggle: () => void;
-}> = ({ user, isMe, expanded, onToggle }) => {
-  const hLook = getUnifiedLook(user);
-  const level = Math.floor(user.xp / 100) + 1;
-  const xpInLevel = user.xp % 100;
-  const cls = user.class || 'warrior';
-  const ClassIcon = CLASS_ICON[cls] || Swords;
-  const petRecord = (user as any).__petRecord;
-  const pet = petRecord ? (user as any).__pet : null;
+}): React.ReactElement {
+  const { user, petTitle, petSprite } = member;
+  const parent = isParent(user);
+  const level = Math.max(1, Math.floor(user.xp / 100) + 1);
+  const xpProgress = user.xp % 100;
+  const canExpand = isActive && !parent;
 
   return (
-    <div
-      className={`rounded-2xl border transition-colors ${
-        isMe
-          ? 'border-amber-500/40 bg-slate-900/80'
-          : 'border-white/10 bg-slate-900/50'
-      }`}
-    >
+    <article className={`overflow-hidden rounded-[18px] border-2 shadow-[2px_2px_0_#b9834d] ${isActive ? 'border-[#2f241c] bg-[#fff7e5]' : 'border-[#c69b68] bg-[#f8ecd1]'}`}>
       <button
-        onClick={onToggle}
-        disabled={!isMe}
-        className="w-full min-h-[64px] flex items-center gap-3 px-3 py-2.5 text-left"
-        aria-expanded={expanded}
-        aria-label={isMe ? `${user.display_name}, ваш профиль` : `${user.display_name}`}
+        type="button"
+        onClick={() => {
+          if (!canExpand) return;
+          triggerHaptic('selection', 'light');
+          onToggle();
+        }}
+        disabled={!canExpand}
+        className={`flex min-h-[72px] w-full items-center gap-3 px-3 py-2.5 text-left ${canExpand ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#42614f]' : 'cursor-default'}`}
+        aria-expanded={canExpand ? expanded : undefined}
+        aria-label={canExpand ? `Открыть сведения ${user.display_name}` : user.display_name}
       >
-        {/* Мини-аватар: тот же единый образ */}
-        <div className="relative shrink-0 w-12 h-14 flex items-end justify-center">
-          <HabiticaAnimatedAvatar look={hLook} cls={cls} size={44} state="idle" gender={user.gender} />
+        <div className="relative flex h-14 w-12 shrink-0 items-end justify-center rounded-[13px] border-2 border-[#2f241c]/25 bg-[#e8d4ad]">
+          <HabiticaAnimatedAvatar
+            look={getUnifiedLook(user)}
+            cls={user.class || 'warrior'}
+            size={46}
+            state="idle"
+            gender={user.gender}
+          />
         </div>
-
-        {/* Имя / уровень / класс */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="font-bold text-sm text-white truncate">{user.display_name}</span>
-            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-pixel-sub">
-              Lvl {level}
+          <div className="flex min-w-0 items-center gap-1.5">
+            <h3 className="truncate text-sm font-black text-[#2f241c]">{user.display_name}</h3>
+            {isActive && <span className="rounded-md bg-[#42614f] px-1.5 py-0.5 text-[9px] font-black text-[#fff8e8]">ты</span>}
+          </div>
+          <p className="mt-0.5 text-[11px] font-semibold text-[#735941]">{roleLabel(user)}</p>
+          {petTitle && petSprite && (
+            <span className="mt-1 inline-flex max-w-full items-center gap-1 text-[10px] font-semibold text-[#61401e]">
+              <img src={petSprite} alt="" className="h-4 w-4 shrink-0 object-contain pixel-art" draggable={false} />
+              <span className="truncate">рядом {petTitle}</span>
             </span>
-          </div>
-          <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-400">
-            <ClassIcon className="w-3 h-3 shrink-0" />
-            <span>{CLASS_RU[cls] || cls}</span>
-            {/* Питомец рядом с именем (как в Habitica: питомец из Stable) */}
-            {pet && (
-              <span className="flex items-center gap-1 ml-1 min-w-0">
-                <img
-                  src={habiticaPetSprite(pet.code)}
-                  alt=""
-                  width="18" height="22"
-                  className="w-[18px] h-[22px] [image-rendering:pixelated] object-contain"
-                />
-                <span className="truncate">{pet.title}</span>
-              </span>
-            )}
-          </div>
+          )}
         </div>
-
-        {/* Стрик (наш вклад — в Habitica аналога нет, не удаляем данные) */}
-        <div className="shrink-0 text-right">
-          <span className="text-[10px] font-pixel-sub text-orange-400 flex items-center gap-0.5 justify-end">
-            <Flame className="w-3 h-3" /> {user.current_streak || 0}
-          </span>
-        </div>
-
-        {/* Шеврон только у своего профиля */}
-        {isMe && (
-          <span className="shrink-0 text-slate-500">
-            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </span>
+        {!parent && (
+          <div className="shrink-0 text-right">
+            <span className="block font-pixel-sub text-[9px] font-bold text-[#855529]">УР. {level}</span>
+            <span className="mt-1 block text-[10px] font-bold text-[#5b8d68]">{user.current_streak || 0} дней</span>
+          </div>
         )}
+        {canExpand && <span className="shrink-0 text-[#735941]">{expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</span>}
       </button>
 
-      {/* Развёрнутые статы — ТОЛЬКО свой профиль (как у Habitica: свои статы в шапке) */}
-      {isMe && expanded && (
-        <div className="px-3 pb-3 space-y-2.5 animate-in fade-in duration-200">
-          {/* XP */}
-          <div className="space-y-1">
-            <div className="flex justify-between text-[11px]">
-              <span className="text-slate-400 font-pixel-sub flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-amber-400" /> Опыт до ур. {level + 1}
-              </span>
-              <span className="text-amber-300 font-pixel-retro text-xs font-bold">{xpInLevel}/100</span>
-            </div>
-            <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden border border-white/10">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-400 to-amber-300 transition-[width] duration-700"
-                style={{ width: `${Math.max(3, xpInLevel)}%` }}
-              />
-            </div>
+      {canExpand && expanded && (
+        <div className="border-t border-[#c69b68] bg-[#f5e7c8] px-3 pb-3 pt-2.5">
+          <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-[#61401e]">
+            <span className="inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> Опыт до ур. {level + 1}</span>
+            <span>{xpProgress} / 100</span>
           </div>
-
-          {/* HP / MP */}
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <div className="flex justify-between text-[10px] font-pixel-sub mb-0.5">
-                <span className="text-red-400">HP</span>
-                <span className="text-red-300">{user.hp ?? 50}/{user.max_hp ?? 50}</span>
-              </div>
-              <div className="h-2 bg-black/80 rounded-full overflow-hidden border border-red-500/40">
-                <div
-                  className="h-full jrpg-hp-fill transition-[width] duration-500"
-                  style={{ width: `${Math.min(100, Math.round(((user.hp ?? 50) / (user.max_hp ?? 50)) * 100))}%` }}
-                />
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-[10px] font-pixel-sub mb-0.5">
-                <span className="text-blue-400">MP</span>
-                <span className="text-blue-300">{user.mp ?? 30}/{user.max_mp ?? 50}</span>
-              </div>
-              <div className="h-2 bg-black/80 rounded-full overflow-hidden border border-blue-500/40">
-                <div
-                  className="h-full jrpg-mp-fill transition-[width] duration-500"
-                  style={{ width: `${Math.min(100, Math.round(((user.mp ?? 30) / (user.max_mp ?? 50)) * 100))}%` }}
-                />
-              </div>
-            </div>
+          <div className="mt-1.5 h-2.5 overflow-hidden rounded-full border border-[#2f241c] bg-[#e1c99e]">
+            <div className="h-full rounded-full bg-[#5b8d68] transition-[width] duration-500" style={{ width: `${xpProgress}%` }} />
           </div>
-
-          {/* Кошелёк */}
-          <div className="flex items-center justify-between text-[11px] text-slate-400 px-0.5">
-            <span className="flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-400" /> {user.gold ?? 0} золота
-            </span>
-            <span>{user.crystals ?? 0} кристаллов</span>
-          </div>
+          <p className="mt-2 text-[11px] leading-4 text-[#735941]">Нажми на строку ещё раз, чтобы свернуть карточку.</p>
         </div>
       )}
-    </div>
+    </article>
   );
-};
+}
 
-/**
- * Обзор = Party (как у Habitica): компактный список семьи.
- * У активного игрока разворачиваются полные статы; у остальных — по тапу ничего
- * (их подробности живут в своих местах: хаб, арена, гардероб через переключатель профиля).
- */
+/** A family roster, not an RPG party: roles and contribution are more useful here than combat stats. */
 export const PartyView: React.FC<PartyViewProps> = ({ appState, activeUser, onOpenWardrobe, onOpenCharacterEditor }) => {
-  const [expandedId, setExpandedId] = useState<number | null>(activeUser.id);
+  const [expandedId, setExpandedId] = useState<number | null>(isParent(activeUser) ? null : activeUser.id);
+  const activeIsParent = isParent(activeUser);
 
-  // Питомцы: активный питомец каждого игрока
-  const withPets = appState.users.map((u) => {
-    const mine = appState.userPets.filter((up) => up.user_id === u.id);
-    const rec = mine.find((up) => up.is_active) || mine[0]; // активный или первый купленный
-    const pet = rec ? appState.pets.find((p) => p.id === rec.pet_id) : null;
-    return { user: u, pet };
-  });
+  useEffect(() => {
+    setExpandedId(isParent(activeUser) ? null : activeUser.id);
+  }, [activeUser.id, activeUser.family_role, activeUser.is_admin]);
+
+  const members = useMemo<FamilyMember[]>(() => appState.users.map((user) => {
+    const petRecord = appState.userPets.find((record) => record.user_id === user.id && record.is_active)
+      ?? appState.userPets.find((record) => record.user_id === user.id);
+    const pet = petRecord ? appState.pets.find((candidate) => candidate.id === petRecord.pet_id) : undefined;
+    return {
+      user,
+      petTitle: pet?.title,
+      petSprite: pet ? habiticaPetSprite(pet.code) : undefined,
+    };
+  }), [appState.pets, appState.userPets, appState.users]);
+
+  const childCount = appState.users.filter((user) => !isParent(user)).length;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between px-1">
-        <h3 className="text-sm font-bold text-white font-pixel-sub">Отряд семьи</h3>
-        <span className="text-[11px] text-slate-500">{appState.users.length}&nbsp;{appState.users.length % 10 === 1 && appState.users.length % 100 !== 11 ? 'герой' : (appState.users.length % 10 >= 2 && appState.users.length % 10 <= 4 && (appState.users.length % 100 < 10 || appState.users.length % 100 >= 20) ? 'героя' : 'героев')}</span>
-      </div>
+    <section className="overflow-hidden rounded-[28px] border-[3px] border-[#2f241c] bg-[#f5e7c8] text-[#2f241c] shadow-[0_8px_0_#2f241c]" aria-label="Наша семья">
+      <header className="relative overflow-hidden border-b-[3px] border-[#2f241c] bg-[#7d9db5] px-4 py-4 text-[#1f3443] sm:px-6">
+        <div className="pointer-events-none absolute -right-10 -top-9 h-36 w-36 rounded-full border-[17px] border-[#f7ecd0]/45" aria-hidden="true" />
+        <div className="relative flex items-start justify-between gap-3">
+          <div>
+            <p className="font-pixel-sub text-[10px] font-bold tracking-[0.14em] text-[#34506a]">НАША СЕМЬЯ</p>
+            <h2 className="mt-1 text-xl font-black tracking-[-0.035em]">Кто заботится о доме</h2>
+            <p className="mt-1 text-xs font-semibold text-[#34506a]">{childCount} {childWord(childCount)} в семейном журнале</p>
+          </div>
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[15px] border-2 border-[#1f3443] bg-[#c9d9e4] shadow-[2px_2px_0_#1f3443]" aria-hidden="true">
+            <Users className="h-6 w-6" />
+          </span>
+        </div>
+      </header>
 
-      <div className="space-y-2">
-        {withPets.map(({ user, pet }) => (
-          <PartyMemberRow
-            key={user.id}
-            user={{ ...user, __petRecord: !!pet, __pet: pet } as any}
-            isMe={user.id === activeUser.id}
-            expanded={expandedId === user.id}
-            onToggle={() => setExpandedId(expandedId === user.id ? null : user.id)}
-          />
-        ))}
-      </div>
+      <div className="p-3 sm:p-5">
+        <div className="mb-3 rounded-[16px] border-2 border-[#c69b68] bg-[#fff7e5] px-3 py-2.5 text-xs leading-5 text-[#61401e]">
+          {activeIsParent
+            ? 'Родитель видит состав семьи и управляет задачами без игровых показателей.'
+            : 'У каждого свой журнал, а общий дом становится уютнее от вклада всех.'}
+        </div>
 
-      {/* Действия своего профиля (как у Habitica:customize под своим аватаром) */}
-      <div className="flex gap-2 pt-1">
-        <button
-          onClick={onOpenWardrobe}
-          className="flex-1 h-11 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 text-xs font-pixel-sub font-bold border border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-        >
-          Гардероб
-        </button>
-        <button
-          onClick={onOpenCharacterEditor}
-          className="flex-1 h-11 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 text-xs font-pixel-sub font-bold border border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-        >
-          Внешность
-        </button>
+        <div className="space-y-2">
+          {members.map((member) => (
+            <FamilyMemberCard
+              key={member.user.id}
+              member={member}
+              isActive={member.user.id === activeUser.id}
+              expanded={expandedId === member.user.id}
+              onToggle={() => setExpandedId((current) => current === member.user.id ? null : member.user.id)}
+            />
+          ))}
+        </div>
+
+        {!activeIsParent ? (
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('impact', 'light');
+                onOpenWardrobe();
+              }}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[14px] border-2 border-[#2f241c] bg-[#7e698b] px-3 text-xs font-black text-[#fff8e8] shadow-[2px_2px_0_#2f241c] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2f241c] focus-visible:ring-offset-2"
+            >
+              <Palette className="h-4 w-4" aria-hidden="true" />
+              Мастерская
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic('impact', 'light');
+                onOpenCharacterEditor();
+              }}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[14px] border-2 border-[#2f241c] bg-[#fff7e5] px-3 text-xs font-black text-[#61401e] shadow-[2px_2px_0_#b9834d] transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2f241c] focus-visible:ring-offset-2"
+            >
+              <Home className="h-4 w-4" aria-hidden="true" />
+              Внешность
+            </button>
+          </div>
+        ) : (
+          <div className="mt-4 flex min-h-12 items-center gap-2 rounded-[14px] border-2 border-[#c69b68] bg-[#e8d4ad] px-3 text-xs font-bold text-[#61401e]">
+            <Settings className="h-4 w-4 shrink-0" aria-hidden="true" />
+            Управление делами находится в разделе «Семья».
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 };

@@ -10,9 +10,9 @@
  * Поток: /create-invoice → Bot API createInvoiceLink → пользователь платит
  *        → Telegram шлёт webhook /api/webhook/stars → pre_checkout → successful_payment
  */
-import { Request, Response, Router } from 'express';
-import { AuthedRequest, canActOn } from '../utils/apiAuth';
-import { eq } from 'drizzle-orm';
+import { Response, Router } from 'express';
+import { type AuthedRequest, canActOn } from '../utils/apiAuth';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { appState } from '../services/stateService';
@@ -34,12 +34,11 @@ export const SKUS: Record<string, { title: string; description: string; stars: n
  * body: { userId, sku }
  * Создаёт invoice-ссылку через Telegram Bot API.
  */
-starsRoutes.post('/create-invoice', async (req: Request, res: Response) => {
+starsRoutes.post('/create-invoice', async (req: AuthedRequest, res: Response) => {
   try {
     const { userId, sku } = req.body;
     // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
-    const __req = req as any;
-    if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+    if (!canActOn(req, Number(userId))) {
       return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
     }
     const user = appState.users.find((u) => u.id === Number(userId));
@@ -88,37 +87,81 @@ starsRoutes.post('/create-invoice', async (req: Request, res: Response) => {
  * expectedStars — сумма из платежа; сверяется с прайсом SKU, при расхождении
  * начисление отклоняется (защита от подделки payload, этап 2 аудита).
  */
-export function creditPurchase(
-  userId: number,
-  sku: string,
-  expectedStars: number = SKUS[sku]?.stars ?? -1
-): { gems: number; proDays?: number } | null {
+export interface CreditPurchaseResult {
+  status: 'credited' | 'duplicate' | 'invalid' | 'not_found' | 'db_error';
+  gems?: number;
+  proDays?: number;
+}
+
+/** Атомарно фиксирует charge_id и начисляет покупку в одной транзакции. */
+export async function creditPurchaseAtomic(input: {
+  chargeId: string;
+  userId: number;
+  payerTelegramId: number;
+  sku: string;
+  amount: number;
+  currency: string;
+}): Promise<CreditPurchaseResult> {
+  const { chargeId, userId, payerTelegramId, sku, amount, currency } = input;
   const skuDef = SKUS[sku];
-  if (!skuDef) return null;
-  if (expectedStars !== skuDef.stars) {
-    console.error(`[Stars] amount mismatch for ${sku}: paid ${expectedStars}, price ${skuDef.stars}`);
-    return null;
+  if (!chargeId || !skuDef || currency !== 'XTR' || amount !== skuDef.stars) {
+    return { status: 'invalid' };
   }
 
-  const user = appState.users.find((u) => u.id === userId);
-  if (!user) return null;
+  try {
+    const result = await db.transaction(async (tx) => {
+      const [lockedUser] = await tx.select().from(schema.users)
+        .where(eq(schema.users.id, userId)).for('update');
+      if (!lockedUser || lockedUser.telegram_id !== payerTelegramId || lockedUser.family_role !== 'parent') {
+        return { status: 'not_found' as const };
+      }
 
-  user.crystals = (user.crystals || 0) + skuDef.gems;
-  let proDays: number | undefined;
+      const claimed = await tx.insert(schema.payments).values({
+        charge_id: chargeId,
+        user_id: userId,
+        sku,
+        amount,
+        currency,
+        status: 'pending',
+      }).onConflictDoNothing({ target: schema.payments.charge_id })
+        .returning({ id: schema.payments.id });
+      if (claimed.length === 0) return { status: 'duplicate' as const };
 
-  if (skuDef.proDays) {
-    proDays = skuDef.proDays;
-    const current = (user as any).family_pro_until ? new Date((user as any).family_pro_until) : new Date();
-    current.setDate(current.getDate() + proDays);
-    (user as any).family_pro_until = current.toISOString();
+      let proUntil = lockedUser.family_pro_until;
+      if (skuDef.proDays) {
+        const now = new Date();
+        const base = proUntil && proUntil > now ? new Date(proUntil) : now;
+        base.setDate(base.getDate() + skuDef.proDays);
+        proUntil = base;
+      }
+
+      const [updatedUser] = await tx.update(schema.users).set({
+        crystals: sql`${schema.users.crystals} + ${skuDef.gems}`,
+        ...(skuDef.proDays ? { family_pro_until: proUntil } : {}),
+      }).where(eq(schema.users.id, userId)).returning({
+        crystals: schema.users.crystals,
+        family_pro_until: schema.users.family_pro_until,
+      });
+      await tx.update(schema.payments).set({ status: 'credited' })
+        .where(eq(schema.payments.charge_id, chargeId));
+      return {
+        status: 'credited' as const,
+        crystals: updatedUser.crystals,
+        familyProUntil: updatedUser.family_pro_until,
+      };
+    });
+
+    if (result.status === 'credited') {
+      const user = appState.users.find((candidate) => candidate.id === userId);
+      if (user) {
+        user.crystals = result.crystals;
+        (user as any).family_pro_until = result.familyProUntil?.toISOString();
+      }
+      return { status: 'credited', gems: skuDef.gems, proDays: skuDef.proDays };
+    }
+    return result;
+  } catch (error) {
+    console.error('[Stars] atomic credit failed:', error);
+    return { status: 'db_error' };
   }
-
-  // Фаза 6: кристаллы И Family Pro — в PostgreSQL (раньше Pro терялся при
-  // рестарте: колонки не было, писал только crystals).
-  db.update(schema.users).set({
-    crystals: user.crystals,
-    ...(proDays ? { family_pro_until: new Date((user as any).family_pro_until) } : {}),
-  }).where(eq(schema.users.id, userId)).catch((e) => console.error('Stars credit DB error:', e));
-
-  return { gems: skuDef.gems, proDays };
 }

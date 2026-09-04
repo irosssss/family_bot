@@ -3,6 +3,7 @@
  * Перенесён из server.ts (Фаза 2) без изменения логики.
  */
 import { appState } from './stateService';
+import { getFamilyGameState } from './familyGameStateService';
 
 export function checkAchievements(userId: number) {
   const user = appState.users.find((u) => u.id === userId);
@@ -11,7 +12,7 @@ export function checkAchievements(userId: number) {
   const userCompletions = appState.completions.filter((c) => c.user_id === userId);
   const userPurchases = appState.purchases.filter((p) => p.user_id === userId);
   const userPetCount = appState.userPets.filter((p) => p.user_id === userId).length;
-  const bossesDefeated = appState.boss.defeated ? 1 : 0;
+  const bossesDefeated = getFamilyGameState(Number(user.family_id))?.boss.defeated ? 1 : 0;
   const level = Math.floor(user.xp / 100) + 1;
 
   const conditions: Record<string, boolean> = {

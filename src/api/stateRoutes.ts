@@ -5,37 +5,54 @@
  * GET /api/health — health check.
  */
 import { Request, Response, Router } from 'express';
-import { eq, desc } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { users as usersTable } from '../db/schema';
 import { appState } from '../services/stateService';
-import { getTodayStr, getWeekKey } from '../lib/dateUtils';
-import { getWeeklyBoss } from '../utils/habiticaCatalog';
-import type { FeedEntry, ShopItem } from '../types';
+import { getTodayStr } from '../lib/dateUtils';
+import type { FeedEntry, ShopItem, Task } from '../types';
 import { toStateUser } from '../services/userStateHydration';
+import { getFamilyGameState } from '../services/familyGameStateService';
+import {
+  canAccessUser,
+  getAuthFamilyId,
+  getUserFamilyId,
+  isAuthEnforced,
+  requireAdmin,
+  type AuthedRequest,
+} from '../utils/apiAuth';
 
 export const stateRoutes = Router();
 
-stateRoutes.get('/db-test', async (_req: Request, res: Response) => {
+stateRoutes.get('/db-test', async (req: AuthedRequest, res: Response) => {
   try {
+    if (!requireAdmin(req)) return res.status(403).json({ error: 'Admin access required' });
+    const authFamilyId = getAuthFamilyId(req);
     const dbUsers = await db.select().from(usersTable);
     const dbTasks = await db.select().from(schema.tasks);
-    res.json({ success: true, users: dbUsers });
+    const visibleUsers = isAuthEnforced()
+      ? dbUsers.filter((user) => user.family_id === authFamilyId)
+      : dbUsers;
+    const visibleTasks = isAuthEnforced()
+      ? dbTasks.filter((task) => task.family_id === authFamilyId)
+      : dbTasks;
+    res.json({ success: true, users: visibleUsers, taskCount: visibleTasks.length });
   } catch (e: any) {
     res.status(500).json({ error: e.message });
   }
 });
 
-stateRoutes.get('/', async (req: Request, res: Response) => {
+stateRoutes.get('/', async (req: AuthedRequest, res: Response) => {
   try {
     // async-parallel (vercel-react-best-practices): независимые выборки —
     // один параллельный батч вместо водопада последовательных round-trip'ов.
-    const [dbUsersRaw, dbItems, dbPets, dbBossesArr] = await Promise.all([
+    const [dbUsersRaw, dbTasks, dbItems, dbPets, dbRewards] = await Promise.all([
       db.select().from(usersTable),
+      db.select().from(schema.tasks),
       db.select().from(schema.items),
       db.select().from(schema.pets),
-      db.select().from(schema.bosses),
+      db.select().from(schema.rewards),
     ]);
 
     // Стабильный порядок: родители (админы) первыми, затем дети по уровню —
@@ -51,8 +68,31 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
     // если БД пока пуста.
     appState.users = dbUsers.map(toStateUser);
 
-    if (dbItems.length > 0) {
-      appState.shopItems = dbItems.map((i: any) => ({
+    appState.tasks = dbTasks.map((task): Task => ({
+        id: task.id,
+        family_id: task.family_id,
+        code: task.code,
+        title: task.title,
+        description: task.description ?? undefined,
+        points: task.points,
+        assignee: task.assignee === 'misha' || task.assignee === 'regina' ? task.assignee : 'both',
+        task_type: (task.task_type || 'todo') as Task['task_type'],
+        day_of_week: task.day_of_week,
+        done: task.done ?? false,
+        category: task.category as Task['category'],
+        assignee_type: (task.assignee_type || 'any') as Task['assignee_type'],
+        age_min: task.age_min,
+        age_max: task.age_max,
+        schedule_type: (task.schedule_type || 'flexible') as Task['schedule_type'],
+        is_required: task.is_required,
+        is_repeatable: task.is_repeatable,
+        max_daily: task.max_daily ?? undefined,
+        icon: task.icon ?? undefined,
+        recommendedClass: task.recommended_class ?? undefined,
+        value: task.value ?? 0,
+      }));
+
+    appState.shopItems = dbItems.map((i: any) => ({
         id: i.id,
         // code из БД (колонка items.code), фолбэк — старый slug из названия
         code: i.code || i.name.toLowerCase().replace(/ /g, '_'),
@@ -62,76 +102,40 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
         cost: i.cost_coins,
         statsModifier: i.stats_modifier,
       })) as any;
-    }
 
-    if (dbPets.length > 0) {
-       appState.pets = dbPets.map((p: any) => ({
+    appState.pets = dbPets.map((p: any) => ({
          id: p.id,
-         code: p.name.toLowerCase().replace(/ /g, '_'),
+         code: p.code || p.name.toLowerCase().replace(/ /g, '_'),
          title: p.name,
          imageUrl: p.sprite_sheet_url,
          cost: p.cost_coins
        })) as any;
-    }
 
-    if (dbBossesArr.length > 0) {
-      const dbBoss = dbBossesArr[0];
-      // Недельная ротация боссов (Habitica-каталог, 117 шт):
-      // если неделя сменилась — выбираем нового по номеру недели и обновляем БД.
-      const currentWeekKey = getWeekKey();
-      if ((dbBoss.week_key || '') !== currentWeekKey) {
-        const weeklyBoss = getWeeklyBoss();
-        const newHp = 90;
-        // ARC-01: await; при ошибке ротации — работаем на старом боссе (не роняем /state)
-        try {
-          await db.update(schema.bosses).set({
-            week_key: currentWeekKey,
-            name: `${weeklyBoss.name}`,
-            sprite_url: weeklyBoss.spriteUrl,
-            hp: newHp,
-            max_hp: newHp,
-            damage: 0,
-            defeated: 0,
-          }).where(eq(schema.bosses.id, dbBoss.id));
-          Object.assign(dbBoss, { week_key: currentWeekKey, name: `${weeklyBoss.name}`, sprite_url: weeklyBoss.spriteUrl, hp: newHp, max_hp: newHp, damage: 0, defeated: 0 });
-          console.log(`New week boss: ${weeklyBoss.name} (${weeklyBoss.id})`);
-        } catch (e) {
-          console.error('[arc01] Boss rotation DB error (keeping old boss):', e);
-        }
-      }
-      // Фаза 6: урон/победа приходят из БД (persistBossState пишет их туда),
-      // а не из дефолта памяти. damage=0 и defeated=0 — легитимные значения,
-      // поэтому ||-фолбэки на память здесь были бы багом рестарта.
-      appState.boss = {
-        id: dbBoss.id,
-        week_key: dbBoss.week_key || '',
-        damage: dbBoss.damage ?? 0,
-        defeated: dbBoss.defeated ?? 0,
-        name: dbBoss.name,
-        emoji: dbBoss.emoji,
-        imageUrl: dbBoss.sprite_url || undefined,
-        spriteSheetUrl: dbBoss.sprite_url || undefined,
-        hp: dbBoss.hp,
-        maxHp: dbBoss.max_hp
-      };
-    }
+    appState.rewards = dbRewards.map((reward) => ({
+        id: reward.id,
+        family_id: reward.family_id,
+        title: reward.title,
+        cost: reward.cost,
+        reward_type: reward.reward_type === 'joint' ? 'joint' : 'personal',
+        active: reward.active ?? 1,
+      }));
 
     // Habits + Фаза 6: обе группы — параллельно, изоляция сбоев сохранена
     const habitsHydrate = (async () => {
     try {
       const dbHabits = await db.select().from(schema.habits).orderBy(desc(schema.habits.id));
-      if (dbHabits.length > 0) {
-        appState.habits = dbHabits as any;
-      }
+      appState.habits = dbHabits as any;
     } catch (e) {
       console.error('Habits hydrate error:', e);
+      if (isAuthEnforced()) throw e;
     }
     })();
 
     // Фаза 6: прогресс игрока — БД источник правды. Перезапуск сервера больше
     // не теряет завершения, perfect days, инвентарь, питомцев, покупки,
     // рефералки и ачивки. Каждая коллекция перенимается только когда БД
-    // её отдаёт (иначе — демо-сида памяти, как до Фазы 6).
+    // её отдаёт, включая пустые массивы: старые demo-записи не должны
+    // просачиваться в семью после рестарта production-процесса.
     const phase6Hydrate = (async () => {
     try {
       const [dbCompletions, dbPerfect, dbInv, dbUserPets, dbPurchases, dbRefs, dbUserAch] = await Promise.all([
@@ -143,49 +147,38 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
         db.select().from(schema.referrals),
         db.select().from(schema.user_achievements),
       ]);
-      if (dbCompletions.length > 0) {
-        appState.completions = dbCompletions.map((c) => ({
+      appState.completions = dbCompletions.map((c) => ({
           id: c.id,
           user_id: c.user_id,
           task_id: c.task_id,
           completed_at: c.completed_at,
           completed_at_ts: c.completed_at_ts,
         }));
-      }
 
-      if (dbPerfect.length > 0) {
-        appState.perfectDays = dbPerfect.map((p) => ({ user_id: p.user_id, day: p.day }));
-      }
+      appState.perfectDays = dbPerfect.map((p) => ({ user_id: p.user_id, day: p.day }));
 
-      if (dbInv.length > 0) {
-        appState.userItems = dbInv.map((i) => ({
+      appState.userItems = dbInv.map((i) => ({
           user_id: i.character_id,
           item_id: i.item_id,
           equipped: i.is_equipped ? 1 : 0,
         }));
-      }
 
-      if (dbUserPets.length > 0) {
-        appState.userPets = dbUserPets.map((p) => ({
+      appState.userPets = dbUserPets.map((p) => ({
           user_id: p.character_id,
           pet_id: p.pet_id,
           is_active: p.is_active ?? false,
           feed_points: p.feed_points,
         }));
-      }
 
-      if (dbPurchases.length > 0) {
-        appState.purchases = dbPurchases.map((p) => ({
+      appState.purchases = dbPurchases.map((p) => ({
           id: p.id,
           user_id: p.user_id,
           reward_id: p.reward_id,
           reward_title: p.reward_title || '',
           created_at: p.created_at,
         }));
-      }
 
-      if (dbRefs.length > 0) {
-        appState.referrals = dbRefs.map((r) => ({
+      appState.referrals = dbRefs.map((r) => ({
           id: r.id,
           referrer_id: r.referrer_id,
           referee_id: r.referee_id,
@@ -194,24 +187,59 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
           bonus_gold: r.bonus_gold,
           bonus_crystals: r.bonus_crystals,
         }));
-      }
 
-      if (dbUserAch.length > 0) {
-        appState.userAchievements = dbUserAch.map((ua) => ({
+      appState.userAchievements = dbUserAch.map((ua) => ({
           user_id: ua.user_id,
           achievement_id: ua.achievement_id,
         }));
-      }
     } catch (e) {
       console.error('Phase6 progress hydrate error:', e);
+      if (isAuthEnforced()) throw e;
     }
     })();
 
     await Promise.all([habitsHydrate, phase6Hydrate]);
-  } catch (e) { console.error('Error fetching data from DB:', e); }
+  } catch (e) {
+    console.error('Error fetching data from DB:', e);
+    if (isAuthEnforced()) {
+      return res.status(503).json({ error: 'Состояние временно недоступно' });
+    }
+  }
 
-  // Enrich users with equipped emojis and pets list
-  const enrichedUsers = appState.users.map((u) => {
+  const authFamilyId = getAuthFamilyId(req);
+  if (isAuthEnforced() && authFamilyId === null) {
+    return res.status(403).json({ error: 'Forbidden: user has no family' });
+  }
+
+  const requestedUserId = req.query.userId
+    ? Number(req.query.userId)
+    : (isAuthEnforced() ? req.auth?.userId ?? null : null);
+  if (requestedUserId && !canAccessUser(req, requestedUserId)) {
+    return res.status(403).json({ error: 'Forbidden: not your family' });
+  }
+  const requestedUser = requestedUserId
+    ? appState.users.find((user) => user.id === requestedUserId)
+    : undefined;
+  const responseFamilyId = authFamilyId ?? getUserFamilyId(requestedUser) ?? appState.family?.id ?? null;
+  const familyGameState = getFamilyGameState(responseFamilyId);
+
+  const familyUsers = responseFamilyId !== null
+    ? appState.users.filter((user) => getUserFamilyId(user) === responseFamilyId)
+    : appState.users;
+  const familyUserIds = new Set(familyUsers.map((user) => user.id));
+  const familyTasks = responseFamilyId !== null
+    ? appState.tasks.filter((task) => task.family_id === responseFamilyId)
+    : appState.tasks;
+  const familyTaskIds = new Set(familyTasks.map((task) => task.id));
+  const familyRewards = responseFamilyId !== null
+    ? appState.rewards.filter((reward) => reward.family_id == null || reward.family_id === responseFamilyId)
+    : appState.rewards;
+  const familyCompletions = appState.completions.filter(
+    (completion) => familyUserIds.has(completion.user_id) && familyTaskIds.has(completion.task_id),
+  );
+
+  // Enrich users with equipped items and pets list
+  const enrichedUsers = familyUsers.map((u) => {
     const equippedItems = appState.userItems
       .filter((ui) => ui.user_id === u.id && ui.equipped)
       .map((ui) => appState.shopItems.find((s) => s.id === ui.item_id))
@@ -248,9 +276,8 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
   const todayStr = getTodayStr();
 
   // Enrich tasks with done status for current user if query param provided
-  const requestedUserId = req.query.userId ? Number(req.query.userId) : null;
-  const enrichedTasks = appState.tasks.map((t) => {
-    const isDone = appState.completions.some(
+  const enrichedTasks = familyTasks.map((t) => {
+    const isDone = familyCompletions.some(
       (c) =>
         c.task_id === t.id &&
         c.completed_at === todayStr &&
@@ -274,12 +301,12 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
   });
 
   // Enrich feed entries
-  const feed: FeedEntry[] = appState.completions
+  const feed: FeedEntry[] = familyCompletions
     .slice(-20)
     .reverse()
     .map((c) => {
-      const user = appState.users.find((u) => u.id === c.user_id);
-      const task = appState.tasks.find((t) => t.id === c.task_id);
+      const user = familyUsers.find((u) => u.id === c.user_id);
+      const task = familyTasks.find((t) => t.id === c.task_id);
       const tsStr = String(c.completed_at_ts || c.completed_at || '');
       const dateStr = String(c.completed_at || '');
       return {
@@ -297,17 +324,18 @@ stateRoutes.get('/', async (req: Request, res: Response) => {
   res.json({
     users: enrichedUsers,
     tasks: enrichedTasks,
-    boss: appState.boss,
-    challenge: appState.challenge,
-    rewards: appState.rewards,
+    boss: familyGameState?.boss ?? appState.boss,
+    challenge: familyGameState?.challenge ?? appState.challenge,
+    family: familyGameState?.family ?? null,
+    rewards: familyRewards,
     shopItems: appState.shopItems,
     achievements: enrichedAchievements,
     feed,
-    completions: appState.completions || [],
-    userPets: appState.userPets || [],
+    completions: familyCompletions,
+    userPets: appState.userPets.filter((pet) => familyUserIds.has(pet.user_id)),
     pets: appState.pets || [],
-    userItems: appState.userItems || [],
-    purchases: appState.purchases || [],
+    userItems: appState.userItems.filter((item) => familyUserIds.has(item.user_id)),
+    purchases: appState.purchases.filter((purchase) => familyUserIds.has(purchase.user_id)),
   });
 });
 

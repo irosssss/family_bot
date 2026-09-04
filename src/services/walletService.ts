@@ -129,8 +129,12 @@ export async function buyRewardAtomic(
   const user = appState.users.find((u) => u.id === userId);
   const reward = appState.rewards.find((r) => r.id === Number(rewardId));
   if (!user || !reward) return { ok: false, gold: 0, reason: 'not_found' };
+  if (reward.family_id != null && reward.family_id !== user.family_id) {
+    return { ok: false, gold: user.gold, reason: 'not_found' };
+  }
 
   const cost = reward.cost;
+  const createdAt = new Date().toISOString();
 
   try {
     const result = await db.transaction(async (tx) => {
@@ -142,38 +146,47 @@ export async function buyRewardAtomic(
       if (debited.length === 0) {
         return { ok: false as const, gold: user.gold, reason: 'insufficient_funds' as const };
       }
-      return { ok: true as const, gold: debited[0].gold };
+      const [purchase] = await tx.insert(schema.purchases).values({
+        user_id: userId,
+        reward_id: reward.id,
+        reward_title: reward.title,
+        created_at: createdAt,
+      }).returning({ id: schema.purchases.id });
+      let gold = debited[0].gold;
+      let achievementId: number | undefined;
+      const firstBuyAchievement = appState.achievements.find((achievement) => achievement.code === 'first_buy');
+      if (firstBuyAchievement) {
+        const unlocked = await tx.insert(schema.user_achievements).values({
+          user_id: userId,
+          achievement_id: firstBuyAchievement.id,
+        }).onConflictDoNothing().returning({ achievement_id: schema.user_achievements.achievement_id });
+        if (unlocked.length > 0) {
+          gold += firstBuyAchievement.bonus;
+          await tx.update(schema.users).set({ gold }).where(eq(schema.users.id, userId));
+          achievementId = firstBuyAchievement.id;
+        }
+      }
+      return { ok: true as const, gold, purchaseId: purchase.id, achievementId };
     });
 
     if (!result.ok) return result;
 
-    // Запись покупки (вне транзакции списания: награда "съедена" — важно,
-    // что золото списано атомарно; запись журнала best-effort с логом).
-    try {
-      await db.insert(schema.purchases).values({
-        user_id: userId,
-        reward_id: reward.id,
-        reward_title: reward.title,
-        created_at: new Date().toISOString(),
-      });
-    } catch (e) {
-      // FK-ошибка возможна только для кастомных наград, не попавших в БД
-      // (созданных до Phase 6-lite через /add). Золото не возвращаем:
-      // покупка в памяти осталась, журнал — нет; залогируем для разбора.
-      console.error('[wallet] purchase journal insert failed (custom reward not in DB?):', e);
-    }
-
     // Зеркало в память.
     user.gold = result.gold;
     const purchase = {
-      id: Date.now(),
+      id: result.purchaseId,
       user_id: user.id,
       reward_id: reward.id,
       reward_title: reward.title,
-      created_at: new Date().toISOString().slice(0, 10),
+      created_at: createdAt,
       user_name: user.display_name,
     };
     appState.purchases.push(purchase);
+    if (result.achievementId && !appState.userAchievements.some(
+      (achievement) => achievement.user_id === userId && achievement.achievement_id === result.achievementId,
+    )) {
+      appState.userAchievements.push({ user_id: userId, achievement_id: result.achievementId });
+    }
 
     return { ok: true, gold: result.gold };
   } catch (e) {

@@ -39,7 +39,9 @@ export const PUBLIC_API_PREFIXES = [
 
 export function isPublicApiPath(originalUrl: string): boolean {
   const pathOnly = originalUrl.split('?')[0];
-  return PUBLIC_API_PREFIXES.some((p) => pathOnly === p || pathOnly.startsWith(p));
+  return PUBLIC_API_PREFIXES.some((prefix) => (
+    prefix.endsWith('/') ? pathOnly.startsWith(prefix) : pathOnly === prefix
+  ));
 }
 
 /**
@@ -106,6 +108,39 @@ export function requireAdmin(req: AuthedRequest): boolean {
   return !!req.auth?.isAdmin;
 }
 
+/** Возвращает валидный persisted family id или null. Никаких fallback на family 1. */
+export function getUserFamilyId(user: Pick<User, 'family_id'> | undefined): number | null {
+  const familyId = Number(user?.family_id);
+  return Number.isInteger(familyId) && familyId > 0 ? familyId : null;
+}
+
+export function getAuthFamilyId(req: AuthedRequest): number | null {
+  return getUserFamilyId(req.auth?.user);
+}
+
+/** Чтение профиля разрешено только самому пользователю или члену той же семьи. */
+export function canAccessUser(req: AuthedRequest, targetUserId: number): boolean {
+  if (!isAuthEnforced()) return true;
+  if (!req.auth || !Number.isInteger(targetUserId)) return false;
+  if (req.auth.userId === targetUserId) return true;
+
+  const authFamilyId = getAuthFamilyId(req);
+  const target = appState.users.find((user) => user.id === targetUserId);
+  return authFamilyId !== null && getUserFamilyId(target) === authFamilyId;
+}
+
+/** Доступ к семейному ресурсу никогда не расширяется правами global-admin. */
+export function canAccessFamily(req: AuthedRequest, familyId: number): boolean {
+  if (!isAuthEnforced()) return true;
+  return Number.isInteger(familyId) && familyId > 0 && getAuthFamilyId(req) === familyId;
+}
+
+/** Администратор может управлять только своей семьёй. */
+export function canAdministerFamily(req: AuthedRequest, familyId: number): boolean {
+  if (!isAuthEnforced()) return true;
+  return !!req.auth?.isAdmin && canAccessFamily(req, familyId);
+}
+
 /**
  * Мутация от имени targetUserId разрешена, если подписана этим же пользователем
  * или родителем (родители сами не играют — им можно управлять детьми).
@@ -113,5 +148,10 @@ export function requireAdmin(req: AuthedRequest): boolean {
 export function canActOn(req: AuthedRequest, targetUserId: number): boolean {
   if (!isAuthEnforced()) return true;
   if (!req.auth) return false;
-  return req.auth.userId === targetUserId || req.auth.isAdmin;
+  if (req.auth.userId === targetUserId) return true;
+  if (!req.auth.isAdmin) return false;
+
+  const authFamilyId = getAuthFamilyId(req);
+  const target = appState.users.find((user) => user.id === targetUserId);
+  return authFamilyId !== null && getUserFamilyId(target) === authFamilyId;
 }

@@ -11,6 +11,15 @@
   --tg-link: var(--tg-theme-link-color, #38bdf8);
   --tg-button: var(--tg-theme-button-color, #6366f1);
   --tg-button-text: var(--tg-theme-button-text-color, #ffffff);
+  --tg-viewport-stable-height: 100dvh;
+  --tg-safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --tg-safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --tg-safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --tg-safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --tg-content-safe-area-inset-top: var(--tg-safe-area-inset-top);
+  --tg-content-safe-area-inset-bottom: var(--tg-safe-area-inset-bottom);
+  --tg-content-safe-area-inset-left: var(--tg-safe-area-inset-left);
+  --tg-content-safe-area-inset-right: var(--tg-safe-area-inset-right);
   
   /* Telegram HIG Standard Spacing Tokens */
   --tg-card-padding: 16px;
@@ -26,14 +35,23 @@
     -webkit-tap-highlight-color: transparent;
     user-select: none;
     -webkit-user-select: none;
+    min-height: var(--tg-viewport-stable-height);
   }
 
   /* Telegram iOS/Android Safe Area Insets */
   .tg-safe-padding {
-    padding-top: max(12px, env(safe-area-inset-top));
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
-    padding-left: max(16px, env(safe-area-inset-left));
-    padding-right: max(16px, env(safe-area-inset-right));
+    padding-top: max(12px, var(--tg-content-safe-area-inset-top));
+    padding-bottom: max(16px, var(--tg-content-safe-area-inset-bottom));
+    padding-left: max(16px, var(--tg-content-safe-area-inset-left));
+    padding-right: max(16px, var(--tg-content-safe-area-inset-right));
+  }
+
+  .tg-safe-top {
+    padding-top: max(8px, var(--tg-content-safe-area-inset-top));
+  }
+
+  .tg-screen-height {
+    min-height: var(--tg-viewport-stable-height);
   }
 
   /* 44px Touch Target Standard */
@@ -609,5 +627,3 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .animate-drop-toast {
   animation: drop-toast 0.3s ease-out forwards;
 }
-
-

@@ -59,7 +59,7 @@ export const items = pgTable('items', {
   name: text('name').notNull(),
   // Устойчивый slug из initialData (leather_armor_shop, sword...) — ключ
   // визуального маппинга «предмет → образ аватара» (см. SHOP_TORSO_MAP).
-  code: text('code'),
+  code: text('code').unique(),
   type: text('type').notNull(),
   sprite_url: text('sprite_url').notNull(), // Локальный путь к картинке в public/
   layer_z_index: integer('layer_z_index').default(10), // z-index for rendering
@@ -71,6 +71,7 @@ export const items = pgTable('items', {
 
 export const pets = pgTable('pets', {
   id: serial('id').primaryKey(),
+  code: text('code'),
   name: text('name').notNull(),
   sprite_sheet_url: text('sprite_sheet_url').notNull(), // Локальный путь к спрайт-листу
   animation_frames: integer('animation_frames').notNull().default(4), // frames in sprite sheet
@@ -135,10 +136,13 @@ export const completions = pgTable('completions', {
   completed_at: text('completed_at').notNull(),
   completed_at_ts: text('completed_at_ts').notNull(),
   points: integer('points'),
+  effects: jsonb('effects'),
 });
 
 export const rewards = pgTable('rewards', {
   id: serial('id').primaryKey(),
+  // NULL = системная награда из общего каталога; число = кастомная награда семьи.
+  family_id: integer('family_id').references(() => families.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   cost: integer('cost').notNull(),
   reward_type: text('reward_type').notNull().default('personal'),
@@ -170,6 +174,7 @@ export const user_achievements = pgTable('user_achievements', {
 
 export const bosses = pgTable('bosses', {
   id: serial('id').primaryKey(),
+  family_id: integer('family_id').notNull().references(() => families.id, { onDelete: 'cascade' }),
   week_key: text('week_key').notNull(),
   name: text('name').notNull(),
   emoji: text('emoji').notNull(),
@@ -187,6 +192,16 @@ export const challenges = pgTable('challenges', {
   target: integer('target').notNull(),
   bonus: integer('bonus').notNull(),
 });
+
+export const family_challenges = pgTable('family_challenges', {
+  family_id: integer('family_id').notNull().references(() => families.id, { onDelete: 'cascade' }),
+  challenge_code: text('challenge_code').notNull().references(() => challenges.code, { onDelete: 'cascade' }),
+  progress: integer('progress').notNull().default(0),
+  completed: boolean('completed').notNull().default(false),
+  updated_at: timestamp('updated_at').defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.family_id, t.challenge_code] }),
+]);
 
 export const perfect_days = pgTable('perfect_days', {
   user_id: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -208,7 +223,7 @@ export const feed_entries = pgTable('feed_entries', {
 export const referrals = pgTable('referrals', {
   id: serial('id').primaryKey(),
   referrer_id: integer('referrer_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  referee_id: integer('referee_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  referee_id: integer('referee_id').notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
   referee_name: text('referee_name').notNull(),
   created_at: text('created_at').notNull(),
   bonus_gold: integer('bonus_gold').notNull().default(0),

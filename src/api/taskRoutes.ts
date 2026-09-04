@@ -4,37 +4,53 @@
  * POST /toggle — отменить выполнение.
  * POST /add — создать кастомную задачу.
  */
-import { Request, Response, Router } from 'express';
-import { AuthedRequest, canActOn } from '../utils/apiAuth';
+import { Response, Router } from 'express';
+import {
+  type AuthedRequest,
+  canActOn,
+  getAuthFamilyId,
+  getUserFamilyId,
+  isAuthEnforced,
+  requireAdmin,
+} from '../utils/apiAuth';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { appState } from '../services/stateService';
-import { applyTaskCompletion } from '../services/taskService';
-import { persistUserState, removeCompletion, persistBossState } from '../services/progressService';
+import {
+  completeTaskAtomic,
+  undoTaskCompletionAtomic,
+} from '../services/progressService';
 import { notifyParentAboutTaskCompletion } from '../bot/telegramBot';
 import { getTodayStr } from '../lib/dateUtils';
 import { generateId } from '../lib/ids';
 import { checkAllTasksCompleted, updateStreak } from '../services/streakService';
-import { rollSurpriseChest } from '../services/taskGenerator';
 import { isTaskAssignedToUser, assigneeLabel } from '../services/assigneeService';
 import type { Task } from '../types';
+import { sendTelegramPushNotification } from '../services/notificationService';
 
 export const taskRoutes = Router();
 
-taskRoutes.post('/complete', async (req: Request, res: Response) => {
+taskRoutes.post('/complete', async (req: AuthedRequest, res: Response) => {
   try {
-    const { userId, taskId } = req.body;
+    const userId = Number(req.body.userId);
+    const taskId = Number(req.body.taskId);
+    if (!Number.isInteger(userId) || !Number.isInteger(taskId)) {
+      return res.status(400).json({ error: 'Valid userId and taskId are required' });
+    }
     // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
-    const __req = req as any;
-    if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+    if (!canActOn(req, userId)) {
       return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
     }
-    const user = appState.users.find((u) => u.id === Number(userId));
-    const task = appState.tasks.find((t) => t.id === Number(taskId));
+    const user = appState.users.find((u) => u.id === userId);
+    const task = appState.tasks.find((t) => t.id === taskId);
 
     if (!user || !task) {
       return res.status(404).json({ error: 'User or task not found' });
+    }
+    const familyId = getUserFamilyId(user);
+    if (isAuthEnforced() && (familyId === null || task.family_id !== familyId)) {
+      return res.status(403).json({ error: 'Forbidden: task belongs to another family' });
     }
 
     // ARC-02: единый резолв назначенности (userId-модель + legacy fallback)
@@ -45,57 +61,78 @@ taskRoutes.post('/complete', async (req: Request, res: Response) => {
         .json({ error: `Эта задача назначена на (${assigneeName}). Только исполнитель может её выполнить и подтвердить!` });
     }
 
-    const result = applyTaskCompletion(user, task);
-
-    // === Этап 10: emit party:boss_damaged в комнату семьи ===
-    // Видят все члены семьи в реальном времени (без refresh).
-    const ioForParty = req.app.get('io');
-    if (ioForParty && result.bossDamageDiff && result.bossDamageDiff > 0) {
-      const familyId = (user as any).family_id ?? appState.family?.id ?? 1;
-      ioForParty.to(`family:${familyId}`).emit('party:boss_damaged', {
-        attackerId: user.id,
-        attackerName: user.display_name,
-        damage: result.bossDamageDiff,
-        newBossDamage: appState.boss.damage,
-        bossHp: appState.boss.hp,
-        bossDefeated: !!result.bossDefeated,
-        timestamp: Date.now(),
-      });
-      // Дополнительно — глобальный stateUpdate для UI-перерасчёта
-      ioForParty.emit('stateUpdate');
+    const completion = await completeTaskAtomic(user, task);
+    if (completion.status === 'duplicate') {
+      return res.status(409).json({ error: 'Task already completed today' });
     }
-
-    // Update DB (async, non-blocking for now)
-
-    if (result.error) {
-      return res.status(400).json({ error: result.error });
+    if (completion.status === 'not_found') {
+      return res.status(404).json({ error: 'User, task or family game state not found' });
     }
-
-    // Сундук сюрпризов (Этап 8): ~15% шанс на бонус (APPROVED_SPEC 3)
-    const surpriseChest = rollSurpriseChest();
-    let totalGoldEarned = result.goldGain ?? 0;
-    if (surpriseChest) {
-      user.gold += surpriseChest.gold;
-      user.crystals = (user.crystals || 0) + (surpriseChest.crystals || 0);
-      totalGoldEarned += surpriseChest.gold;
+    if (completion.status === 'db_error' || !completion.result) {
+      return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
     }
+    const result = completion.result;
+    const surpriseChest = completion.surpriseChest ?? null;
+    const totalGoldEarned = completion.totalGoldEarned ?? result.goldGain;
 
     // Check if all tasks completed for today → update streak
     const todayStr = getTodayStr();
     const allCompleted = await checkAllTasksCompleted(user.id, todayStr);
     if (allCompleted) {
       const io = req.app.get('io');
-      await updateStreak(user.id, todayStr, io);
+      try {
+        await updateStreak(user.id, todayStr, io);
+      } catch (error) {
+        // Completion уже зафиксирован атомарно. Не предлагаем клиенту повторить
+        // запрос и тем самым не маскируем успешную награду как общий 500.
+        console.error('[tasks] streak update failed after committed completion:', error);
+      }
     }
 
-    // Фаза 6: кошелёк/стрик — один снимок в БД ПОСЛЕ всех мутаций
-    // (комплит, сундук, стрик), вместо трёх разрозненных апдейтов.
-    await persistUserState(user);
+    // События и внешние уведомления отправляем только после COMMIT.
+    const ioForParty = req.app.get('io');
+    if (ioForParty && familyId !== null && result.bossDamageDiff > 0) {
+      ioForParty.to(`family:${familyId}`).emit('party:boss_damaged', {
+        attackerId: user.id,
+        attackerName: user.display_name,
+        damage: result.bossDamageDiff,
+        newBossDamage: result.boss.damage,
+        bossHp: result.boss.hp,
+        bossDefeated: !!result.bossDefeated,
+        timestamp: Date.now(),
+      });
+      ioForParty.to(`family:${familyId}`).emit('stateUpdate');
+    }
 
-    // Simulate sending Telegram notification to parent for approval
-    // In real app, we use actual Telegram IDs. Here we pass a mock parentId.
-    const parentTelegramId = 123456789;
-    notifyParentAboutTaskCompletion(parentTelegramId, task.id, task.title, user.display_name).catch(console.error);
+    const familyUsers = appState.users.filter((candidate) => candidate.family_id === user.family_id);
+    const notificationJobs: Promise<unknown>[] = [
+      sendTelegramPushNotification(
+        `<b>${user.display_name}</b> выполнил(а) задачу <b>"${task.title}"</b> (+${result.goldGain} золота, +${result.xpGain} опыта)!`,
+      ),
+    ];
+    if (result.bossDefeated) {
+      notificationJobs.push(sendTelegramPushNotification(
+        `<b>СЕМЕЙНЫЙ БОСС ПОВЕРЖЕН!</b>\nГерои ${familyUsers.map((candidate) => candidate.display_name).join(' и ')} разгромили босса <b>${result.bossDefeated.name}</b>! Вся семья получает по +20 золота!`,
+      ));
+    }
+    if (result.challengeCompleted) {
+      notificationJobs.push(sendTelegramPushNotification(
+        `<b>СЕМЕЙНЫЙ ЧЕЛЛЕНДЖ ВЫПОЛНЕН!</b>\nСемейный квест <b>"${result.challengeCompleted.title}"</b> завершён. Герой <b>${user.display_name}</b> принёс +${result.challengeCompleted.bonus} золота!`,
+      ));
+    }
+
+    // Уведомляем только родителей той же семьи; тестового Telegram ID здесь быть не должно.
+    if (familyId !== null) {
+      const parents = appState.users.filter(
+        (candidate) =>
+          getUserFamilyId(candidate) === familyId &&
+          (candidate.is_admin || candidate.family_role === 'parent'),
+      );
+      notificationJobs.push(...parents.map((parent) =>
+        notifyParentAboutTaskCompletion(parent.telegram_id, task.id, task.title, user.display_name),
+      ));
+    }
+    void Promise.allSettled(notificationJobs);
 
     // Новый формат ответа (Этап 8) + старые поля для обратной совместимости
     res.json({
@@ -131,58 +168,73 @@ taskRoutes.post('/complete', async (req: Request, res: Response) => {
   }
 });
 
-taskRoutes.post('/toggle', async (req: Request, res: Response) => {
-  const { userId, taskId } = req.body;
-  const user = appState.users.find((u) => u.id === Number(userId));
+taskRoutes.post('/toggle', async (req: AuthedRequest, res: Response) => {
+  const userId = Number(req.body.userId);
+  const taskId = Number(req.body.taskId);
+  if (!Number.isInteger(userId) || !Number.isInteger(taskId)) {
+    return res.status(400).json({ error: 'Valid userId and taskId are required' });
+  }
+  const user = appState.users.find((u) => u.id === userId);
   // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
-  const __req = req as any;
-  if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+  if (!canActOn(req, userId)) {
     return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
   }
-  const task = appState.tasks.find((t) => t.id === Number(taskId));
+  const task = appState.tasks.find((t) => t.id === taskId);
 
-  if (task && user && !isTaskAssignedToUser(task, user)) {
+  if (!user || !task) return res.status(404).json({ error: 'User or task not found' });
+  const familyId = getUserFamilyId(user);
+  if (isAuthEnforced() && (familyId === null || task.family_id !== familyId)) {
+    return res.status(403).json({ error: 'Forbidden: task belongs to another family' });
+  }
+
+  if (!isTaskAssignedToUser(task, user)) {
     return res.status(403).json({ error: 'Вы можете отменять отметку только своих задач!' });
   }
 
-  const todayStr = getTodayStr();
-  const idx = appState.completions.findIndex(
-    (c) => c.user_id === Number(userId) && c.task_id === Number(taskId) && c.completed_at === todayStr
-  );
-
-  if (idx !== -1) {
-    appState.completions.splice(idx, 1);
-    if (user && task) {
-      const goldLoss = task.points + (user.class === 'warrior' && task.points >= 4 ? 1 : 0);
-      const xpLoss = user.class === 'mage' ? Math.round(task.points * 1.2 * 10) : task.points * 10;
-      user.gold = Math.max(0, (user.gold || 0) - goldLoss);
-      user.xp = Math.max(0, (user.xp || 0) - xpLoss);
-      if (!appState.boss.defeated) {
-        appState.boss.damage = Math.max(0, appState.boss.damage - task.points);
-      }
-    }
-    // Фаза 6: отмена в БД; кошелёк и босс — снимком после мутаций.
-    const removal = await removeCompletion(Number(userId), Number(taskId), todayStr);
-    if (user && (removal.status === 'deleted' || removal.status === 'missing')) {
-      await persistUserState(user);
-      await persistBossState();
-    }
-    const io = req.app.get('io');
-    if (io) io.emit('stateUpdate');
-    return res.json({ success: true, action: 'uncompleted' });
+  const undo = await undoTaskCompletionAtomic(user, task);
+  if (undo.status === 'missing') return res.status(404).json({ error: 'Completion not found' });
+  if (undo.status === 'not_latest') {
+    return res.status(409).json({ error: 'Можно отменить только последнее выполнение в семье' });
   }
-
-  res.status(404).json({ error: 'Completion not found' });
+  if (undo.status === 'effects_missing') {
+    return res.status(409).json({ error: 'Старую отметку нельзя безопасно отменить' });
+  }
+  if (undo.status === 'effects_in_use') {
+    return res.status(409).json({ error: 'Полученный питомец уже использован; отмена недоступна' });
+  }
+  if (undo.status === 'dependent_reward') {
+    return res.status(409).json({ error: 'За это выполнение уже выдана награда серии; отмена недоступна' });
+  }
+  if (undo.status === 'insufficient_balance') {
+    return res.status(409).json({ error: 'Сначала восстановите потраченную награду' });
+  }
+  if (undo.status === 'db_error') {
+    return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
+  }
+  const io = req.app.get('io');
+  if (io && familyId !== null) io.to(`family:${familyId}`).emit('stateUpdate');
+  return res.json({ success: true, action: 'uncompleted' });
 });
 
-taskRoutes.post('/add', async (req: Request, res: Response) => {
-  const { title, points, assignee, task_type } = req.body;
+taskRoutes.post('/add', async (req: AuthedRequest, res: Response) => {
+  if (!requireAdmin(req)) {
+    return res.status(403).json({ error: 'Forbidden: family admin required' });
+  }
+  const { title, points, assignee, task_type, actorId } = req.body;
   if (!title || !points) {
     return res.status(400).json({ error: 'Title and points required' });
   }
 
+  const devActor = appState.users.find((user) => user.id === Number(actorId));
+  const familyId = getAuthFamilyId(req)
+    ?? (!isAuthEnforced() ? getUserFamilyId(devActor) ?? appState.family?.id ?? null : null);
+  if (familyId === null) {
+    return res.status(400).json({ error: 'Family is required' });
+  }
+
   const draft: Task = {
     id: generateId(),
+    family_id: familyId,
     code: `custom_${generateId()}`,
     title: String(title).trim(),
     points: Math.max(1, Math.min(10, Number(points))),
@@ -192,13 +244,12 @@ taskRoutes.post('/add', async (req: Request, res: Response) => {
   };
 
   // Фаза 6: задача живёт в БД (FK completions.task_id). id зеркала = серийный
-  // id БД; при сбое БД (DEMO MODE) — откат к старому поведению (id Date.now).
+  // id БД; только локальный DEMO без БД может продолжить с временным id.
   try {
-    const familyRow = await db.select().from(schema.families).limit(1);
     const [row] = await db
       .insert(schema.tasks)
       .values({
-        family_id: familyRow[0]?.id ?? 1,
+        family_id: familyId,
         code: draft.code,
         title: draft.title,
         description: '',
@@ -209,11 +260,15 @@ taskRoutes.post('/add', async (req: Request, res: Response) => {
       })
       .returning({ id: schema.tasks.id });
     draft.id = row.id;
-    draft.code = `custom_${row.id}`;
   } catch (e) {
-    console.error('[Phase6] custom task insert failed (DEMO MODE без БД?):', e);
+    console.error('[Phase6] custom task insert failed:', e);
+    if (isAuthEnforced()) {
+      return res.status(500).json({ error: 'Ошибка базы данных, попробуйте ещё раз' });
+    }
   }
 
   appState.tasks.push(draft);
+  const io = req.app.get('io');
+  if (io) io.to(`family:${familyId}`).emit('stateUpdate');
   res.json({ success: true, task: draft });
 });

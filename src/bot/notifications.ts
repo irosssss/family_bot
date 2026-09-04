@@ -5,38 +5,10 @@
  */
 import { bot } from './telegramBot';
 import { getDailyLimit, getRequiredCount } from '../services/taskGenerator';
+import type { TodayTasksData } from '../services/todayTasksService';
 
 // Rate limiting: минимум 1 минута между уведомлениями одному пользователю
 const sentNotifications = new Map<number, number>();
-
-/** DTO задачи из GET /api/users/:id/tasks/today */
-export interface TodayTaskDTO {
-  id: number;
-  code: string;
-  title: string;
-  points: number;
-  category: string | null;
-  task_type: string;
-  is_required: boolean;
-  done: boolean;
-  crystals: number;
-}
-
-/** Ответ API tasks/today */
-export interface TodayTasksData {
-  date: string;
-  user: { id: number; display_name: string; age?: number };
-  required: TodayTaskDTO[];
-  choice: TodayTaskDTO[];
-  quests: TodayTaskDTO[];
-  summary: {
-    total: number;
-    required_done: number;
-    required_total: number;
-    all_required_done: boolean;
-    progress_percent: number;
-  };
-}
 
 async function sendWithRateLimit(telegramId: number, message: string, options?: any) {
   const lastSent = sentNotifications.get(telegramId);

@@ -29,7 +29,9 @@ export function validateTelegramWebAppData(initData: string, botToken: string): 
 
     const hashPair = initData.split('&').find((p) => p.startsWith('hash='));
     const hash = hashPair ? hashPair.slice('hash='.length) : null;
-    if (!hash) return false;
+    // Buffer.from(value, 'hex') молча отбрасывает не-hex хвост. Без строгой
+    // проверки строка "<валидный hash>broken" проходила timingSafeEqual.
+    if (!hash || !/^[a-f0-9]{64}$/i.test(hash)) return false;
     
     const secretKey = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest();
     const computedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
@@ -53,7 +55,9 @@ export function parseInitDataUser(initData: string): { id: number; [key: string]
     const urlParams = new URLSearchParams(initData);
     const userStr = urlParams.get('user');
     if (!userStr) return null;
-    const parsed = JSON.parse(decodeURIComponent(userStr));
+    // URLSearchParams.get уже декодирует значение. Повторный decodeURIComponent
+    // ломал корректные имена, содержащие обычный символ "%".
+    const parsed = JSON.parse(userStr);
     if (!parsed || typeof parsed !== 'object' || !Number.isFinite(Number((parsed as any).id))) {
       return null;
     }
@@ -92,7 +96,7 @@ export function telegramAuthMiddleware(req: any, res: any, next: any) {
     const urlParams = new URLSearchParams(initData);
     const userStr = urlParams.get('user');
     if (userStr) {
-      req.telegramUser = JSON.parse(decodeURIComponent(userStr));
+      req.telegramUser = JSON.parse(userStr);
     }
   } catch (e) {
     console.warn('Could not parse user from initData');

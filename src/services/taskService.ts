@@ -1,24 +1,24 @@
 /**
  * Сервис завершения задач — ядро игровой логики.
- * Перенесён из server.ts (Фаза 2) без изменения логики.
- *
- * Известная проблема: проверка существующего completion (race condition)
- * и несколько мутаций appState без блокировок — будет исправлено в Фазе 6
- * переходом на транзакции БД.
+ * Рассчитывает игровые эффекты и обновляет in-memory зеркало. Транзакционная
+ * оркестрация БД выполняется в progressService.completeTaskAtomic.
  */
 import { appState } from './stateService';
 import { getTodayStr, getNowTimestamp } from '../lib/dateUtils';
-import { sendTelegramPushNotification } from './notificationService';
 import { checkAchievements } from './achievementService';
 import { checkChallenge } from './challengeService';
 import { generateId } from '../lib/ids';
 import { getStreakMultiplier } from './streakService';
 import { calculateReward } from './taskGenerator';
 import { decayOnSuccess, valueColor } from './habitService';
-import { persistCompletion } from './progressService';
 import type { Completion, Pet, Task, User } from '../types';
+import { getFamilyGameState } from './familyGameStateService';
 
-export function applyTaskCompletion(user: User, task: Task) {
+export function applyTaskCompletion(user: User, task: Task, completionSeed?: Completion) {
+  const familyId = Number(user.family_id);
+  const familyGameState = getFamilyGameState(familyId);
+  if (!familyGameState) return { error: 'Family game state is unavailable' };
+  const boss = familyGameState.boss;
   const todayStr = getTodayStr();
   const existing = appState.completions.find(
     (c) => c.user_id === user.id && c.task_id === task.id && c.completed_at === todayStr
@@ -28,11 +28,7 @@ export function applyTaskCompletion(user: User, task: Task) {
     return { error: 'Task already completed today' };
   }
 
-  const firstToday = !appState.completions.some(
-    (c) => c.user_id === user.id && c.completed_at === todayStr
-  );
-
-  const completion: Completion = {
+  const completion: Completion = completionSeed ?? {
     id: generateId(),
     user_id: user.id,
     task_id: task.id,
@@ -40,11 +36,6 @@ export function applyTaskCompletion(user: User, task: Task) {
     completed_at_ts: getNowTimestamp(),
   };
   appState.completions.push(completion);
-
-  // Streaks (старая логика, теперь управляется через streakService)
-  if (firstToday) {
-    user.current_streak = (user.current_streak || 0) + 1;
-  }
 
   // Streak Bonus Multiplier
   const streakMultiplier = getStreakMultiplier(user.current_streak || 0);
@@ -84,7 +75,7 @@ export function applyTaskCompletion(user: User, task: Task) {
 
   // === Этап 9: модификатор золота при истощении семьи ===
   // Если family.exhausted_until > now → -15% золота
-  const family = appState.family;
+  const family = familyGameState.family;
   const isFamilyExhausted = !!(family?.exhausted_until && new Date(family.exhausted_until) > new Date());
   let exhaustedModifier = 0;
   if (isFamilyExhausted) {
@@ -102,24 +93,25 @@ export function applyTaskCompletion(user: User, task: Task) {
 
   // Boss Damage
   let bossDefeated = null;
-  const oldBossDamage = appState.boss.damage;
-  if (!appState.boss.defeated) {
-    appState.boss.damage += task.points;
-    if (appState.boss.damage >= appState.boss.hp) {
-      appState.boss.defeated = 1;
+  const oldBossDamage = boss.damage;
+  if (!boss.defeated) {
+    boss.damage += task.points;
+    if (boss.damage >= boss.hp) {
+      boss.defeated = 1;
       // Award +20 gold to both players!
-      for (const u of appState.users) {
+      for (const u of appState.users.filter((candidate) => candidate.family_id === user.family_id)) {
         u.gold += 20;
       }
-      bossDefeated = { ...appState.boss };
+      bossDefeated = { ...boss };
     }
   }
-  const bossDamageDiff = appState.boss.damage - oldBossDamage;
+  const bossDamageDiff = boss.damage - oldBossDamage;
 
   // Check Perfect Day: all scheduled tasks for user done today
   const currentWeekday = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
   const userScheduledTasks = appState.tasks.filter(
     (t) =>
+      t.family_id === user.family_id &&
       (t.assignee === user.assignee || t.assignee === 'both') &&
       (t.task_type === 'daily' || (t.task_type === 'weekly' && t.day_of_week === currentWeekday))
   );
@@ -164,31 +156,8 @@ export function applyTaskCompletion(user: User, task: Task) {
   const newAchievements = checkAchievements(user.id);
   const challengeResult = checkChallenge(user.id);
 
-  // Send Telegram Push Notification
-  sendTelegramPushNotification(
-    `<b>${user.display_name}</b> выполнил(а) задачу <b>"${task.title}"</b> (+${goldGain} золота, +${xpGain} опыта)!`
-  );
-
-  if (bossDefeated) {
-    sendTelegramPushNotification(
-      `<b>СЕМЕЙНЫЙ БОСС ПОВЕРЖЕН!</b>\nГерои ${appState.users.map((u) => u.display_name).join(' и ')} разгромили босса <b>${bossDefeated.name}</b>! Вся семья получает по +20 золота!`
-    );
-  }
-
-  // Фаза 6: завершение и побочные эффекты — в PostgreSQL (память — зеркало).
-  // Fire-and-forget: POST /complete допишет кошелёк через persistUserState.
-  void persistCompletion({
-    completion,
-    task,
-    perfect,
-    pet: foundPet ? { id: foundPet.id } : null,
-    achievements: newAchievements.map((a: any) => ({ id: a.id })),
-    bossDefeated: !!bossDefeated,
-  }).then((dbId) => {
-    if (dbId !== null) completion.id = dbId; // серийный id БД вместо Date.now()
-  });
-
   return {
+    completion,
     goldGain,
     xpGain,
     crystalsGain,
@@ -200,6 +169,7 @@ export function applyTaskCompletion(user: User, task: Task) {
     achievements: newAchievements,
     challengeCompleted: challengeResult,
     bossDamageDiff,
+    boss: { ...boss },
     isFamilyExhausted,
     exhaustedModifier,
   };

@@ -19,12 +19,10 @@
  * HTTP-ответа (вебхук Telegram так не умеет — старый код в /stars молча не работал).
  */
 import { Request, Response, Router } from 'express';
-import { eq } from 'drizzle-orm';
 import { bot, telegramWebhookHandler } from '../bot/telegramBot';
-import { creditPurchase } from './starsRoutes';
+import { creditPurchaseAtomic, SKUS } from './starsRoutes';
 import { config } from '../config';
-import { db } from '../db';
-import * as schema from '../db/schema';
+import { appState } from '../services/stateService';
 
 export const webhookRoutes = Router();
 
@@ -37,39 +35,19 @@ function webhookAuthorized(req: Request): boolean {
   return req.headers['x-telegram-bot-api-secret-token'] === WEBHOOK_SECRET;
 }
 
-// Дедупликация (DAT-01 FIX): главный барьер — таблица payments с UNIQUE(charge_id)
-// в PostgreSQL (переживает рестарты). In-memory Set остаётся быстрым пре-фильтром.
-const processedCharges = new Set<string>();
-
-/**
- * Попытка записать платёж в БД ДО начисления. Возвращает false, если charge_id
- * уже существует (повторная доставка) — начисление не производится.
- */
-async function claimCharge(chargeId: string, userId: number, sku: string, amount: number): Promise<boolean> {
+function invoicePayloadIsValid(updatePart: any): boolean {
   try {
-    // ON CONFLICT DO NOTHING: гонка двух повторных доставок решается на уровне БД
-    const inserted = await db.insert(schema.payments)
-      .values({ charge_id: chargeId, user_id: userId, sku, amount, status: 'pending' })
-      .onConflictDoNothing({ target: schema.payments.charge_id })
-      .returning({ id: schema.payments.id });
-    return inserted.length > 0;
-  } catch (e) {
-    // БД недоступна (DEMO-режим): фолбэк на in-memory Set
-    console.warn('[Stars] payments table unavailable, fallback to in-memory dedup:', e instanceof Error ? e.message : e);
-    return !processedCharges.has(chargeId);
-  }
-}
-
-/** Пометить платёж исполненным после успешного начисления. */
-async function markChargeCredited(chargeId: string): Promise<void> {
-  try {
-    await db.update(schema.payments)
-      .set({ status: 'credited' })
-      .where(eq(schema.payments.charge_id, chargeId));
+    const parsed = JSON.parse(String(updatePart.invoice_payload || ''));
+    const user = appState.users.find((candidate) => candidate.id === Number(parsed.userId));
+    const sku = SKUS[String(parsed.sku || '')];
+    return !!user
+      && user.telegram_id === Number(updatePart.from?.id)
+      && user.family_role === 'parent'
+      && updatePart.currency === 'XTR'
+      && Number(updatePart.total_amount) === sku?.stars;
   } catch {
-    // DEMO: таблицы нет — не критично
+    return false;
   }
-  processedCharges.add(chargeId);
 }
 
 /**
@@ -89,8 +67,13 @@ async function handlePaymentUpdate(update: any): Promise<void> {
       return;
     }
     try {
-      await bot.answerPreCheckoutQuery(preCheckout.id, true);
-      console.log(`[Stars] pre_checkout ${preCheckout.id} approved`);
+      const valid = invoicePayloadIsValid(preCheckout);
+      await bot.answerPreCheckoutQuery(
+        preCheckout.id,
+        valid,
+        valid ? undefined : { error_message: 'Счёт устарел или не соответствует пользователю.' },
+      );
+      console.log(`[Stars] pre_checkout ${preCheckout.id} ${valid ? 'approved' : 'rejected'}`);
     } catch (e) {
       console.error('[Stars] answerPreCheckoutQuery failed:', e);
     }
@@ -98,13 +81,8 @@ async function handlePaymentUpdate(update: any): Promise<void> {
   }
 
   // 2. Successful payment: дедупликация → валюта → payload → начисление.
-  // 2a. Telegram может повторно доставить то же обновление (быстрый пре-фильтр;
-  //     главный барьер — claimCharge в БД).
   const chargeId = String(sp.provider_payment_charge_id || sp.telegram_payment_charge_id || '');
-  if (chargeId && processedCharges.has(chargeId)) {
-    console.warn(`[Stars] duplicate delivery ignored: ${chargeId}`);
-    return;
-  }
+  if (!chargeId) return;
 
   // 2b. Валюта — только Stars (XTR).
   if (sp.currency !== 'XTR') {
@@ -121,24 +99,18 @@ async function handlePaymentUpdate(update: any): Promise<void> {
     const userId = Number(parsed.userId);
     const sku = String(parsed.sku || '');
 
-    // 2b'. DAT-01 FIX: сначала занимаем charge_id в БД (UNIQUE) —
-    // повторная доставка отсекается ДО начисления.
-    if (chargeId) {
-      const claimed = await claimCharge(chargeId, userId, sku, Number(sp.total_amount) || 0);
-      if (!claimed) {
-        console.warn(`[Stars] duplicate charge ignored (DB): ${chargeId}`);
-        return;
-      }
-    }
-
-    const credited = creditPurchase(userId, sku, Number(sp.total_amount) || -1);
-    if (credited) {
-      if (chargeId) await markChargeCredited(chargeId);
-      console.log(`[Stars] Начислено ${credited.gems} кристаллов пользователю ${userId}` +
-        (credited.proDays ? `, Family Pro на ${credited.proDays} дней` : ''));
-    } else {
-      // Неизвестный SKU ИЛИ сумма не совпала с прайсом — начисления нет.
-      console.error(`[Stars] payment REJECTED: unknown SKU or amount mismatch (${sku}, ${sp.total_amount} XTR)`);
+    const credited = await creditPurchaseAtomic({
+      chargeId,
+      userId,
+      payerTelegramId: Number(update?.message?.from?.id),
+      sku,
+      amount: Number(sp.total_amount) || -1,
+      currency: String(sp.currency || ''),
+    });
+    if (credited.status === 'credited') {
+      console.log(`[Stars] credited ${credited.gems} crystals to user ${userId}`);
+    } else if (credited.status !== 'duplicate') {
+      console.error(`[Stars] payment rejected (${credited.status}): ${sku}, ${sp.total_amount} XTR`);
     }
   } catch (e) {
     console.error('[Stars] payload parse error:', e);

@@ -8,8 +8,8 @@
  *   10% — Редкое яйцо питомца (даёт случайное золотое/теневое яйцо)
  */
 
-import { Request, Response, Router } from 'express';
-import { AuthedRequest, canActOn } from '../utils/apiAuth';
+import { Response, Router } from 'express';
+import { type AuthedRequest, canActOn } from '../utils/apiAuth';
 import { db } from '../db';
 import * as schema from '../db/schema';
 import { eq } from 'drizzle-orm';
@@ -69,58 +69,61 @@ function pickArmoireGear(): string | undefined {
 }
 
 /** Открытие сундука */
-armoireRoutes.post('/open', async (req: Request, res: Response) => {
+armoireRoutes.post('/open', async (req: AuthedRequest, res: Response) => {
   try {
     const { userId } = req.body;
     // SEC-03 FIX: мутация от чужого имени запрещена (родителю можно управлять детьми)
-    const __req = req as any;
-    if (process.env.NODE_ENV === 'production' && !canActOn(__req, Number(userId))) {
+    if (!canActOn(req, Number(userId))) {
       return res.status(403).json({ error: 'Forbidden: cannot act on behalf of another user' });
     }
     const user = appState.users.find((u) => u.id === Number(userId));
     if (!user) return res.status(404).json({ error: 'User not found' });
     if (user.family_role === 'parent') return res.status(403).json({ error: 'Родители не играют' });
 
-    if ((user.gold ?? 0) < ARMOIRE_COST) {
+    const persisted = await db.transaction(async (tx) => {
+      const [dbUser] = await tx.select().from(schema.users)
+        .where(eq(schema.users.id, user.id)).for('update').limit(1);
+      if (!dbUser) return { status: 'missing' as const };
+      if (dbUser.family_role === 'parent') return { status: 'parent' as const };
+      if (dbUser.gold < ARMOIRE_COST) return { status: 'insufficient' as const };
+
+      const drop = rollDrop();
+      let gold = dbUser.gold - ARMOIRE_COST;
+      let xp = dbUser.xp;
+      let equipped = { ...((dbUser.habitica_equipped as Record<string, unknown> | null) || {}) };
+      if (drop.type === 'xp' && drop.xp) {
+        xp += drop.xp;
+      } else if (drop.type === 'food' && drop.goldBack) {
+        gold += drop.goldBack;
+      } else if (drop.type === 'gear' && drop.gearUrl && !dbUser.custom_avatar_url) {
+        const match = drop.gearUrl.match(/armor_\w+_(\d)\.png/);
+        if (match) equipped = { ...equipped, armorTier: Number(match[1]) };
+      } else if (drop.type === 'egg') {
+        const freeEggs = Number(equipped.free_eggs || 0) + 1;
+        equipped = { ...equipped, free_eggs: freeEggs };
+      }
+
+      await tx.update(schema.users).set({
+        gold,
+        xp,
+        habitica_equipped: equipped,
+      }).where(eq(schema.users.id, user.id));
+      return { status: 'opened' as const, drop, gold, xp, equipped };
+    });
+
+    if (persisted.status === 'missing') return res.status(404).json({ error: 'User not found' });
+    if (persisted.status === 'parent') return res.status(403).json({ error: 'Родители не играют' });
+    if (persisted.status === 'insufficient') {
       return res.status(400).json({ error: `Недостаточно золота (нужно ${ARMOIRE_COST})` });
     }
 
-    user.gold -= ARMOIRE_COST;
-    const drop = rollDrop();
-
-    if (drop.type === 'xp' && drop.xp) {
-      user.xp += drop.xp;
-      await db.update(schema.users).set({ xp: user.xp })
-        .where(eq(schema.users.id, user.id)).catch(() => {});
-    } else if (drop.type === 'food' && drop.goldBack) {
-      user.gold += drop.goldBack;
-      await db.update(schema.users).set({ gold: user.gold })
-        .where(eq(schema.users.id, user.id)).catch(() => {});
-    } else if (drop.type === 'gear' && drop.gearUrl && !user.custom_avatar_url) {
-      // Сохраняем найденный сет как habitica_equipped.armorTier
-      const m = drop.gearUrl.match(/armor_\w+_(\d)\.png/);
-      if (m) {
-        const he = { ...((user as any).habitica_equipped || {}), armorTier: Number(m[1]) };
-        (user as any).habitica_equipped = he;
-        await db.update(schema.users).set({ habitica_equipped: he })
-          .where(eq(schema.users.id, user.id)).catch(() => {});
-      }
-    } else if (drop.type === 'egg') {
-      // Яйцо добавляется как "кредит" — флаг в habitica_equipped.free_eggs
-      const he = (user as any).habitica_equipped || {};
-      he.free_eggs = (he.free_eggs || 0) + 1;
-      (user as any).habitica_equipped = he;
-      await db.update(schema.users).set({ habitica_equipped: he })
-        .where(eq(schema.users.id, user.id)).catch(() => {});
-    }
-
-    // Золото списываем всегда (кроме food где есть возврат)
-    await db.update(schema.users).set({ gold: user.gold })
-      .where(eq(schema.users.id, user.id)).catch(() => {});
+    user.gold = persisted.gold;
+    user.xp = persisted.xp;
+    (user as any).habitica_equipped = persisted.equipped;
 
     res.json({
       success: true,
-      drop,
+      drop: persisted.drop,
       gold: user.gold,
       xp: user.xp,
     });

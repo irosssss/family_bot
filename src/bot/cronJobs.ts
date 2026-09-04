@@ -11,9 +11,8 @@ import { bot } from './telegramBot';
 import { appState } from '../services/stateService';
 import { getTodayStr } from '../lib/dateUtils';
 import { getRemainingTasks } from '../services/streakService';
-import { sendMorningTaskDigest, sendEveningReminder, TodayTasksData } from './notifications';
-
-const API_BASE = process.env.API_URL || 'http://localhost:3000';
+import { sendMorningTaskDigest, sendEveningReminder } from './notifications';
+import { buildTodayTasksData } from '../services/todayTasksService';
 
 /**
  * Таймзона для cron-расписаний.
@@ -60,25 +59,7 @@ export function initializeCronJobs() {
  * (не 'both'). В текущей схеме Миша и Регина оба children.
  */
 function getChildUsers() {
-  return appState.users;
-}
-
-/**
- * Получить задачи на сегодня через API (единый источник правды — backend).
- */
-async function fetchTodayTasks(userId: number): Promise<TodayTasksData | null> {
-  try {
-    const response = await fetch(`${API_BASE}/api/users/${userId}/tasks/today`);
-    if (!response.ok) {
-      console.warn(`[Cron] tasks/today for user ${userId} returned ${response.status}`);
-      return null;
-    }
-    const json = await response.json();
-    return json.data as TodayTasksData;
-  } catch (error) {
-    console.error(`[Cron] Failed to fetch tasks/today for user ${userId}:`, error);
-    return null;
-  }
+  return appState.users.filter((user) => user.family_role !== 'parent');
 }
 
 /**
@@ -92,7 +73,7 @@ async function sendMorningDigestToChildren() {
 
   for (const user of getChildUsers()) {
     try {
-      const data = await fetchTodayTasks(user.id);
+      const data = buildTodayTasksData(user.id);
       if (!data) continue;
 
       await sendMorningTaskDigest(user.telegram_id, data, user.current_streak);
@@ -115,7 +96,7 @@ async function sendEveningReminderToChildren() {
 
   for (const user of getChildUsers()) {
     try {
-      const data = await fetchTodayTasks(user.id);
+      const data = buildTodayTasksData(user.id);
       if (!data) continue;
 
       await sendEveningReminder(user.telegram_id, data, user.current_streak);
@@ -139,7 +120,7 @@ async function sendDailyStreakReminder() {
 
   const todayStr = getTodayStr();
 
-  for (const user of appState.users) {
+  for (const user of getChildUsers()) {
     try {
       // Получаем невыполненные задачи через streakService
       const remainingTasks = await getRemainingTasks(user.id, todayStr);
