@@ -4,6 +4,7 @@ import type { openTargetDatabase } from '../db/database';
 import { accounts } from '../db/schema/foundation';
 import { accessLaunches, externalIdentities, identityExchangePolicy, identityExchangeReceipts } from '../db/schema/access';
 import { sessionContexts } from '../db/schema/familyAccess';
+import { launchConsumptions } from '../db/schema/adultProtection';
 import { ContractError, closedObject, reject } from '../contracts/errors';
 import { newEntityId, revision } from '../contracts/ids';
 import { instant, key } from '../contracts/foundation';
@@ -172,7 +173,8 @@ export function createIdentityExchangeService(db: Database, input: IdentityExcha
     if (!stored || !identity || !account) reject('access.launch_invalid');
     const launch = accessRecordToDto('access_launch', stored), time = now();
     const [consumed] = await tx.select({ id: sessionContexts.id }).from(sessionContexts).where(eq(sessionContexts.origin_launch_id,launch.id));
-    if (consumed || launch.revoked_at !== null || identity.revoked_at !== null || account.status !== 'active'
+    const [receipt] = await tx.select({ id: launchConsumptions.id }).from(launchConsumptions).where(eq(launchConsumptions.launch_id,launch.id));
+    if (consumed || receipt || launch.revoked_at !== null || identity.revoked_at !== null || account.status !== 'active'
       || time >= launch.expires_at || time < launch.created_at || time < head.updated_at) reject('access.launch_invalid');
     return Object.freeze({ launch_id: launch.id, account_id: launch.account_id,
       external_identity_id: launch.external_identity_id, provider: 'telegram' as const, subject: identity.subject, expires_at: launch.expires_at });

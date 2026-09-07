@@ -4,6 +4,7 @@ import type { openTargetDatabase } from '../db/database';
 import { accounts,families,memberProfiles,players } from '../db/schema/foundation';
 import { externalIdentities } from '../db/schema/access';
 import { accessBindings,sessionContexts,sessionTokenVerifiers } from '../db/schema/familyAccess';
+import { familySecurityPolicy,launchConsumptions } from '../db/schema/adultProtection';
 import { familyAccessRecordToDto,parseFamilyAccessRecord } from '../contracts/familyAccess';
 import { ContractError,closedObject,reject } from '../contracts/errors';
 import { entityId,newEntityId,revision } from '../contracts/ids';
@@ -20,14 +21,17 @@ export interface FamilySessionConfig {
 export interface FamilyProtectionHooks {
   /** Trusted server implementation only. G03-D default denies all adult/managed access. */
   readonly verifyRevision: (tx: FamilyTransaction,proof: { family_id: string; binding_id: string; profile_id: string; revision: number }) => Promise<boolean>;
-  readonly confirmSensitiveAction: (tx: FamilyTransaction,proof: { actor: FamilyActor; action: 'revoke_session' | 'revoke_binding'; target_id: string }) => Promise<boolean>;
+  readonly confirmSensitiveAction: (tx: FamilyTransaction,proof: { actor: FamilyActor; action: 'revoke_session' | 'revoke_binding'; target_id: string;
+    expected_revision: number; confirmation: unknown }) => Promise<boolean | 'replayed'>;
+  readonly recordActivity?: (tx: FamilyTransaction,actor: FamilyActor) => Promise<void>;
 }
 const denyProtection: FamilyProtectionHooks = { verifyRevision: async () => false,confirmSensitiveAction: async () => false };
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
 export const familyTokenVerifier = (bearer: string) => hash(`family_session_v1:${bearer}`);
 export const familyPolicyDigest = (cfg: FamilySessionConfig) => hash(JSON.stringify([cfg.policyId,cfg.policyRevision,cfg.ownChildTtlSeconds,cfg.retentionId,cfg.retentionRevision]));
 const errors = new Set(['family.access_denied','family.session_invalid','family.binding_unavailable','family.context_changed',
-  'family.protection_required','family.entropy_unavailable','family.adult_lifecycle_required','access.launch_invalid','access.policy_mismatch']);
+  'family.protection_required','family.entropy_unavailable','family.adult_lifecycle_required','access.launch_invalid','access.policy_mismatch',
+  'adult.proof_invalid','adult.policy_mismatch','adult.retry_later','adult.operation_conflict']);
 
 export function createFamilySessionService(db: Database, exchange: ReturnType<typeof createIdentityExchangeService>,
   input: FamilySessionConfig, hooks: FamilyProtectionHooks = denyProtection, entropy: (size: number) => Uint8Array = randomBytes) {
@@ -40,7 +44,7 @@ export function createFamilySessionService(db: Database, exchange: ReturnType<ty
       || typeof hooks.verifyRevision !== 'function' || typeof hooks.confirmSensitiveAction !== 'function' || typeof entropy !== 'function') reject('family.config_invalid');
     cfg = Object.freeze({ ...row }) as unknown as FamilySessionConfig;
   } catch { return reject('family.config_invalid'); }
-  const verifyProtection = hooks.verifyRevision, confirmSensitive = hooks.confirmSensitiveAction;
+  const verifyProtection = hooks.verifyRevision, confirmSensitive = hooks.confirmSensitiveAction, recordActivity = hooks.recordActivity;
   const policyDigest = familyPolicyDigest(cfg);
   const now = () => {
     const ms = cfg.now(); if (!Number.isSafeInteger(ms) || ms < 0) reject('family.clock_invalid');
@@ -53,6 +57,9 @@ export function createFamilySessionService(db: Database, exchange: ReturnType<ty
     catch (error) { return Object.freeze({ ok: false as const,error_key: error instanceof ContractError && errors.has(error.key) ? error.key : 'family.access_unavailable' }); }
   }
   async function lockFamily(tx: FamilyTransaction,familyId: string) {
+    // Always lock policy before family. Old factories also reject a policy cutover.
+    const [head] = await tx.select().from(familySecurityPolicy).where(eq(familySecurityPolicy.scope,'family_access')).for('share');
+    if (head && (head.family_policy_digest !== policyDigest || now() < new Date(head.updated_at).toISOString())) reject('adult.policy_mismatch');
     const [family] = await tx.select().from(families).where(eq(families.id,familyId)).for('update');
     if (!family || family.status !== 'active' || now() < new Date(family.updated_at).toISOString()) reject('family.access_denied');
   }
@@ -70,7 +77,7 @@ export function createFamilySessionService(db: Database, exchange: ReturnType<ty
     const [account] = await tx.select().from(accounts).where(eq(accounts.id,accountId)).for('share');
     if (!identity || identity.revoked_at !== null || !account || account.status !== 'active') reject('family.session_invalid');
   }
-  async function validateContext(tx: FamilyTransaction,id: string,familyId: string,asParent = false) {
+  async function validateContext(tx: FamilyTransaction,id: string,familyId: string,asParent = false,allowExpiredAdultGrant = false) {
     const [stored] = await tx.select().from(sessionContexts).where(and(eq(sessionContexts.id,id),eq(sessionContexts.family_id,familyId))).for('share');
     if (!stored) reject('family.session_invalid');
     const context = familyAccessRecordToDto('session',stored), time = now();
@@ -81,11 +88,11 @@ export function createFamilySessionService(db: Database, exchange: ReturnType<ty
     await validSource(tx,context.account_id,context.external_identity_id);
     if (context.mode === 'adult') {
       if (!await verifyProtection(tx,{ family_id: familyId,binding_id: binding.id,profile_id: binding.profile_id,revision: context.protection_revision! })) reject('family.protection_required');
-      if (!asParent && (time >= context.adult_grant_expires_at! || time >= context.adult_idle_expires_at!)) reject('family.protection_required');
+      if (!asParent && !allowExpiredAdultGrant && (time >= context.adult_grant_expires_at! || time >= context.adult_idle_expires_at!)) reject('family.protection_required');
     } else if (asParent) reject('family.session_invalid');
     return { context,binding };
   }
-  async function resolveLocked(tx: FamilyTransaction,bearer: unknown): Promise<FamilyActor> {
+  async function resolveLocked(tx: FamilyTransaction,bearer: unknown,allowExpiredAdultGrant = false): Promise<FamilyActor> {
     if (typeof bearer !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(bearer) || Buffer.from(bearer,'base64url').toString('base64url') !== bearer) reject('family.session_invalid');
     // Unlocked lookup is only a lock-routing hint; all authority is reloaded after family lock.
     const [hint] = await tx.select({ family_id: sessionTokenVerifiers.family_id }).from(sessionTokenVerifiers).where(eq(sessionTokenVerifiers.token_verifier,familyTokenVerifier(bearer)));
@@ -95,7 +102,7 @@ export function createFamilySessionService(db: Database, exchange: ReturnType<ty
     if (!stored) reject('family.session_invalid');
     const token = familyAccessRecordToDto('verifier',stored);
     if (token.retired_at !== null || now() < token.updated_at) reject('family.session_invalid');
-    const { context,binding } = await validateContext(tx,token.session_id,hint.family_id);
+    const { context,binding } = await validateContext(tx,token.session_id,hint.family_id,false,allowExpiredAdultGrant);
     if (context.mode === 'managed_child') {
       const parent = await validateContext(tx,context.parent_session_id!,hint.family_id,true);
       if (parent.context.account_id !== context.account_id || parent.binding.id !== binding.manager_binding_id
@@ -132,6 +139,8 @@ export function createFamilySessionService(db: Database, exchange: ReturnType<ty
         adult_verified_at: null,adult_grant_expires_at: null,adult_idle_expires_at: null,protection_revision: null,
         policy_id: cfg.policyId,policy_revision: cfg.policyRevision,policy_digest: policyDigest });
       const token = parseFamilyAccessRecord('verifier',{ ...base(familyId,time),session_id: context.id,token_verifier: familyTokenVerifier(bearer),verifier_version: 1,retired_at: null });
+      await tx.insert(launchConsumptions).values({ id:newEntityId(),schema_version:1,created_at:time,launch_id:launch.launch_id,purpose:'own_child',
+        retention_policy_id:cfg.retentionId,retention_policy_revision:cfg.retentionRevision });
       await tx.insert(sessionContexts).values(context); await tx.insert(sessionTokenVerifiers).values(token);
       const result = { ok: true as const,session: Object.freeze({ id: context.id,family_id: familyId,profile_id: binding.profile_id,expires_at: context.expires_at }) };
       Object.defineProperty(result,'bearer',{ value: bearer,enumerable: false });
@@ -149,7 +158,9 @@ export function createFamilySessionService(db: Database, exchange: ReturnType<ty
         if (!target) reject('family.access_denied');
       }
       // Trusted handler runs inside the lock/transaction; a cached actor never authorizes a later command.
-      return Object.freeze({ ok: true as const,value: await work(tx,actor) });
+      const value = await work(tx,actor);
+      if (recordActivity) await recordActivity(tx,actor);
+      return Object.freeze({ ok: true as const,value });
     }));
   }
   async function revokeContexts(tx: FamilyTransaction,familyId: string,ids: string[]) {
@@ -168,28 +179,31 @@ export function createFamilySessionService(db: Database, exchange: ReturnType<ty
       await tx.update(sessionTokenVerifiers).set({ retired_at: time,updated_at: time,state_revision: value.state_revision + 1 }).where(eq(sessionTokenVerifiers.id,value.id));
     }
   }
-  async function sensitive(tx: FamilyTransaction,actor: FamilyActor,action: 'revoke_session' | 'revoke_binding',targetId: string) {
-    if (actor.mode !== 'adult' || !await confirmSensitive(tx,{ actor,action,target_id: targetId })) reject('family.protection_required');
+  async function sensitive(tx: FamilyTransaction,actor: FamilyActor,action: 'revoke_session' | 'revoke_binding',targetId: string,expected: number,confirmation: unknown) {
+    if (actor.mode !== 'adult') reject('family.protection_required');
+    const decision = await confirmSensitive(tx,{ actor,action,target_id: targetId,expected_revision:expected,confirmation });
+    if (!decision) reject('family.protection_required');
+    return decision;
   }
-  async function revokeSession(bearer: unknown,input: unknown) {
+  async function revokeSession(bearer: unknown,input: unknown,confirmation?: unknown) {
     return safe(() => db.transaction(async tx => {
       const req = closedObject(input,['session_id','expected_revision']); const id = entityId(req.session_id),expected = revision(req.expected_revision);
       const actor = await resolveLocked(tx,bearer);
       const [target] = await tx.select().from(sessionContexts).where(and(eq(sessionContexts.family_id,actor.family_id),eq(sessionContexts.id,id)));
       if (!target) reject('family.access_denied');
-      if (id !== actor.session_id) await sensitive(tx,actor,'revoke_session',id);
+      if (id !== actor.session_id && await sensitive(tx,actor,'revoke_session',id,expected,confirmation) === 'replayed') return Object.freeze({ ok:true as const,replayed:true });
       if (target.state_revision !== expected) reject('family.context_changed');
       await revokeContexts(tx,actor.family_id,[id]); return Object.freeze({ ok: true as const });
     }));
   }
-  async function revokeBinding(bearer: unknown,input: unknown) {
+  async function revokeBinding(bearer: unknown,input: unknown,confirmation?: unknown) {
     return safe(() => db.transaction(async tx => {
       const req = closedObject(input,['binding_id','expected_revision']); const id = entityId(req.binding_id),expected = revision(req.expected_revision);
       const actor = await resolveLocked(tx,bearer);
       const [target] = await tx.select().from(accessBindings).where(and(eq(accessBindings.family_id,actor.family_id),eq(accessBindings.id,id)));
       if (!target) reject('family.access_denied');
       if (target.kind === 'adult_membership') reject('family.adult_lifecycle_required');
-      await sensitive(tx,actor,'revoke_binding',id);
+      if (await sensitive(tx,actor,'revoke_binding',id,expected,confirmation) === 'replayed') return Object.freeze({ ok:true as const,replayed:true });
       if (target.state_revision !== expected) reject('family.context_changed');
       const time = now(); if (time < new Date(target.updated_at).toISOString()) reject('family.context_changed');
       const sessions = await tx.select({ id: sessionContexts.id }).from(sessionContexts).where(and(eq(sessionContexts.family_id,actor.family_id),eq(sessionContexts.binding_id,id)));
@@ -206,5 +220,7 @@ export function createFamilySessionService(db: Database, exchange: ReturnType<ty
       return Object.freeze({ ok: true as const });
     }));
   }
-  return Object.freeze({ issueOwnChild,resolveSession,withFamilyAccess,revokeSession,revokeBinding,retireOwnBearer });
+  // Transaction composition only, never expose this object as transport handlers.
+  const internal = Object.freeze({ lockFamily,resolveLocked,validBinding,validSource,revokeContexts });
+  return Object.freeze({ issueOwnChild,resolveSession,withFamilyAccess,revokeSession,revokeBinding,retireOwnBearer,internal });
 }

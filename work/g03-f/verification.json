@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "stage": "G03-F",
+  "synthetic_only": true,
+  "target_tests": {
+    "passed": 289,
+    "files": 15,
+    "new_postgres_scenarios": 30,
+    "new_record_cases": 21,
+    "postgres": "18.6"
+  },
+  "legacy_tests": {
+    "passed": 250,
+    "opt_in_pg_skipped": 9
+  },
+  "checks": {
+    "lint": "pass",
+    "target_typecheck": "pass",
+    "target_build": "pass",
+    "esm_import": "pass",
+    "historical_migrations": "0001-0004 match HEAD; 0005 matches unchanged G03-E generated schema",
+    "migration_checksums": "pass",
+    "local_doc_links_checked": 129,
+    "local_doc_links_missing": 0,
+    "diff_check": "pass",
+    "browser_localhost_3000": "ERR_CONNECTION_REFUSED",
+    "curl_health": "connection_refused",
+    "cleanup": "pass"
+  },
+  "harness_fix": {
+    "observed_failure": "PostgreSQL PANIC: pg_wal No space left on device",
+    "tmpfs_mib": 512,
+    "min_wal_size_mb": 32,
+    "max_wal_size_mb": 64,
+    "durability_disabled": false
+  },
+  "target_log_sha256": "9f526b4567193de6eb407b37daaede54d69ec49c9b3ceb8ea42e7ca6276f7e55",
+  "remote_ci": "configured_not_run"
+}

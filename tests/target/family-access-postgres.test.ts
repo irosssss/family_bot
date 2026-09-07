@@ -348,7 +348,7 @@ describe.skipIf(process.env.RPG_TARGET_PG_TESTS !== '1')('family access in owned
       await expect(runTargetMigrations(raw, config, directory)).rejects.toMatchObject({ code: '22012' });
       expect((await raw`SELECT count(*)::int AS n FROM rpg.__target_migrations`)[0].n).toBe(3);
       expect((await raw`SELECT to_regclass('rpg.session_contexts') AS t`)[0].t).toBeNull();
-      expect(await runTargetMigrations(raw, config, 'migrations/target')).toBe(1);
+      expect(await runTargetMigrations(raw, config, 'migrations/target')).toBe(3);
     } finally { await rm(directory, { recursive: true }); }
   });
 });

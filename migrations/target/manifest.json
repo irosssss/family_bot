@@ -16,6 +16,14 @@
     {
       "name": "0004_family_access.sql",
       "sha256": "1f409fb16bbf1bc70f9ae8d16018b63d71ee71b462d454d1590d5e44354ee94c"
+    },
+    {
+      "name": "0005_adult_protection.sql",
+      "sha256": "4e4b635b1a48b7de2904063fa24624d7c5a1d6acb3c12b5b2175d0f611f10c54"
+    },
+    {
+      "name": "0006_access_lifecycle.sql",
+      "sha256": "a2e2beb833cca83bf473101bd88bd7ddf30f163f5787100c9cd89cf6823bda99"
     }
   ]
 }

@@ -1,0 +1,13 @@
+HTTP/1.1 403 Forbidden
+Cache-Control: no-store
+Pragma: no-cache
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+Content-Security-Policy: default-src 'none'; frame-ancestors 'none'
+Content-Type: application/json; charset=utf-8
+Content-Length: 52
+Date: Mon, 07 Sep 2026 21:10:38 GMT
+Connection: keep-alive
+Keep-Alive: timeout=1
+
+{"ok":false,"error_key":"transport.boundary_denied"}

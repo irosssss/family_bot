@@ -1,0 +1,15 @@
+import { generateDrizzleJson, generateMigration } from 'drizzle-kit/api';
+import { writeFile, readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { targetSchema as previousSchema } from '../../src/target/db/schema/adultProtection';
+import { targetSchema, lifecycleScopeIndexes } from '../../src/target/db/schema/accessLifecycle';
+const before=generateDrizzleJson(previousSchema);
+const statements=await generateMigration(before,generateDrizzleJson(targetSchema,before.id));
+const name='0006_access_lifecycle.sql';
+const source='-- G03-F: generated target recovery/invitation/lifecycle schema.\n'+[...lifecycleScopeIndexes,...statements].join('\n\n')+'\n';
+await writeFile('migrations/target/'+name,source);
+const manifest=JSON.parse(await readFile('migrations/target/manifest.json','utf8'));
+manifest.migrations=manifest.migrations.filter((m:{name:string})=>m.name!==name);
+manifest.migrations.push({name,sha256:createHash('sha256').update(source).digest('hex')});
+await writeFile('migrations/target/manifest.json',JSON.stringify(manifest,null,2)+'\n');
+console.log(`Generated ${statements.length} statements; no DB connection.`);

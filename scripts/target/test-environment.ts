@@ -47,9 +47,12 @@ export async function withTargetTestEnvironment(work: (env: NodeJS.ProcessEnv) =
   try {
     const id = await docker(['create', '--name', `family-rpg-g02-${runId}`,
       '--label', `${LABEL}=${runId}`, '--label', `org.family-rpg.owner=${OWNER}`,
-      '--publish', '127.0.0.1::5432', '--tmpfs', '/var/lib/postgresql:rw,size=268435456',
+      '--publish', '127.0.0.1::5432', '--tmpfs', '/var/lib/postgresql:rw,size=536870912',
       '--env', 'POSTGRES_PASSWORD', '--env', 'POSTGRES_USER', '--env', 'POSTGRES_DB',
-      imageId, 'postgres', '-c', `cluster_name=rpg_g02_${runId}`],
+      // Repeated schema/rollback suites generate WAL faster than the default
+      // checkpoint budget fits into a small disposable tmpfs. Keep durability on.
+      imageId, 'postgres', '-c', `cluster_name=rpg_g02_${runId}`,
+      '-c', 'min_wal_size=32MB', '-c', 'max_wal_size=64MB'],
     { ...baseEnvironment(), POSTGRES_PASSWORD: password, POSTGRES_USER: 'rpg_test', POSTGRES_DB: database });
     if (!/^[a-f0-9]{64}$/.test(id)) throw new Error('target.container_id_invalid');
     container = { id, runId };
@@ -78,7 +81,16 @@ export async function withTargetTestEnvironment(work: (env: NodeJS.ProcessEnv) =
       console.info(JSON.stringify({ targetTestEnvironment: { runId, containerId: id, imageId, database, version: version.version } }));
     } finally { await client.end({ timeout: 5 }); }
     if (interrupted) throw new Error('target.interrupted');
-    await work(env);
+    try { await work(env); }
+    catch (error) {
+      // Report only classified infrastructure facts, never raw PostgreSQL statements or parameters.
+      const state=await docker(['inspect','--format','{{.State.Status}} {{.State.ExitCode}} {{.State.OOMKilled}}',id]);
+      const output=await exec('docker',['logs',id],{env:baseEnvironment(),timeout:30000,maxBuffer:8*1024*1024}).catch(()=>null);
+      const logs=output ? output.stdout+output.stderr : '';
+      console.info(JSON.stringify({targetFailureDiagnostics:{state,diskFull:/No space left on device/.test(logs),
+        sharedMemoryFailure:/could not (?:resize|create) shared memory/.test(logs),terminated:/terminated by signal/.test(logs)}}));
+      throw error;
+    }
   } finally {
     // Keep signal handlers during teardown so a normal interruption still reaches cleanup.
     try {

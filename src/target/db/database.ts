@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import type { TargetConfig } from '../config';
 import { assertTargetDatabase, createTargetClient } from './client';
-import { targetSchema } from './schema/familyAccess';
+import { targetSchema } from './schema/accessLifecycle';
 
 /** Own client: Drizzle changes date/JSON serializers, so never attach it to a shared client. */
 export async function openTargetDatabase(config: TargetConfig) {

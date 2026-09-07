@@ -27,3 +27,24 @@ jobs:
 
       - name: Build (vite + esbuild server)
         run: npm run build
+
+  target-access:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Target typecheck and build
+        run: |
+          npm run target:typecheck
+          npm run target:build
+      - name: Synthetic PIN benchmark and RFC vector
+        run: npm run target:benchmark:pin
+      - name: Pull pinned PostgreSQL test image
+        run: docker pull postgres@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
+      - name: Target tests in disposable PostgreSQL
+        run: npm run target:test:pg

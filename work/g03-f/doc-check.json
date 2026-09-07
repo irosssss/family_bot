@@ -1,0 +1,13 @@
+{
+  "checked": 129,
+  "missing": [],
+  "historical_0001_0004_unchanged": true,
+  "checksums": {
+    "0001_bootstrap.sql": "0ae386957fc933e0144792bbf72822dfa882395585cb008ae78e3bd21bcab51d",
+    "0002_family_foundation.sql": "e590b7c83de6b89d5d3f2f13ffe66af683c9c6aaf6204ebc5d6380eac3a5f8a7",
+    "0003_identity_exchange.sql": "cc7ea9e49f80954f2b3b85bf2257149d5c411f8ad0bdb3305d20d480fae5bd51",
+    "0004_family_access.sql": "1f409fb16bbf1bc70f9ae8d16018b63d71ee71b462d454d1590d5e44354ee94c",
+    "0005_adult_protection.sql": "4e4b635b1a48b7de2904063fa24624d7c5a1d6acb3c12b5b2175d0f611f10c54",
+    "0006_access_lifecycle.sql": "a2e2beb833cca83bf473101bd88bd7ddf30f163f5787100c9cd89cf6823bda99"
+  }
+}

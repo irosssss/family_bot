@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "stage": "G03-G",
+  "date": "2026-09-08",
+  "synthetic_only": true,
+  "target_tests": {
+    "passed": 352,
+    "files": 17,
+    "new_boundary_cases": 45,
+    "new_http_pg_scenarios": 18,
+    "postgres": "18.6"
+  },
+  "legacy_tests": {
+    "passed": 250,
+    "opt_in_pg_skipped": 9
+  },
+  "checks": {
+    "lint": "pass",
+    "target_typecheck": "pass",
+    "target_build": "pass",
+    "esm_http_import": "pass",
+    "migration_checksums": "pass",
+    "historical_migrations": "0001-0004 match HEAD; 0005/0006 match pre-G03-G manifest",
+    "diff_check": "pass",
+    "local_doc_links_checked": 132,
+    "local_doc_links_missing": 0,
+    "browser": "ERR_BLOCKED_BY_CLIENT; not PASS",
+    "curl_probe": "403 transport.boundary_denied; no-store"
+  },
+  "bootstrap": {
+    "state": "closed",
+    "blockers": [
+      "O01",
+      "O09"
+    ],
+    "http_fixture_override": false
+  },
+  "cleanup": [
+    {
+      "log": "target-tests-initial.log",
+      "targetCleanup": "passed",
+      "containerId": "d9008ea4969765510137770045d4f8467efdb249da6793bef13ffae2533096f2"
+    },
+    {
+      "log": "target-tests-final.log",
+      "targetCleanup": "passed",
+      "containerId": "2ad652b176400959814a2742a7eaba9b1ffde6b01fdc2bba03ad4885a2d9a764"
+    },
+    {
+      "log": "browser-probe.log",
+      "targetCleanup": "passed",
+      "containerId": "ba7ffce58a4609574f4f97a9f14e9e680ab5cddf7e8605087d05c80af7083070"
+    }
+  ],
+  "remote_ci": "configured_not_run",
+  "log_sha256": {
+    "target-tests-final.log": "8a983d7c37dc27318aae309a742b5c1d83c14e59e807dc43ad9ed09cab49f4a6",
+    "legacy-tests.log": "93d3ea3ff618da5c4fb25c405f2db119e4ceca562391ed514b92dded09073d8d",
+    "lint.log": "b28740b4e52f0f827096407f9940fde5914a3c7d797e4c87bb7af49e7bee25d3",
+    "typecheck.log": "148ef7bcd9bd55ad9704437fa2bb81cf90ae39d368fc52c937604766e5982ab7",
+    "build.log": "a8d330b84943083c9c4e342dc3ed6cc98584d34db866f40ccb46b95d81c0f49c",
+    "import.log": "de0607f282e1569e6f0d46a7bcdbcad1a61d9eba9061400f16cceb8abfa55d64",
+    "browser-probe.log": "41eeb43853c46710fb7ae92bc4bd2557414fc2f468dc8e77fb69e87e1e49bd22"
+  },
+  "source_sha256": {
+    "src/target/transport/contracts.ts": "ff1a3ace749172bd18790d223d92d11aa0ee5dbef3b4aa7b44648081ec5c1d6c",
+    "src/target/transport/routes.ts": "7e6f7e1aa630bcf933d25cac6f99a8ec7a4695c867f2a8cdf576620b30a7943a",
+    "src/target/transport/http.ts": "6e9febc0889e70bf883d5fd7fe354786104cad5af077bc82e507c6614a228404",
+    "tests/target/transport-boundary.test.ts": "6a28fbd011b7c67ca34513c2187ab3886106da6a97eadaccfd82784d9a7afbe1",
+    "tests/target/transport-postgres.test.ts": "2aa4c8e8a80c823f750410ea4c175be29b14164a68667c98da46a4e5733e00e6"
+  }
+}

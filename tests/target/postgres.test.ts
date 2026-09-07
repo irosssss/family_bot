@@ -43,12 +43,12 @@ describe.skipIf(!enabled)('task-owned PostgreSQL 18 (FT03/FT06–FT10)', () => {
   }
 
   it('applies the reviewed bootstrap and repeats without effects', async () => {
-    expect(await runTargetMigrations(sql, config, 'migrations/target')).toBe(4);
+    expect(await runTargetMigrations(sql, config, 'migrations/target')).toBe(6);
     expect(await runTargetMigrations(sql, config, 'migrations/target')).toBe(0);
     const schemas = await sql`SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('rpg', 'content') ORDER BY schema_name`;
     expect(schemas.map(row => row.schema_name)).toEqual(['content', 'rpg']);
     const rows = await sql`SELECT name FROM rpg.__target_migrations ORDER BY ordinal`;
-    expect(rows.map(row => row.name)).toEqual(['0001_bootstrap.sql', '0002_family_foundation.sql', '0003_identity_exchange.sql', '0004_family_access.sql']);
+    expect(rows.map(row => row.name)).toEqual(['0001_bootstrap.sql', '0002_family_foundation.sql', '0003_identity_exchange.sql', '0004_family_access.sql', '0005_adult_protection.sql', '0006_access_lifecycle.sql']);
     expect((await sql`SELECT to_regclass('public.__migrations') AS legacy`)[0].legacy).toBeNull();
   });
   it('serializes two independent connections executing the same manifest', async () => {

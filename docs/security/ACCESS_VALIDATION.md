@@ -42,7 +42,16 @@ SP01–SP17 хранятся в версионированном SecurityPolicy,
 
 ## 3. Матрица будущих тестов
 
-Исходно все GAT были специфицированы без исполнения. После [G03-B](../implementation/G03_IDENTITY_ADAPTER_RESULT.md): GAT01–GAT03/GAT05 проверены в границах чистого адаптера; GAT04 частично (deployment/реальные среды ещё не проверены). После [G03-C](../implementation/G03_IDENTITY_EXCHANGE_RESULT.md) GAT06 проверен на уровне service/БД. После [G03-D](../implementation/G03_FAMILY_ACCESS_RESULT.md) GAT07/GAT08/GAT09 проверены на уровне отказов issuer/resolver/guard, без onboarding HTTP, home-проекции и настоящих игровых начислений. GAT10/GAT11/GAT14 частично проверены на контекстах/fixtures: токен отдельно от lineage, parent grant/expiry/revoke, public ID, CAS. Настоящий PIN, переключение UI, recovery и остальная матрица остаются будущими. Тесты G02 не подменяют эту матрицу.
+Исходно все GAT были специфицированы без исполнения. После [G03-B](../implementation/G03_IDENTITY_ADAPTER_RESULT.md): GAT01–GAT03/GAT05 проверены в границах чистого адаптера; GAT04 частично (deployment/реальные среды ещё не проверены). После [G03-C](../implementation/G03_IDENTITY_EXCHANGE_RESULT.md) GAT06 проверен на уровне service/БД. После [G03-D](../implementation/G03_FAMILY_ACCESS_RESULT.md) GAT07/GAT08/GAT09 проверены на уровне отказов issuer/resolver/guard, без onboarding HTTP, home-проекции и настоящих игровых начислений. GAT10/GAT11/GAT14 частично проверены на контекстах/fixtures: токен отдельно от lineage, parent grant/expiry/revoke, public ID, CAS. После [G03-E](../implementation/G03_ADULT_PROTECTION_RESULT.md) GAT10/11/13/14 и ветви GAT21 проверены с настоящим Argon2id на синтетических данных: setup, PIN, переключение, лимиты и fresh proof. После [G03-F](../implementation/G03_RECOVERY_LIFECYCLE_RESULT.md) GAT15–22 проверены на уровне services/PG: конкурирующие кандидаты и взрослые, expiry/отзыв, recovery по коду/одобрению, потерянный ответ, семейная изоляция и last-adult/command serialization. Проверено сохранение Player и независимого детского доступа; будущие игровые начисления этим не проверены. GAT12 — только серверные сроки. HTTP/UI и реальные Telegram e2e остаются будущими. Тесты G02 не подменяют эту матрицу.
+
+После [G03-G](../implementation/G03_TRANSPORT_RESULT.md) 45 boundary и 18 HTTP/PG
+сценариев дополняют серверные доказательства GAT06–08/10–11/13–22: оба child входа,
+PIN/setup/fresh proof, recovery по двум основаниям, потерянные ответы, приглашения,
+expiry/отзыв/выход, CAS, rollback и новые HTTP factory над сохранённым состоянием.
+GAT23 частичен: origin/Host/headers/body/no-store/redaction проверены, UI/XSS,
+клиентские redirects и настоящий HTTPS/proxy ещё нет. GAT12/GAT24 device не PASS.
+HTTP bootstrap явно закрыт O01/O09; synthetic fixtures не разрешают реальную семью.
+Новые тесты не доказывают будущую экономику. Полный G03/W11 остаётся открытым.
 
 | ID | Сценарий | Ожидаемое доказательство |
 |---|---|---|

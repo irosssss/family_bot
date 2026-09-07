@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "stage": "G03-E",
+  "synthetic_only": true,
+  "target_tests": {
+    "passed": 238,
+    "files": 13,
+    "postgres": "18.6"
+  },
+  "legacy_tests": {
+    "passed": 250,
+    "opt_in_pg_skipped": 9
+  },
+  "checks": {
+    "lint": "pass",
+    "target_typecheck": "pass",
+    "target_build": "pass",
+    "esm_import": "pass",
+    "historical_migrations": "unchanged",
+    "migration_checksums": "pass",
+    "local_doc_links_checked": 144,
+    "local_doc_links_missing": 0,
+    "diff_check": "pass",
+    "browser_localhost_3000": "ERR_CONNECTION_REFUSED",
+    "curl_health": "connection_refused",
+    "cleanup": "pass"
+  },
+  "target_log_sha256": "075aee548a54c142551e1eef6a2f18d9ef522ff6e8b10f819b58792eeee81f1a",
+  "remote_ci": "configured_not_run"
+}

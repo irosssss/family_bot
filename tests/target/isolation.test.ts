@@ -19,6 +19,10 @@ describe('target import/config boundary (FT01/FT02/FT03/FT12)', () => {
     await import('../../src/target/access/identityExchange');
     await import('../../src/target/access/familySession');
     await import('../../src/target/access/familyAuthorization');
+    await import('../../src/target/access/adultAccess');
+    await import('../../src/target/access/accessLifecycle');
+    await import('../../src/target/transport/http');
+    await import('../../scripts/target/benchmark-pin');
     await import('../../src/target/db/database'); await import('../../src/target/db/schema/foundation');
     await import('../../src/target/db/migrator'); await import('../../scripts/target/dev');
     await import('../../scripts/target/test-environment');

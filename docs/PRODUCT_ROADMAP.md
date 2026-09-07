@@ -1,6 +1,12 @@
 # Family Chores RPG — план релизов и контрольных точек
 
-Версия документа: 1.18. Дата: 2026-09-07. **Продуктовая основа, ARCH/DAT/PDB/PIPE/IMP приняты; ART принят как спецификация. G01/G02-A приняты. G02-B принят; G03-A подготовлен к приёмке как спецификация. G03-B принят; G03-C принят; G03-D выполнен, G03-E ожидает разрешения. Графика и публикация не разрешены.**
+Версия документа: 1.21. Дата: 2026-09-08. **Продуктовая основа, ARCH/DAT/PDB/PIPE/IMP приняты; ART принят как спецификация. G01/G02-A приняты. G02-B принят; G03-A подготовлен к приёмке как спецификация. G03-B принят; G03-C принят; G03-D принят; G03-E/F приняты; G03-G выполнен в синтетической HTTP-среде, результат на приёмку. Графика и публикация не разрешены.**
+
+Изменение 1.21: G03-F принят, G03-G явно разрешён и [выполнен](implementation/G03_TRANSPORT_RESULT.md) в синтетической HTTP-среде. Реальные Telegram/device, bootstrap O01/O09, UI/deploy и полный G03/W11 остаются отдельными зависимостями.
+
+Изменение 1.20: G03-E принят; G03-F разрешён «делай» и [выполнен](implementation/G03_RECOVERY_LIFECYCLE_RESULT.md). Recovery, приглашения, согласованный lifecycle и последний взрослый проверены на временной PG. [G03-G](implementation/G03_TRANSPORT_CARD.md) предложен к разрешению; реальные Telegram/HTTP/UI проверки и production-параметры не считаются завершёнными.
+
+Изменение 1.19: G03-D принят; G03-E разрешён «делай» и [выполнен](implementation/G03_ADULT_PROTECTION_RESULT.md). PIN/recovery setup, adult/managed выдача, переключение, общие лимиты и fresh proof проверены на собственной временной PG. Полный recovery/приглашения/lifecycle — [G03-F](implementation/G03_RECOVERY_LIFECYCLE_CARD.md) на разрешение. Пользовательского HTTP/UI входа ещё нет.
 
 Изменение 1.18: G03-C принят, G03-D разрешён ответом «да» и [выполнен](implementation/G03_FAMILY_ACCESS_RESULT.md): семейные bindings/contexts/verifiers, own_child issuer, серверные guards и отзыв проверены на собственной временной PG. Adult/managed остаются закрыты до PIN; [G03-E](implementation/G03_ADULT_PROTECTION_CARD.md) предложен к разрешению.
 
@@ -76,7 +82,7 @@
 
 ## 3. Последовательность проектирования и реализации
 
-Этапы продуктового и технического проектирования ARCH/DAT/PDB/ART/PIPE приняты в указанных в документах границах. [Единый план реализации](IMPLEMENTATION_PLAN.md) принят; G01 принят; G02-A принят; [G02-B принят](implementation/G02_DOMAIN_SCHEMA_RESULT.md), [G03-A готов к приёмке](security/ACCESS_PROTOCOL.md); [G03-B принят](implementation/G03_IDENTITY_ADAPTER_RESULT.md); [G03-C принят](implementation/G03_IDENTITY_EXCHANGE_RESULT.md); [G03-D выполнен](implementation/G03_FAMILY_ACCESS_RESULT.md); [G03-E](implementation/G03_ADULT_PROTECTION_CARD.md) ожидает разрешения. Таблица ниже сохраняет общий порядок работ; статусы документации не означают выполненной реализации или визуальных проверок.
+Этапы продуктового и технического проектирования ARCH/DAT/PDB/ART/PIPE приняты в указанных в документах границах. [Единый план реализации](IMPLEMENTATION_PLAN.md) принят; G01 принят; G02-A принят; [G02-B принят](implementation/G02_DOMAIN_SCHEMA_RESULT.md), [G03-A готов к приёмке](security/ACCESS_PROTOCOL.md); [G03-B принят](implementation/G03_IDENTITY_ADAPTER_RESULT.md); [G03-C принят](implementation/G03_IDENTITY_EXCHANGE_RESULT.md); [G03-D принят](implementation/G03_FAMILY_ACCESS_RESULT.md); [G03-E принят](implementation/G03_ADULT_PROTECTION_RESULT.md); [G03-F принят](implementation/G03_RECOVERY_LIFECYCLE_RESULT.md); [G03-G выполнен](implementation/G03_TRANSPORT_RESULT.md) в границах карточки. Таблица ниже сохраняет общий порядок работ; статусы документации не означают выполненной реализации или визуальных проверок.
 
 | Шаг | Вход | Конкретный результат для просмотра | Условие перехода |
 |---|---|---|---|
