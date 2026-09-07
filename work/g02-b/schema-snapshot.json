@@ -1,0 +1,744 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "rpg.accounts": {
+      "name": "accounts",
+      "schema": "rpg",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retention_policy_id": {
+          "name": "retention_policy_id",
+          "type": "text COLLATE \"C\"",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retention_policy_revision": {
+          "name": "retention_policy_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state_revision": {
+          "name": "state_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "disabled_at": {
+          "name": "disabled_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "accounts_retention_fk": {
+          "name": "accounts_retention_fk",
+          "tableFrom": "accounts",
+          "tableTo": "retention_policy_revisions",
+          "schemaTo": "rpg",
+          "columnsFrom": [
+            "retention_policy_id",
+            "retention_policy_revision"
+          ],
+          "columnsTo": [
+            "policy_id",
+            "revision"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "accounts_id_v7": {
+          "name": "accounts_id_v7",
+          "value": "\"rpg\".\"accounts\".\"id\"::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'"
+        },
+        "accounts_schema_supported": {
+          "name": "accounts_schema_supported",
+          "value": "\"rpg\".\"accounts\".\"schema_version\" = 1"
+        },
+        "accounts_created_finite": {
+          "name": "accounts_created_finite",
+          "value": "isfinite(\"rpg\".\"accounts\".\"created_at\")"
+        },
+        "accounts_state_revision_positive": {
+          "name": "accounts_state_revision_positive",
+          "value": "\"rpg\".\"accounts\".\"state_revision\" > 0"
+        },
+        "accounts_updated_valid": {
+          "name": "accounts_updated_valid",
+          "value": "isfinite(\"rpg\".\"accounts\".\"updated_at\") AND \"rpg\".\"accounts\".\"updated_at\" >= \"rpg\".\"accounts\".\"created_at\""
+        },
+        "accounts_status_valid": {
+          "name": "accounts_status_valid",
+          "value": "\"rpg\".\"accounts\".\"status\" IN ('active','disabled','erasure_pending')"
+        },
+        "accounts_disabled_state": {
+          "name": "accounts_disabled_state",
+          "value": "(\"rpg\".\"accounts\".\"status\" <> 'active' OR \"rpg\".\"accounts\".\"disabled_at\" IS NULL)\n    AND (\"rpg\".\"accounts\".\"status\" <> 'disabled' OR \"rpg\".\"accounts\".\"disabled_at\" IS NOT NULL)"
+        },
+        "accounts_disabled_time": {
+          "name": "accounts_disabled_time",
+          "value": "\"rpg\".\"accounts\".\"disabled_at\" IS NULL OR (isfinite(\"rpg\".\"accounts\".\"disabled_at\") AND \"rpg\".\"accounts\".\"disabled_at\" >= \"rpg\".\"accounts\".\"created_at\" AND \"rpg\".\"accounts\".\"disabled_at\" <= \"rpg\".\"accounts\".\"updated_at\")"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "rpg.families": {
+      "name": "families",
+      "schema": "rpg",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retention_policy_id": {
+          "name": "retention_policy_id",
+          "type": "text COLLATE \"C\"",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retention_policy_revision": {
+          "name": "retention_policy_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state_revision": {
+          "name": "state_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "zone_id": {
+          "name": "zone_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "calendar_revision": {
+          "name": "calendar_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "membership_revision": {
+          "name": "membership_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recurrence_paused": {
+          "name": "recurrence_paused",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recurrence_paused_at": {
+          "name": "recurrence_paused_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_resumed_at": {
+          "name": "last_resumed_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "families_retention_fk": {
+          "name": "families_retention_fk",
+          "tableFrom": "families",
+          "tableTo": "retention_policy_revisions",
+          "schemaTo": "rpg",
+          "columnsFrom": [
+            "retention_policy_id",
+            "retention_policy_revision"
+          ],
+          "columnsTo": [
+            "policy_id",
+            "revision"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "families_id_v7": {
+          "name": "families_id_v7",
+          "value": "\"rpg\".\"families\".\"id\"::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'"
+        },
+        "families_schema_supported": {
+          "name": "families_schema_supported",
+          "value": "\"rpg\".\"families\".\"schema_version\" = 1"
+        },
+        "families_created_finite": {
+          "name": "families_created_finite",
+          "value": "isfinite(\"rpg\".\"families\".\"created_at\")"
+        },
+        "families_state_revision_positive": {
+          "name": "families_state_revision_positive",
+          "value": "\"rpg\".\"families\".\"state_revision\" > 0"
+        },
+        "families_updated_valid": {
+          "name": "families_updated_valid",
+          "value": "isfinite(\"rpg\".\"families\".\"updated_at\") AND \"rpg\".\"families\".\"updated_at\" >= \"rpg\".\"families\".\"created_at\""
+        },
+        "families_status_valid": {
+          "name": "families_status_valid",
+          "value": "\"rpg\".\"families\".\"status\" IN ('active','archived')"
+        },
+        "families_revisions_positive": {
+          "name": "families_revisions_positive",
+          "value": "\"rpg\".\"families\".\"calendar_revision\" > 0 AND \"rpg\".\"families\".\"membership_revision\" > 0"
+        },
+        "families_paused_state": {
+          "name": "families_paused_state",
+          "value": "\"rpg\".\"families\".\"recurrence_paused\" = (\"rpg\".\"families\".\"recurrence_paused_at\" IS NOT NULL)"
+        },
+        "families_archived_state": {
+          "name": "families_archived_state",
+          "value": "\"rpg\".\"families\".\"status\" <> 'archived' OR \"rpg\".\"families\".\"archived_at\" IS NOT NULL"
+        },
+        "families_paused_time": {
+          "name": "families_paused_time",
+          "value": "\"rpg\".\"families\".\"recurrence_paused_at\" IS NULL OR (isfinite(\"rpg\".\"families\".\"recurrence_paused_at\") AND \"rpg\".\"families\".\"recurrence_paused_at\" >= \"rpg\".\"families\".\"created_at\" AND \"rpg\".\"families\".\"recurrence_paused_at\" <= \"rpg\".\"families\".\"updated_at\")"
+        },
+        "families_archived_time": {
+          "name": "families_archived_time",
+          "value": "\"rpg\".\"families\".\"archived_at\" IS NULL OR (isfinite(\"rpg\".\"families\".\"archived_at\") AND \"rpg\".\"families\".\"archived_at\" >= \"rpg\".\"families\".\"created_at\" AND \"rpg\".\"families\".\"archived_at\" <= \"rpg\".\"families\".\"updated_at\")"
+        },
+        "families_resumed_time": {
+          "name": "families_resumed_time",
+          "value": "\"rpg\".\"families\".\"last_resumed_at\" IS NULL OR (isfinite(\"rpg\".\"families\".\"last_resumed_at\") AND \"rpg\".\"families\".\"last_resumed_at\" >= \"rpg\".\"families\".\"created_at\" AND \"rpg\".\"families\".\"last_resumed_at\" <= \"rpg\".\"families\".\"updated_at\")"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "rpg.member_profiles": {
+      "name": "member_profiles",
+      "schema": "rpg",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retention_policy_id": {
+          "name": "retention_policy_id",
+          "type": "text COLLATE \"C\"",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retention_policy_revision": {
+          "name": "retention_policy_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "state_revision": {
+          "name": "state_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "family_id": {
+          "name": "family_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "family_role": {
+          "name": "family_role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "left_at": {
+          "name": "left_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "member_profiles_home_idx": {
+          "name": "member_profiles_home_idx",
+          "columns": [
+            {
+              "expression": "family_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "member_profiles_retention_fk": {
+          "name": "member_profiles_retention_fk",
+          "tableFrom": "member_profiles",
+          "tableTo": "retention_policy_revisions",
+          "schemaTo": "rpg",
+          "columnsFrom": [
+            "retention_policy_id",
+            "retention_policy_revision"
+          ],
+          "columnsTo": [
+            "policy_id",
+            "revision"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "member_profiles_family_fk": {
+          "name": "member_profiles_family_fk",
+          "tableFrom": "member_profiles",
+          "tableTo": "families",
+          "schemaTo": "rpg",
+          "columnsFrom": [
+            "family_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "member_profiles_family_id_uq": {
+          "name": "member_profiles_family_id_uq",
+          "nullsNotDistinct": false,
+          "columns": [
+            "family_id",
+            "id"
+          ]
+        },
+        "member_profiles_family_id_role_uq": {
+          "name": "member_profiles_family_id_role_uq",
+          "nullsNotDistinct": false,
+          "columns": [
+            "family_id",
+            "id",
+            "family_role"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "member_profiles_id_v7": {
+          "name": "member_profiles_id_v7",
+          "value": "\"rpg\".\"member_profiles\".\"id\"::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'"
+        },
+        "member_profiles_schema_supported": {
+          "name": "member_profiles_schema_supported",
+          "value": "\"rpg\".\"member_profiles\".\"schema_version\" = 1"
+        },
+        "member_profiles_created_finite": {
+          "name": "member_profiles_created_finite",
+          "value": "isfinite(\"rpg\".\"member_profiles\".\"created_at\")"
+        },
+        "member_profiles_state_revision_positive": {
+          "name": "member_profiles_state_revision_positive",
+          "value": "\"rpg\".\"member_profiles\".\"state_revision\" > 0"
+        },
+        "member_profiles_updated_valid": {
+          "name": "member_profiles_updated_valid",
+          "value": "isfinite(\"rpg\".\"member_profiles\".\"updated_at\") AND \"rpg\".\"member_profiles\".\"updated_at\" >= \"rpg\".\"member_profiles\".\"created_at\""
+        },
+        "member_profiles_role_valid": {
+          "name": "member_profiles_role_valid",
+          "value": "\"rpg\".\"member_profiles\".\"family_role\" IN ('parent','child')"
+        },
+        "member_profiles_status_valid": {
+          "name": "member_profiles_status_valid",
+          "value": "\"rpg\".\"member_profiles\".\"status\" IN ('active','archived','left')"
+        },
+        "member_profiles_status_times": {
+          "name": "member_profiles_status_times",
+          "value": "(\"rpg\".\"member_profiles\".\"status\" = 'archived') = (\"rpg\".\"member_profiles\".\"archived_at\" IS NOT NULL)\n    AND (\"rpg\".\"member_profiles\".\"status\" = 'left') = (\"rpg\".\"member_profiles\".\"left_at\" IS NOT NULL)"
+        },
+        "member_profiles_archived_time": {
+          "name": "member_profiles_archived_time",
+          "value": "\"rpg\".\"member_profiles\".\"archived_at\" IS NULL OR (isfinite(\"rpg\".\"member_profiles\".\"archived_at\") AND \"rpg\".\"member_profiles\".\"archived_at\" >= \"rpg\".\"member_profiles\".\"created_at\" AND \"rpg\".\"member_profiles\".\"archived_at\" <= \"rpg\".\"member_profiles\".\"updated_at\")"
+        },
+        "member_profiles_left_time": {
+          "name": "member_profiles_left_time",
+          "value": "\"rpg\".\"member_profiles\".\"left_at\" IS NULL OR (isfinite(\"rpg\".\"member_profiles\".\"left_at\") AND \"rpg\".\"member_profiles\".\"left_at\" >= \"rpg\".\"member_profiles\".\"created_at\" AND \"rpg\".\"member_profiles\".\"left_at\" <= \"rpg\".\"member_profiles\".\"updated_at\")"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "rpg.players": {
+      "name": "players",
+      "schema": "rpg",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retention_policy_id": {
+          "name": "retention_policy_id",
+          "type": "text COLLATE \"C\"",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retention_policy_revision": {
+          "name": "retention_policy_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "family_id": {
+          "name": "family_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "players_retention_fk": {
+          "name": "players_retention_fk",
+          "tableFrom": "players",
+          "tableTo": "retention_policy_revisions",
+          "schemaTo": "rpg",
+          "columnsFrom": [
+            "retention_policy_id",
+            "retention_policy_revision"
+          ],
+          "columnsTo": [
+            "policy_id",
+            "revision"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "players_child_profile_fk": {
+          "name": "players_child_profile_fk",
+          "tableFrom": "players",
+          "tableTo": "member_profiles",
+          "schemaTo": "rpg",
+          "columnsFrom": [
+            "family_id",
+            "profile_id",
+            "role"
+          ],
+          "columnsTo": [
+            "family_id",
+            "id",
+            "family_role"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "players_family_id_uq": {
+          "name": "players_family_id_uq",
+          "nullsNotDistinct": false,
+          "columns": [
+            "family_id",
+            "id"
+          ]
+        },
+        "players_family_profile_uq": {
+          "name": "players_family_profile_uq",
+          "nullsNotDistinct": false,
+          "columns": [
+            "family_id",
+            "profile_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "players_id_v7": {
+          "name": "players_id_v7",
+          "value": "\"rpg\".\"players\".\"id\"::text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'"
+        },
+        "players_schema_supported": {
+          "name": "players_schema_supported",
+          "value": "\"rpg\".\"players\".\"schema_version\" = 1"
+        },
+        "players_created_finite": {
+          "name": "players_created_finite",
+          "value": "isfinite(\"rpg\".\"players\".\"created_at\")"
+        },
+        "players_child_only": {
+          "name": "players_child_only",
+          "value": "\"rpg\".\"players\".\"role\" = 'child'"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "rpg.retention_policy_revisions": {
+      "name": "retention_policy_revisions",
+      "schema": "rpg",
+      "columns": {
+        "policy_id": {
+          "name": "policy_id",
+          "type": "text COLLATE \"C\"",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "purpose": {
+          "name": "purpose",
+          "type": "text COLLATE \"C\"",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text COLLATE \"C\"",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trigger": {
+          "name": "trigger",
+          "type": "text COLLATE \"C\"",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "schema_version": {
+          "name": "schema_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "policy_payload": {
+          "name": "policy_payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "retention_policy_revisions_pk": {
+          "name": "retention_policy_revisions_pk",
+          "columns": [
+            "policy_id",
+            "revision"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "retention_policy_id_key": {
+          "name": "retention_policy_id_key",
+          "value": "\"rpg\".\"retention_policy_revisions\".\"policy_id\" ~ '^[a-z][a-z0-9_]*$'"
+        },
+        "retention_purpose_key": {
+          "name": "retention_purpose_key",
+          "value": "\"rpg\".\"retention_policy_revisions\".\"purpose\" ~ '^[a-z][a-z0-9_]*$'"
+        },
+        "retention_category_key": {
+          "name": "retention_category_key",
+          "value": "\"rpg\".\"retention_policy_revisions\".\"category\" ~ '^[a-z][a-z0-9_]*$'"
+        },
+        "retention_trigger_key": {
+          "name": "retention_trigger_key",
+          "value": "\"rpg\".\"retention_policy_revisions\".\"trigger\" ~ '^[a-z][a-z0-9_]*$'"
+        },
+        "retention_revision_positive": {
+          "name": "retention_revision_positive",
+          "value": "\"rpg\".\"retention_policy_revisions\".\"revision\" > 0"
+        },
+        "retention_schema_supported": {
+          "name": "retention_schema_supported",
+          "value": "\"rpg\".\"retention_policy_revisions\".\"schema_version\" = 1"
+        },
+        "retention_payload_envelope": {
+          "name": "retention_payload_envelope",
+          "value": "(jsonb_typeof(\"rpg\".\"retention_policy_revisions\".\"policy_payload\") = 'object'\n    AND \"rpg\".\"retention_policy_revisions\".\"policy_payload\" ?& ARRAY['contract_id','schema_version','value']\n    AND \"rpg\".\"retention_policy_revisions\".\"policy_payload\" - ARRAY['contract_id','schema_version','value'] = '{}'::jsonb\n    AND jsonb_typeof(\"rpg\".\"retention_policy_revisions\".\"policy_payload\"->'contract_id') = 'string'\n    AND \"rpg\".\"retention_policy_revisions\".\"policy_payload\"->>'contract_id' ~ '^[a-z][a-z0-9_]*$'\n    AND jsonb_typeof(\"rpg\".\"retention_policy_revisions\".\"policy_payload\"->'schema_version') = 'number'\n    AND \"rpg\".\"retention_policy_revisions\".\"policy_payload\"->>'schema_version' ~ '^[1-9][0-9]{0,9}$'\n    AND (\"rpg\".\"retention_policy_revisions\".\"policy_payload\"->>'schema_version')::numeric <= 2147483647\n    AND jsonb_typeof(\"rpg\".\"retention_policy_revisions\".\"policy_payload\"->'value') = 'object') IS TRUE"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "rpg": "rpg"
+  },
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "id": "f89330af-70fc-4e87-b71e-5827805ff258",
+  "prevId": "b4bbedee-d356-4142-93b3-43f3e2c2147b"
+}

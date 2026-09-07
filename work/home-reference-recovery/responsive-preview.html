@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вечерний дом — проверка двух форматов</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #111b29; color: #f4e5c6; font-family: system-ui, sans-serif; }
+    header { padding: 14px 18px; }
+    h1 { margin: 0 0 4px; font-size: 20px; line-height: 1.25; font-weight: 650; }
+    p { margin: 0; color: #c5bba8; font-size: 12px; line-height: 1.5; }
+    .scene { margin: 0; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; }
+    .scene img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    footer { padding: 12px 18px; }
+    .mobile-label { display: none; }
+    @media (max-width: 600px) {
+      .scene { aspect-ratio: 3 / 4; }
+      .desktop-label { display: none; }
+      .mobile-label { display: inline; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Вечерний дом</h1>
+    <p><span class="desktop-label">Web: широкий обзор комнаты.</span><span class="mobile-label">Телефон: сцена 3:4, та же комната.</span></p>
+  </header>
+  <main>
+    <figure class="scene"><img src="./evening-responsive-master-v4.png" alt="Папа и мама на диване, сын и дочь рядом на ковре; уютная вечерняя комната" width="1672" height="941"></figure>
+  </main>
+  <footer><p>Превью композиции. Не игровой экран: персонажи здесь ещё часть иллюстрации.</p></footer>
+</body>
+</html>

@@ -6,6 +6,10 @@ import { initSentryClient } from './utils/sentry';
 import { getTelegramInitData } from './utils/apiFetch';
 import './index.css';
 
+const DemoApp = React.lazy(() => import('./demo/DemoApp'));
+// The additive local demo never replaces the authenticated production app.
+const localDemo = import.meta.env.DEV && new URLSearchParams(location.search).get('legacy') !== '1';
+
 initSentryClient();
 
 // --- API auth (этап 1 аудита): каждый fetch получает заголовок
@@ -28,8 +32,9 @@ window.fetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response>
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <App />
+      <React.Suspense fallback={<div style={{ padding: 32 }}>Открываем семейный дом…</div>}>
+        {localDemo ? <DemoApp /> : <App />}
+      </React.Suspense>
     </ErrorBoundary>
   </React.StrictMode>
 );
-

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "migrations": [
+    {
+      "name": "0001_bootstrap.sql",
+      "sha256": "0ae386957fc933e0144792bbf72822dfa882395585cb008ae78e3bd21bcab51d"
+    },
+    {
+      "name": "0002_family_foundation.sql",
+      "sha256": "e590b7c83de6b89d5d3f2f13ffe66af683c9c6aaf6204ebc5d6380eac3a5f8a7"
+    },
+    {
+      "name": "0003_identity_exchange.sql",
+      "sha256": "cc7ea9e49f80954f2b3b85bf2257149d5c411f8ad0bdb3305d20d480fae5bd51"
+    },
+    {
+      "name": "0004_family_access.sql",
+      "sha256": "1f409fb16bbf1bc70f9ae8d16018b63d71ee71b462d454d1590d5e44354ee94c"
+    }
+  ]
+}

@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch server.ts",
+    "dev:demo": "envskill run --only SQL_HOST,SQL_USER,SQL_PASSWORD,SQL_DB_NAME,SQL_ADMIN_USER,SQL_ADMIN_PASSWORD -- env DOTENV_CONFIG_PATH=/dev/null CRON_TIMEZONE=Europe/Moscow tsx watch server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "db:push": "drizzle-kit push --config src/db/drizzle.config.ts",
@@ -11,7 +12,13 @@
     "db:verify-clean": "tsx scripts/verify-clean-migration.ts",
     "test": "vitest run",
     "unpack-local": "tsx scripts/unpack-local.ts",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "target:typecheck": "tsc --noEmit -p tsconfig.target.json",
+    "target:build": "esbuild scripts/target/dev.ts src/target/db/database.ts src/target/access/telegram/index.ts src/target/access/identityExchange.ts src/target/access/familySession.ts --bundle --platform=node --format=esm --packages=external --sourcemap --outdir=work/target-build",
+    "target:test": "vitest run --config vitest.target.config.ts",
+    "target:test:pg": "tsx scripts/target/test-environment.ts",
+    "target:dev": "tsx scripts/target/dev.ts",
+    "target:preview": "tsx scripts/target/preview.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1107.0",

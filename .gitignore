@@ -33,3 +33,9 @@ firebase-applet-config.json
 firebase-applet-config.*.json
 metadata.json
 bun.lock
+
+# Локальные рабочие кэши, сборки и снимки состояния
+/work/npm-cache/
+/work/target-build/
+/work/demo-baseline.json
+/work/g03-d/update-status.py

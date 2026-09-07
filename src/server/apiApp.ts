@@ -21,6 +21,7 @@ import { userRoutes } from '../api/userRoutes';
 import { webhookRoutes } from '../api/webhookRoutes';
 import { zooRoutes } from '../api/zooRoutes';
 import { globalApiAuth } from '../utils/apiAuth';
+import { demoRoutes } from '../demo/router';
 
 export interface ApiAppOptions {
   corsOrigin?: string;
@@ -60,6 +61,9 @@ export function createApiApp(options: ApiAppOptions = {}) {
     }));
   }
 
+  // Local demo uses its own loopback/origin boundary and isolated PostgreSQL world.
+  // Never expose its profile selector as authenticated production identity.
+  if (process.env.NODE_ENV !== 'production') app.use('/api/demo', demoRoutes);
   app.use(globalApiAuth);
 
   app.use('/api/integrations', integrationsRouter);

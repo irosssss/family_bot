@@ -1,0 +1,68 @@
+[
+  {
+    "theme": "fireplace",
+    "width": 343,
+    "height": 515,
+    "seatAnchorY": 234,
+    "seats": [
+      {
+        "x": 14.5,
+        "seatY": 39.0,
+        "size": 100,
+        "canvasTopY": 127.5,
+        "visibleFeetY": 222.5
+      },
+      {
+        "x": 29.0,
+        "seatY": 39.0,
+        "size": 100,
+        "canvasTopY": 127.5,
+        "visibleFeetY": 222.5
+      }
+    ]
+  },
+  {
+    "theme": "library",
+    "width": 343,
+    "height": 515,
+    "seatAnchorY": 234,
+    "seats": [
+      {
+        "x": 42.0,
+        "seatY": 39.1,
+        "size": 100,
+        "canvasTopY": 128.0,
+        "visibleFeetY": 223.0
+      },
+      {
+        "x": 59.0,
+        "seatY": 39.1,
+        "size": 100,
+        "canvasTopY": 128.0,
+        "visibleFeetY": 223.0
+      }
+    ]
+  },
+  {
+    "theme": "conservatory",
+    "width": 343,
+    "height": 515,
+    "seatAnchorY": 234,
+    "seats": [
+      {
+        "x": 40.0,
+        "seatY": 43.0,
+        "size": 106,
+        "canvasTopY": 144.0,
+        "visibleFeetY": 244.7
+      },
+      {
+        "x": 60.0,
+        "seatY": 43.0,
+        "size": 106,
+        "canvasTopY": 144.0,
+        "visibleFeetY": 244.7
+      }
+    ]
+  }
+]

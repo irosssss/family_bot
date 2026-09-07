@@ -83,6 +83,35 @@ describe('production HTTP API authorization', () => {
     expect(unknown.status).toBe(403);
   });
 
+  it('verifies a URL-encoded Telegram user through the public auth endpoint', async () => {
+    const response = await fetch(`${baseUrl}/api/auth/verify`, {
+      method: 'POST', headers: authFor(9102),
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      success: true, user: { id: 9102, first_name: 'Тест 50% + &' },
+    });
+  });
+
+  it('rejects signed but malformed user data at the auth endpoint', async () => {
+    const response = await fetch(`${baseUrl}/api/auth/verify`, {
+      method: 'POST', headers: authFor(NaN),
+    });
+    expect(response.status).toBe(403);
+  });
+
+  it('rejects ambiguous credentials before registration can access the database', async () => {
+    const response = await fetch(`${baseUrl}/api/auth/register`, {
+      method: 'POST',
+      headers: {
+        authorization: `${authFor(9102).authorization}&%75ser=%7B%22id%22%3A9101%7D`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ display_name: 'Synthetic registration rejection' }),
+    });
+    expect(response.status).toBe(401);
+  });
+
   it('limits the admin listing to the authenticated family', async () => {
     const response = await fetch(`${baseUrl}/api/users`, { headers: authFor(9101) });
     expect(response.status).toBe(200);

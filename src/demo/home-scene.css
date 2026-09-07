@@ -1,0 +1,21 @@
+/* One photographed stage and one coordinate projection for every raster layer. */
+.demo-room.demo-authored-room { aspect-ratio:1672/941; background:#35241d; }
+.demo-authored-layers { position:absolute; inset:0; }
+.demo-authored-member,.demo-authored-pet,.demo-authored-decor { position:absolute; }
+.demo-authored-member .demo-member-button { width:100%; height:100%; }
+.demo-authored-member.parent .demo-member-name { top:-12px; bottom:auto; }
+.demo-authored-member.child .demo-member-name { bottom:-18px; }
+.demo-authored-member.back-row .demo-member-name { top:-12px; bottom:auto; }
+.demo-authored-decor,.demo-authored-pet { object-fit:contain; image-rendering:pixelated; pointer-events:none; }
+.demo-authored-member .demo-member-name { max-width:min(105px,100%); }
+.demo-authored-room .demo-room-label { top:88px; bottom:auto; }
+.demo-room-wrap.compact .demo-room-label { top:8px; }
+.demo-room-wrap.compact .demo-authored-room { aspect-ratio:3/4; }
+@media (min-width:761px) and (max-width:980px) {
+  .demo-home-layout { grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:760px) {
+  .demo-home-scene .demo-room.demo-authored-room { aspect-ratio:3/4; height:auto; }
+  .demo-authored-member.parent .demo-member-name { top:-10px; }
+  .demo-authored-member .demo-member-name { font-size:10px; padding:3px 6px; }
+}

@@ -12,7 +12,8 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-family_pass}
       POSTGRES_DB: family_chores
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # PostgreSQL 18 stores its data in a versioned subdirectory under this path.
+      - pgdata:/var/lib/postgresql
     ports:
       - "5432:5432"
     healthcheck:

@@ -1,0 +1,871 @@
+[
+  {
+    "name": "beard-full-black.png",
+    "size": 14580,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "beard-full-blond.png",
+    "size": 22318,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "beard-full-chestnut.png",
+    "size": 21159,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "beard-full-ginger.png",
+    "size": 21266,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "beard-full-silver.png",
+    "size": 19657,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "beard-short-black.png",
+    "size": 10035,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "beard-short-blond.png",
+    "size": 15317,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "beard-short-chestnut.png",
+    "size": 14691,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "beard-short-ginger.png",
+    "size": 14754,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "beard-short-silver.png",
+    "size": 13718,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-bob-black.png",
+    "size": 21175,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-bob-blond.png",
+    "size": 33128,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-bob-chestnut.png",
+    "size": 31790,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-bob-ginger.png",
+    "size": 31918,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-bob-silver.png",
+    "size": 28778,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-curly-black.png",
+    "size": 23791,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-curly-blond.png",
+    "size": 38055,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-curly-chestnut.png",
+    "size": 36410,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-curly-ginger.png",
+    "size": 36655,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-curly-silver.png",
+    "size": 33019,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-long-black.png",
+    "size": 24439,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-long-blond.png",
+    "size": 37997,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-long-chestnut.png",
+    "size": 36373,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-long-ginger.png",
+    "size": 36542,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-long-silver.png",
+    "size": 33194,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-ponytail-black.png",
+    "size": 23414,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-ponytail-blond.png",
+    "size": 37293,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-ponytail-chestnut.png",
+    "size": 35815,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-ponytail-ginger.png",
+    "size": 35979,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-ponytail-silver.png",
+    "size": 32097,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-short-black.png",
+    "size": 17691,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-short-blond.png",
+    "size": 27792,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-short-chestnut.png",
+    "size": 26677,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-short-ginger.png",
+    "size": 26840,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "hair-short-silver.png",
+    "size": 23785,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "head-brown.png",
+    "size": 29366,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "head-deep.png",
+    "size": 29336,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "head-peach.png",
+    "size": 29961,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "head-warm.png",
+    "size": 29769,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-healer-body-brown.png",
+    "size": 43504,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-healer-body-deep.png",
+    "size": 43385,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-healer-body-peach.png",
+    "size": 43744,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-healer-body-warm.png",
+    "size": 43625,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-healer-weapon.png",
+    "size": 7215,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-mage-body-brown.png",
+    "size": 42671,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-mage-body-deep.png",
+    "size": 42581,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-mage-body-peach.png",
+    "size": 42861,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-mage-body-warm.png",
+    "size": 42727,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-mage-weapon.png",
+    "size": 8004,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-rogue-body-brown.png",
+    "size": 41674,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-rogue-body-deep.png",
+    "size": 41599,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-rogue-body-peach.png",
+    "size": 41858,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-rogue-body-warm.png",
+    "size": 41690,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-rogue-weapon.png",
+    "size": 9727,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-warrior-body-brown.png",
+    "size": 41071,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-warrior-body-deep.png",
+    "size": 40978,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-warrior-body-peach.png",
+    "size": 41359,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-warrior-body-warm.png",
+    "size": 41172,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "rare-warrior-weapon.png",
+    "size": 7962,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-healer-body-brown.png",
+    "size": 43147,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-healer-body-deep.png",
+    "size": 43021,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-healer-body-peach.png",
+    "size": 43444,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-healer-body-warm.png",
+    "size": 43256,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-healer-weapon.png",
+    "size": 6920,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-mage-body-brown.png",
+    "size": 41072,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-mage-body-deep.png",
+    "size": 41011,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-mage-body-peach.png",
+    "size": 41301,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-mage-body-warm.png",
+    "size": 41141,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-mage-weapon.png",
+    "size": 7724,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-rogue-body-brown.png",
+    "size": 40071,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-rogue-body-deep.png",
+    "size": 40028,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-rogue-body-peach.png",
+    "size": 40237,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-rogue-body-warm.png",
+    "size": 40103,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-rogue-weapon.png",
+    "size": 9407,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-warrior-body-brown.png",
+    "size": 40990,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-warrior-body-deep.png",
+    "size": 40878,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-warrior-body-peach.png",
+    "size": 41237,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-warrior-body-warm.png",
+    "size": 41083,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  {
+    "name": "starter-warrior-weapon.png",
+    "size": 7679,
+    "width": 256,
+    "height": 320,
+    "mode": "RGBA",
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  }
+]

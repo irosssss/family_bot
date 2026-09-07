@@ -1,0 +1,9 @@
+{
+  "source": "Synthetic vector independently computed with Python stdlib hmac/hashlib/urllib.parse; not real Telegram credentials.",
+  "botToken": "7000000000:TEST_TOKEN_FOR_UNIT_TESTS",
+  "nowMs": 1700000000000,
+  "dataCheckString": "auth_date=1700000000\nquery_id=AA+/%= test\nsignature=test-signature_Ab-C=\nuser={\"id\":69513172,\"first_name\":\"Семён 50% + & =\",\"photo_url\":\"https:\\/\\/example.invalid\\/a?x=1&y=2\",\"last_name\":\"\\u0422ест\"}",
+  "hash": "2d104b2d49aad851787507a12d33768feebad37158fad3d32cf50abe89e5ed27",
+  "legacyEncodedHash": "76e1024e20876a4db5ac457c4e4306252599528aafc5a0fe854d745838fabc8f",
+  "query": "user=%7B%22id%22%3A69513172%2C%22first_name%22%3A%22%D0%A1%D0%B5%D0%BC%D1%91%D0%BD+50%25+%2B+%26+%3D%22%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Fexample.invalid%5C%2Fa%3Fx%3D1%26y%3D2%22%2C%22last_name%22%3A%22%5Cu0422%D0%B5%D1%81%D1%82%22%7D&auth_date=1700000000&query_id=AA%2B%2F%25%3D+test&signature=test-signature_Ab-C%3D"
+}

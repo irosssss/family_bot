@@ -1,0 +1,1873 @@
+[
+  {
+    "path": "public/assets/game/demo/home-fireplace.webp",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-9f519e89-218a-4000-8dcf-1ecc5ba9ab76.png",
+    "size": [
+      768,
+      1152
+    ],
+    "mode": "RGB",
+    "bytes": 113064,
+    "alphaExtrema": null,
+    "sourceBounds": null
+  },
+  {
+    "path": "public/assets/game/demo/home-library.webp",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8abd3a73-be5e-4060-a739-29cfa41d6e3a.png",
+    "size": [
+      768,
+      1152
+    ],
+    "mode": "RGB",
+    "bytes": 100946,
+    "alphaExtrema": null,
+    "sourceBounds": null
+  },
+  {
+    "path": "public/assets/game/demo/home-conservatory.webp",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-b46a4c32-73ea-4268-9700-c577f3b30b9c.png",
+    "size": [
+      768,
+      1152
+    ],
+    "mode": "RGB",
+    "bytes": 144408,
+    "alphaExtrema": null,
+    "sourceBounds": null
+  },
+  {
+    "path": "public/assets/game/demo/boss-b01.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-afd380ed-d4c3-48f9-bc81-2603c63f5f84.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 39809,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      0,
+      314,
+      627
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b02.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-afd380ed-d4c3-48f9-bc81-2603c63f5f84.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 41502,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      314,
+      0,
+      627,
+      627
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b03.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-afd380ed-d4c3-48f9-bc81-2603c63f5f84.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 54046,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      627,
+      0,
+      940,
+      627
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b04.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-afd380ed-d4c3-48f9-bc81-2603c63f5f84.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 38350,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      940,
+      0,
+      1254,
+      627
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b05.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-afd380ed-d4c3-48f9-bc81-2603c63f5f84.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 36181,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      627,
+      314,
+      1254
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b06.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-afd380ed-d4c3-48f9-bc81-2603c63f5f84.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 27521,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      314,
+      627,
+      627,
+      1254
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b07.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-afd380ed-d4c3-48f9-bc81-2603c63f5f84.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 31617,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      627,
+      627,
+      940,
+      1254
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b08.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-afd380ed-d4c3-48f9-bc81-2603c63f5f84.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 43319,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      940,
+      627,
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b21.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-85573f98-e259-45b4-b7b9-9ca9bc5645f1.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 47479,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      0,
+      314,
+      627
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b22.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-85573f98-e259-45b4-b7b9-9ca9bc5645f1.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 53108,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      314,
+      0,
+      627,
+      627
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b23.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-85573f98-e259-45b4-b7b9-9ca9bc5645f1.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 58012,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      627,
+      0,
+      940,
+      627
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b24.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-85573f98-e259-45b4-b7b9-9ca9bc5645f1.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 76762,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      940,
+      0,
+      1254,
+      627
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b25.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-85573f98-e259-45b4-b7b9-9ca9bc5645f1.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 48796,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      627,
+      314,
+      1254
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b26.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-85573f98-e259-45b4-b7b9-9ca9bc5645f1.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 55863,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      314,
+      627,
+      627,
+      1254
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b27.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-85573f98-e259-45b4-b7b9-9ca9bc5645f1.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 39356,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      627,
+      627,
+      940,
+      1254
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b28.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-85573f98-e259-45b4-b7b9-9ca9bc5645f1.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 51006,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      940,
+      627,
+      1254,
+      1254
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b09.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 105906,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      0,
+      382,
+      382
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b10.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 84728,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      342,
+      0,
+      744,
+      382
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b11.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 90755,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      704,
+      0,
+      1106,
+      382
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b12.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 74007,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1066,
+      0,
+      1448,
+      382
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b13.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 93889,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      342,
+      382,
+      744
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b14.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 74217,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      342,
+      342,
+      744,
+      744
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b15.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 82320,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      704,
+      342,
+      1106,
+      744
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b16.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 88186,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1066,
+      342,
+      1448,
+      744
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b17.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 86358,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      704,
+      382,
+      1086
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b18.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 97142,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      342,
+      704,
+      744,
+      1086
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b19.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 105505,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      704,
+      704,
+      1106,
+      1086
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b20.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-8c2e75e1-a4fc-4829-b3c5-61ce9523da66.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 105126,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1066,
+      704,
+      1448,
+      1086
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p01.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 70237,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      0,
+      308,
+      320
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p02.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 63246,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      308,
+      0,
+      615,
+      320
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p03.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 76559,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      615,
+      0,
+      922,
+      320
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p04.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 55375,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      922,
+      0,
+      1230,
+      320
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p05.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 76056,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      320,
+      308,
+      639
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p06.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 73389,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      308,
+      320,
+      615,
+      639
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p07.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 63485,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      615,
+      320,
+      922,
+      639
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p08.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 72157,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      922,
+      320,
+      1230,
+      639
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p09.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 76489,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      639,
+      308,
+      958
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p10.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 67965,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      308,
+      639,
+      615,
+      958
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p11.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 64307,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      615,
+      639,
+      922,
+      958
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p12.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 81500,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      922,
+      639,
+      1230,
+      958
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p13.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 75912,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      958,
+      308,
+      1278
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p14.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 61767,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      308,
+      958,
+      615,
+      1278
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p15.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 59992,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      615,
+      958,
+      922,
+      1278
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/pet-p16.png",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-f0d4dcac-2b08-4559-967a-efb58c376fc4.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 72424,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      922,
+      958,
+      1230,
+      1278
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/boss-b29.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 76125,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      0,
+      384,
+      367
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b30.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 65607,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      384,
+      0,
+      768,
+      367
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b31.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 78731,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      768,
+      0,
+      1152,
+      367
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b32.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 72956,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1152,
+      0,
+      1536,
+      367
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b33.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 72288,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      315,
+      384,
+      709
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b34.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 57528,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      384,
+      315,
+      768,
+      709
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b35.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 89719,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      768,
+      315,
+      1152,
+      709
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b36.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 69422,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1152,
+      315,
+      1536,
+      709
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b37.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 90462,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      657,
+      384,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b38.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 63842,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      384,
+      657,
+      768,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b39.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 70631,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      768,
+      657,
+      1152,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b40.png",
+    "source": "work/demo-art/boss4-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 94779,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1152,
+      657,
+      1536,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-083c5b22-b97e-47b9-8995-00e9931075c2.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-04ac3667-8cb4-4ffe-bb70-ff6a58aff6cc.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/arena.webp",
+    "source": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-32cbd3ec-982a-4728-acdb-880752afeba2.png",
+    "size": [
+      768,
+      1152
+    ],
+    "mode": "RGB",
+    "bytes": 199292,
+    "alphaExtrema": null,
+    "sourceBounds": null
+  },
+  {
+    "path": "public/assets/game/demo/boss-b41.png",
+    "source": "work/demo-art/boss5-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 64439,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      0,
+      512,
+      353
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-aa4f7973-26d9-41a5-a98e-001e31bd8e72.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-9da3f326-b036-4e95-b168-a21301327a25.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b42.png",
+    "source": "work/demo-art/boss5-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 73534,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      512,
+      0,
+      1024,
+      353
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-aa4f7973-26d9-41a5-a98e-001e31bd8e72.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-9da3f326-b036-4e95-b168-a21301327a25.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b43.png",
+    "source": "work/demo-art/boss5-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 71876,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1024,
+      0,
+      1536,
+      353
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-aa4f7973-26d9-41a5-a98e-001e31bd8e72.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-9da3f326-b036-4e95-b168-a21301327a25.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b44.png",
+    "source": "work/demo-art/boss5-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 87390,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      329,
+      512,
+      695
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-aa4f7973-26d9-41a5-a98e-001e31bd8e72.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-9da3f326-b036-4e95-b168-a21301327a25.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b45.png",
+    "source": "work/demo-art/boss5-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 64997,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      512,
+      329,
+      1024,
+      695
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-aa4f7973-26d9-41a5-a98e-001e31bd8e72.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-9da3f326-b036-4e95-b168-a21301327a25.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b46.png",
+    "source": "work/demo-art/boss5-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 76705,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1024,
+      329,
+      1536,
+      695
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-aa4f7973-26d9-41a5-a98e-001e31bd8e72.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-9da3f326-b036-4e95-b168-a21301327a25.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b47.png",
+    "source": "work/demo-art/boss5-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 69823,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      671,
+      512,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-aa4f7973-26d9-41a5-a98e-001e31bd8e72.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-9da3f326-b036-4e95-b168-a21301327a25.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b48.png",
+    "source": "work/demo-art/boss5-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 77768,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      512,
+      671,
+      1024,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-aa4f7973-26d9-41a5-a98e-001e31bd8e72.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-9da3f326-b036-4e95-b168-a21301327a25.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/boss-b49.png",
+    "source": "work/demo-art/boss5-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 92061,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1024,
+      671,
+      1536,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-aa4f7973-26d9-41a5-a98e-001e31bd8e72.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-9da3f326-b036-4e95-b168-a21301327a25.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p17.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 69381,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      0,
+      392,
+      349
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p18.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 67440,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      376,
+      0,
+      776,
+      349
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p19.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 67744,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      760,
+      0,
+      1160,
+      349
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p20.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 69964,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1144,
+      0,
+      1536,
+      349
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p21.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 77145,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      333,
+      392,
+      691
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p22.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 70511,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      376,
+      333,
+      776,
+      691
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p23.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 61373,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      760,
+      333,
+      1160,
+      691
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p24.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 78396,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1144,
+      333,
+      1536,
+      691
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p25.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 62164,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      675,
+      392,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p26.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 69644,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      376,
+      675,
+      776,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p27.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 75099,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      760,
+      675,
+      1160,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/pet-p28.png",
+    "source": "work/demo-art/pets2-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 80930,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1144,
+      675,
+      1536,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-ec7cd151-c704-4eec-a95f-7372ac8fd4d5.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-ee435a4d-b0a9-412e-ad2c-c1fda9315e92.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/decor/plant.png",
+    "source": "work/demo-art/decor-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 67671,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      0,
+      424,
+      552
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-bf040cb7-7b99-474b-b957-63c28340c778.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-0244ec4d-3c38-429c-ae9c-5dfe347a6275.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/decor/books.png",
+    "source": "work/demo-art/decor-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 66124,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      344,
+      0,
+      808,
+      552
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-bf040cb7-7b99-474b-b957-63c28340c778.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-0244ec4d-3c38-429c-ae9c-5dfe347a6275.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/decor/rug.png",
+    "source": "work/demo-art/decor-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 57366,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      728,
+      0,
+      1192,
+      552
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-bf040cb7-7b99-474b-b957-63c28340c778.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-0244ec4d-3c38-429c-ae9c-5dfe347a6275.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/decor/lamp.png",
+    "source": "work/demo-art/decor-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 24878,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1112,
+      0,
+      1536,
+      552
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-bf040cb7-7b99-474b-b957-63c28340c778.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-0244ec4d-3c38-429c-ae9c-5dfe347a6275.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/decor/picture.png",
+    "source": "work/demo-art/decor-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 75761,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      0,
+      472,
+      424,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-bf040cb7-7b99-474b-b957-63c28340c778.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-0244ec4d-3c38-429c-ae9c-5dfe347a6275.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/decor/garland.png",
+    "source": "work/demo-art/decor-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 23049,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      344,
+      472,
+      808,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-bf040cb7-7b99-474b-b957-63c28340c778.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-0244ec4d-3c38-429c-ae9c-5dfe347a6275.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/decor/telescope.png",
+    "source": "work/demo-art/decor-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 36019,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      728,
+      472,
+      1192,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-bf040cb7-7b99-474b-b957-63c28340c778.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-0244ec4d-3c38-429c-ae9c-5dfe347a6275.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  },
+  {
+    "path": "public/assets/game/demo/egg.png",
+    "source": "work/demo-art/decor-key-alpha.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "bytes": 68005,
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "sourceBounds": [
+      1112,
+      472,
+      1536,
+      1024
+    ],
+    "originalGeneratedSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e51-573f-7f41-af72-48d8a5430ac9/exec-bf040cb7-7b99-474b-b957-63c28340c778.png",
+    "backgroundEditSource": "/Users/dmitrijzdanov/.codex/generated_images/01a06e7b-d070-7811-a922-81fad1f3e56f/exec-0244ec4d-3c38-429c-ae9c-5dfe347a6275.png",
+    "alphaMethod": "builtin background-only flat-magenta edit, local connected chromakey"
+  }
+]

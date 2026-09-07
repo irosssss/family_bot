@@ -1,0 +1,338 @@
+.demo-v2-wardrobe,
+.demo-v2-family {
+  --night: #081725;
+  --slate: #16273c;
+  --paper: #eddbb3;
+  --bronze: #a97735;
+  --cyan: #31abd8;
+  --moss: #63b38b;
+  color: #edf1ee;
+}
+
+.demo-v2-wardrobe .demo-v2-wardrobe-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, .9fr) minmax(0, 1.35fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.demo-v2-wardrobe .demo-v2-fitting-room {
+  position: sticky;
+  top: 18px;
+  padding: 12px;
+  background: var(--night);
+  border: 2px solid var(--bronze);
+  border-radius: 18px 18px 6px 6px;
+  box-shadow: inset 0 0 0 3px #16273c, 0 4px 0 #030c15;
+}
+
+.demo-v2-wardrobe .demo-v2-fitting-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 5px 0 10px;
+  color: #a8d2b8;
+  font-size: 12px;
+}
+
+.demo-v2-wardrobe .demo-v2-fitting-status.is-draft { color: #f7d69c; }
+.demo-v2-wardrobe .demo-v2-hero-showcase {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 10px 5px 13px;
+  border-top: 1px solid #a977356b;
+  border-bottom: 1px solid #a977356b;
+}
+
+.demo-v2-wardrobe .demo-v2-hero-pedestal {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 6px;
+  isolation: isolate;
+}
+
+.demo-v2-wardrobe .demo-v2-hero-pedestal::before {
+  content: '';
+  position: absolute;
+  inset: 0 1px 16px;
+  border: 1px solid #4d7384;
+  border-bottom: 0;
+  border-radius: 90px 90px 0 0;
+  background: radial-gradient(ellipse at 50% 45%, #2a5369, #0b1e30 73%);
+  box-shadow: inset 0 0 0 4px #0e2235;
+  z-index: -2;
+}
+
+.demo-v2-wardrobe .demo-v2-hero-pedestal::after {
+  content: '';
+  position: absolute;
+  width: 95%;
+  max-width: 175px;
+  height: 24px;
+  bottom: 6px;
+  border: 2px solid #9b845e;
+  border-radius: 50%;
+  background: #78684d;
+  box-shadow: 0 5px 0 #3a3b3b, 0 7px 0 #a08a66;
+  z-index: -1;
+}
+
+.demo-v2-wardrobe .demo-v2-hero-details { min-width: 0; }
+.demo-v2-wardrobe .demo-v2-hero-details h2 { color: #fff1d4; font-size: 26px; overflow-wrap: anywhere; }
+.demo-v2-wardrobe .demo-v2-role-label { color: #bfcbd7; font-size: 12px; }
+.demo-v2-wardrobe .demo-v2-hero-class { display: flex; align-items: center; gap: 5px; color: #f1d094; font-size: 14px; }
+.demo-v2-wardrobe .demo-v2-hero-class svg { flex-shrink: 0; }
+.demo-v2-wardrobe .demo-v2-hero-progress { margin-top: 18px; display: flex; flex-direction: column; gap: 6px; }
+.demo-v2-wardrobe .demo-v2-hero-progress strong { color: #edf3f8; font-size: 14px; }
+.demo-v2-wardrobe .demo-v2-hero-progress small { color: #b7c9d8; font-size: 11px; line-height: 1.4; }
+.demo-v2-wardrobe .demo-v2-hero-progress > span { display: flex; align-items: center; gap: 4px; color: #bce9f6; font-size: 12px; margin-top: 3px; }
+.demo-v2-wardrobe .demo-v2-parent-role { margin-top: 18px; color: #c7dacd; font-size: 12px; line-height: 1.55; }
+.demo-v2-wardrobe .demo-v2-parent-role svg { display: block; margin-bottom: 5px; color: #8ac9a5; }
+.demo-v2-wardrobe .demo-v2-parent-role small { display: inline-block; margin-top: 5px; color: #b7c9d8; font-size: 11px; }
+
+.demo-v2-wardrobe .demo-v2-fitting-actions { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 8px; padding-top: 13px; }
+.demo-v2-wardrobe .demo-v2-fitting-actions .demo-button { min-width: 0; padding: 11px 8px; font-size: 13px; }
+.demo-v2-wardrobe .demo-v2-fitting-hint { color: #f1d094; font-size: 12px; padding: 3px; }
+
+.demo-v2-wardrobe .demo-v2-look-controls {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #526078;
+  background: var(--slate);
+  border-radius: 6px;
+  box-shadow: inset 0 1px #80929c33;
+}
+
+.demo-v2-wardrobe .demo-v2-control-heading,
+.demo-v2-family .demo-v2-control-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; color: #e8d2a2; }
+.demo-v2-wardrobe .demo-v2-control-heading h2,
+.demo-v2-family .demo-v2-control-heading h2 { color: #f5efdf; font-size: 19px; }
+
+.demo-v2-wardrobe .demo-v2-segmented {
+  display: flex;
+  padding: 3px;
+  gap: 3px;
+  margin-bottom: 19px;
+  background: #071420;
+  border: 1px solid #526078;
+  border-radius: 5px;
+}
+
+.demo-v2-wardrobe .demo-v2-segmented button {
+  min-width: 44px;
+  min-height: 44px;
+  flex: 1;
+  padding: 8px 5px;
+  color: #c6d1db;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.demo-v2-wardrobe .demo-v2-segmented button[aria-pressed=true] {
+  background: #175479;
+  color: #fff8e9;
+  border-color: #5bc4ec;
+  box-shadow: inset 0 2px #8fddf36b;
+}
+
+.demo-v2-wardrobe .demo-v2-look-controls fieldset { margin-bottom: 20px; }
+.demo-v2-wardrobe .demo-v2-look-controls fieldset:last-child { margin-bottom: 0; }
+.demo-v2-wardrobe .demo-v2-look-controls legend { color: #f3e6ca; font-size: 14px; margin-bottom: 10px; }
+.demo-v2-wardrobe .demo-v2-portrait-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.demo-v2-wardrobe .demo-v2-portrait-grid.skin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.demo-v2-wardrobe .demo-v2-portrait-choice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  min-height: 112px;
+  overflow: hidden;
+  padding: 5px 3px 9px;
+  background: var(--paper);
+  border: 2px solid #ac8c58;
+  border-radius: 5px;
+  color: #322b27;
+  font-size: 12px;
+}
+
+.demo-v2-wardrobe .demo-v2-portrait-choice[aria-pressed=true],
+.demo-v2-wardrobe .demo-v2-class-grid button[aria-pressed=true] { border-color: #42c7ee; box-shadow: inset 0 0 0 1px #0b668a; background: #f8eacb; }
+.demo-v2-wardrobe .demo-v2-portrait-window { display: flex; justify-content: center; width: 100%; height: 78px; overflow: hidden; flex-shrink: 0; margin-bottom: 6px; }
+.demo-v2-wardrobe .demo-v2-portrait-window .demo-character { transform: translateY(-6px); }
+.demo-v2-wardrobe .demo-v2-portrait-window.beard-window { height: 90px; }
+.demo-v2-wardrobe .demo-v2-choice-check { position: absolute; right: 4px; top: 4px; padding: 2px; width: 20px; height: 20px; border-radius: 3px; color: #fff; background: #145c74; }
+.demo-v2-wardrobe .demo-v2-skin-dot { display: inline-block; width: 11px; height: 11px; margin-right: 5px; border: 1px solid #75563e; border-radius: 50%; }
+.demo-v2-wardrobe .demo-v2-color-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.demo-v2-wardrobe .demo-v2-color-grid button { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 44px; min-height: 67px; padding: 5px 0; border: 1px solid transparent; border-radius: 5px; color: #e1e7ec; background: none; font-size: 11px; }
+.demo-v2-wardrobe .demo-v2-color-grid button[aria-pressed=true] { border-color: #42c7ee; background: #071d30; }
+.demo-v2-wardrobe .demo-v2-color-chip { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 2px solid #b6a07a; border-radius: 50%; background: var(--swatch); color: #fff; }
+.demo-v2-wardrobe .demo-v2-color-chip svg { filter: drop-shadow(0 1px 1px #071420); }
+.demo-v2-wardrobe .demo-v2-class-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.demo-v2-wardrobe .demo-v2-class-grid button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 6px; min-width: 0; border: 2px solid #ac8c58; border-radius: 5px; background: var(--paper); color: #322b27; }
+.demo-v2-wardrobe .demo-v2-class-grid strong { font-size: 14px; }
+.demo-v2-wardrobe .demo-v2-class-grid small { max-width: 120px; color: #594e3d; font-size: 11px; line-height: 1.4; }
+.demo-v2-wardrobe .demo-v2-look-controls .demo-muted { color: #c2d0db; margin-top: 14px; }
+
+.demo-v2-wardrobe .demo-item-card {
+  --ink: #322b27;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 7px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #b09059;
+  border-radius: 5px;
+  color: #322b27;
+  background: var(--paper);
+  text-align: center;
+  box-shadow: inset 0 0 0 3px #e1c69a;
+}
+
+.demo-v2-wardrobe .demo-item-card.is-selected { border-color: #5bbcb0; box-shadow: inset 0 0 0 2px #6d9c80; }
+.demo-v2-wardrobe .demo-item-card h3 { color: #322b27; font-size: 14px; line-height: 1.35; }
+.demo-v2-wardrobe .demo-item-card p { color: #645338; font-size: 12px; margin: 0 0 4px; }
+.demo-v2-wardrobe .demo-item-card > .demo-art { width: 100%; height: 112px; }
+.demo-v2-wardrobe .demo-item-card .demo-button { width: 100%; min-height: 44px; padding: 9px 5px; font-size: 12px; }
+.demo-v2-wardrobe .demo-item-card .demo-button:first-of-type { margin-top: auto; }
+.demo-v2-wardrobe .demo-v2-item-art { position: relative; width: 100%; height: 125px; display: flex; align-items: center; justify-content: center; padding-bottom: 11px; background: #e3cda5; border: 1px solid #b79d73; border-radius: 3px; }
+.demo-v2-wardrobe .demo-v2-item-art > .demo-art { width: 100%; height: 106px; object-fit: contain; }
+.demo-v2-wardrobe .demo-v2-item-marker { display: flex; align-items: center; justify-content: center; gap: 3px; position: absolute; bottom: 0; left: 0; right: 0; padding: 2px; color: #fff9eb; background: #346454; font-size: 10px; }
+.demo-v2-wardrobe .demo-v2-item-kind { color: #65523a; font-size: 10px; }
+.demo-v2-wardrobe .demo-v2-owned { display: inline-flex; align-items: center; gap: 3px; color: #3e6147; }
+.demo-v2-wardrobe .demo-item-card .demo-money { color: #614419; }
+.demo-v2-wardrobe .demo-item-card .demo-money.premium { color: #6a407b; }
+.demo-v2-wardrobe .demo-item-card .demo-pet-art { width: 100%; height: 126px; }
+.demo-v2-wardrobe .demo-item-card .demo-pet-art > .demo-art { width: 100%; height: 120px; }
+.demo-v2-wardrobe .demo-egg-badge { color: #324231; background: #f8edca; border-color: #b2925e; }
+.demo-v2-wardrobe .demo-theme-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.demo-v2-wardrobe .demo-theme-card { border: 2px solid #a97735; border-radius: 5px; background: var(--slate); color: #efdfbd; text-align: left; }
+.demo-v2-wardrobe .demo-theme-card > .demo-art { height: 220px; object-fit: cover; }
+.demo-v2-wardrobe .demo-theme-card > span { display: block; padding: 12px; background: var(--slate); }
+.demo-v2-wardrobe .demo-theme-card strong { color: #f4e5c7; font-size: 15px; }
+.demo-v2-wardrobe .demo-theme-card small { color: #bdccd7; font-size: 11px; }
+.demo-v2-wardrobe .demo-decor-slots > div { color: #f0e2c6; background: var(--slate); border: 1px solid #6e7890; border-radius: 4px; }
+.demo-v2-wardrobe .demo-decor-slots span { color: #bfccd6; }
+.demo-v2-wardrobe .demo-pet-intro { background: var(--slate); border: 1px solid #728392; border-radius: 5px; }
+.demo-v2-wardrobe .demo-pet-intro h2 { color: #f1e2c3; }
+.demo-v2-wardrobe .demo-pet-intro p { color: #c8d4dd; }
+.demo-v2-wardrobe .demo-shop-intro { background: var(--slate); border-color: #9a80af; border-radius: 6px; color: #e9dded; }
+.demo-v2-wardrobe .demo-shop-intro h2 { color: #f5e7ee; }
+.demo-v2-wardrobe .demo-shop-intro > svg { color: #ceb4e1; }
+.demo-v2-wardrobe .demo-shop-intro .demo-simple-row { color: #efe6ee; border-bottom-color: #696079; }
+.demo-v2-wardrobe .demo-shop-intro .demo-money.premium { color: #e0bfe9; }
+
+.demo-v2-family .demo-v2-family-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+.demo-v2-family .demo-v2-family-card {
+  --ink: #322b27;
+  display: grid;
+  grid-template-columns: 126px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  color: #322b27;
+  background: var(--paper);
+  border: 2px solid var(--bronze);
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 3px #dfc59a, 0 4px 0 #030d16;
+}
+
+.demo-v2-family .demo-v2-family-card.is-archived { background: #cac2b1; }
+.demo-v2-family .demo-v2-family-portrait { display: flex; justify-content: center; align-self: stretch; align-items: center; border: 1px solid #b3976b; background: #ddc79f; border-radius: 58px 58px 4px 4px; padding: 6px 0; }
+.demo-v2-family .demo-v2-family-person-info { min-width: 0; }
+.demo-v2-family .demo-v2-role-label { color: #5f5140; font-size: 12px; }
+.demo-v2-family .demo-v2-family-person-info h2 { color: #292b2e; font-size: 24px; margin-top: 2px; overflow-wrap: anywhere; }
+.demo-v2-family .demo-v2-family-class { color: #62503c; font-size: 13px; margin-top: 4px; }
+.demo-v2-family .demo-v2-family-level { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 3px 8px; font-size: 12px; margin: 12px 0 6px; }
+.demo-v2-family .demo-v2-family-level span { font-size: 11px; color: #605442; }
+.demo-v2-family .demo-v2-family-energy { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #24586a; margin-top: 7px; }
+.demo-v2-family .demo-v2-family-parent { display: flex; align-items: center; gap: 7px; color: #355442; font-size: 12px; margin-top: 13px; }
+.demo-v2-family .demo-v2-family-parent svg { flex-shrink: 0; }
+.demo-v2-family .demo-v2-family-parent small { display: block; font-size: 10px; color: #5b5c45; margin-top: 4px; }
+.demo-v2-family .demo-v2-family-equipment { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+.demo-v2-family .demo-v2-family-equipment > span { display: inline-flex; width: 37px; height: 37px; border: 1px solid #91764e; background: #1b2c3d; border-radius: 3px; }
+.demo-v2-family .demo-v2-family-equipment img { width: 100%; height: 100%; object-fit: contain; }
+.demo-v2-family .demo-v2-family-pet { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; background: #e4d0a7; border-top: 1px solid #b9a078; padding: 9px 8px 0; }
+.demo-v2-family .demo-v2-family-pet .demo-art { width: 54px; height: 54px; }
+.demo-v2-family .demo-v2-family-pet small { display: block; font-size: 11px; color: #605440; }
+.demo-v2-family .demo-v2-family-pet strong { display: block; font-size: 14px; margin-top: 2px; }
+.demo-v2-family .demo-v2-family-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; grid-column: 1 / -1; margin-top: 1px; }
+.demo-v2-family .demo-v2-family-actions .demo-button { padding: 9px 5px; font-size: 13px; min-height: 44px; }
+.demo-v2-family .demo-v2-archive-note { grid-column: 1 / -1; color: #5d5248; font-size: 12px; margin: 0; }
+
+.demo-v2-wardrobe .demo-v2-hero-progress progress,
+.demo-v2-family .demo-v2-family-card progress { appearance: none; display: block; width: 100%; height: 11px; border: 1px solid #173c4c; border-radius: 4px; overflow: hidden; background: #142236; }
+.demo-v2-wardrobe .demo-v2-hero-progress progress::-webkit-progress-bar,
+.demo-v2-family .demo-v2-family-card progress::-webkit-progress-bar { background: #142236; }
+.demo-v2-wardrobe .demo-v2-hero-progress progress::-webkit-progress-value,
+.demo-v2-family .demo-v2-family-card progress::-webkit-progress-value { background: #31abd8; box-shadow: inset 0 2px #9ce7f0; }
+.demo-v2-wardrobe .demo-v2-hero-progress progress::-moz-progress-bar,
+.demo-v2-family .demo-v2-family-card progress::-moz-progress-bar { background: #31abd8; }
+
+.demo-v2-family .demo-v2-editor-disclosure { margin-bottom: 20px; background: #102237; border: 1px solid #5e7185; border-radius: 5px; }
+.demo-v2-family .demo-v2-editor-disclosure > summary { display: flex; align-items: center; gap: 10px; min-height: 62px; padding: 12px 14px; cursor: pointer; list-style: none; color: #edf0e8; touch-action: manipulation; }
+.demo-v2-family .demo-v2-editor-disclosure > summary::-webkit-details-marker { display: none; }
+.demo-v2-family .demo-v2-editor-disclosure > summary::after { content: '+'; font-size: 23px; color: #c9dce6; margin-left: auto; }
+.demo-v2-family .demo-v2-editor-disclosure[open] > summary::after { content: '−'; }
+.demo-v2-family .demo-v2-editor-disclosure > summary small { display: block; color: #bdcbd7; font-size: 11px; margin-top: 3px; }
+.demo-v2-family .demo-v2-editor-body { padding: 0 14px 3px; }
+.demo-v2-family .demo-editor-notice { color: #c4d9ce; background: #1b343a; border-radius: 4px; margin-bottom: 13px; }
+.demo-v2-family .demo-editor-toolbar { flex-wrap: wrap; gap: 5px 10px; margin-bottom: 13px; }
+.demo-v2-family .demo-editor-list { gap: 9px; }
+.demo-v2-family .demo-editor-list article { color: #ecdfc4; background: var(--slate); border: 1px solid #586b7e; border-radius: 4px; padding: 12px; }
+.demo-v2-family .demo-editor-list h3 { color: #f4e6c9; }
+.demo-v2-family .demo-editor-list p { color: #c7d1da; }
+.demo-v2-family .demo-editor-list small { color: #b8c7d1; font-size: 11px; }
+.demo-v2-family .demo-v2-family-milestones { margin-top: 25px; padding: 20px; border: 1px solid #7a6b4e; border-radius: 5px; background: #102237; }
+.demo-v2-family .demo-v2-family-milestones > p { font-size: 13px; color: #c2cdd6; margin-top: 0; }
+.demo-v2-family .demo-v2-family-milestones dl { margin: 16px 0 12px; }
+.demo-v2-family .demo-v2-family-milestones dl > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #475662; padding: 13px 0; }
+.demo-v2-family .demo-v2-family-milestones dt { display: flex; align-items: center; gap: 11px; color: #e4d3ae; font-size: 13px; }
+.demo-v2-family .demo-v2-family-milestones dt svg { flex-shrink: 0; color: #b6c8cb; }
+.demo-v2-family .demo-v2-family-milestones dd { margin: 0; color: #fff2d1; font-size: 22px; font-weight: 800; }
+.demo-v2-family .demo-v2-family-milestones > small { font-size: 11px; color: #b5c4cf; }
+
+.demo-v2-wardrobe button:focus-visible,
+.demo-v2-family button:focus-visible,
+.demo-v2-family summary:focus-visible { outline: 3px solid #61d7fa; outline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .demo-v2-wardrobe .demo-v2-wardrobe-layout { grid-template-columns: minmax(0, 1fr); gap: 17px; }
+  .demo-v2-wardrobe .demo-v2-fitting-room { position: static; padding: 11px; }
+  .demo-v2-wardrobe .demo-v2-hero-showcase { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding: 6px 4px 10px; }
+  .demo-v2-wardrobe .demo-v2-hero-pedestal .demo-character { width: 148px !important; height: 185px !important; }
+  .demo-v2-wardrobe .demo-v2-hero-details h2 { font-size: 25px; }
+  .demo-v2-wardrobe .demo-v2-hero-progress { margin-top: 12px; }
+  .demo-v2-wardrobe .demo-v2-look-controls { padding: 13px; }
+  .demo-v2-wardrobe .demo-v2-control-heading h2 { font-size: 17px; }
+  .demo-v2-wardrobe .demo-v2-portrait-grid { gap: 7px; }
+  .demo-v2-wardrobe .demo-v2-theme-grid { gap: 10px; }
+  .demo-v2-wardrobe .demo-theme-grid { grid-template-columns: repeat(3, minmax(172px, 1fr)); gap: 11px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
+  .demo-v2-wardrobe .demo-theme-card { scroll-snap-align: start; }
+  .demo-v2-wardrobe .demo-theme-card > .demo-art { height: 205px; }
+  .demo-v2-wardrobe .demo-theme-card > span { padding: 11px; }
+  .demo-v2-wardrobe .demo-catalog-grid { gap: 10px; }
+  .demo-v2-wardrobe .demo-item-card { padding: 9px; }
+  .demo-v2-wardrobe .demo-item-card .demo-button { font-size: 12px; }
+  .demo-v2-wardrobe .demo-pet-intro { padding: 14px; }
+  .demo-v2-family .demo-v2-family-cards { grid-template-columns: minmax(0, 1fr); gap: 13px; }
+  .demo-v2-family .demo-v2-family-card { grid-template-columns: 118px minmax(0, 1fr); gap: 11px; padding: 13px; }
+  .demo-v2-family .demo-v2-family-portrait .demo-character { width: 118px !important; height: 147.5px !important; }
+  .demo-v2-family .demo-v2-family-person-info h2 { font-size: 24px; }
+  .demo-v2-family .demo-v2-family-milestones { padding: 17px; }
+  .demo-v2-family .demo-v2-editor-body .demo-tabs { margin-right: 0; padding-right: 0; }
+}
+
+@media (min-width: 980px) {
+  .demo-v2-family .demo-v2-family-card { grid-template-columns: 155px minmax(0, 1fr); padding: 18px; }
+  .demo-v2-family .demo-v2-family-portrait .demo-character { width: 144px !important; height: 180px !important; }
+  .demo-v2-family .demo-v2-family-milestones dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  .demo-v2-family .demo-v2-family-milestones dl > div { align-items: flex-start; flex-direction: column; }
+}

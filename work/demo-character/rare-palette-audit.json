@@ -1,0 +1,354 @@
+[
+  {
+    "path": "public/assets/game/demo/characters/rare-warrior-body-peach.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-warrior-body-warm.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-warrior-body-brown.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-warrior-body-deep.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-mage-body-peach.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-mage-body-warm.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-mage-body-brown.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-mage-body-deep.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-healer-body-peach.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-healer-body-warm.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-healer-body-brown.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-healer-body-deep.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-rogue-body-peach.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-rogue-body-warm.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-rogue-body-brown.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/rare-rogue-body-deep.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-warrior-body-peach.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-warrior-body-warm.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-warrior-body-brown.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-warrior-body-deep.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-mage-body-peach.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-mage-body-warm.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-mage-body-brown.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-mage-body-deep.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-healer-body-peach.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-healer-body-warm.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-healer-body-brown.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-healer-body-deep.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-rogue-body-peach.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-rogue-body-warm.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-rogue-body-brown.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "public/assets/game/demo/characters/sitting/rare-rogue-body-deep.png",
+    "size": [
+      256,
+      320
+    ],
+    "alpha": [
+      0,
+      255
+    ]
+  }
+]

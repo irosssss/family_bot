@@ -1,0 +1,989 @@
+[
+  {
+    "theme": "fireplace",
+    "count": 1,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 50,
+          "y": 80,
+          "scale": 1,
+          "zIndex": 800
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 1
+    }
+  },
+  {
+    "theme": "fireplace",
+    "count": 2,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 36,
+          "y": 80,
+          "scale": 1,
+          "zIndex": 800
+        },
+        {
+          "member": {
+            "id": "1",
+            "name": "Мама",
+            "role": "parent",
+            "subtype": "mother",
+            "appearance": {
+              "skin": "peach",
+              "hair": "long",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "healer",
+              "bodyId": "starter-healer-body",
+              "weaponId": "starter-healer-weapon"
+            }
+          },
+          "x": 65,
+          "y": 81,
+          "scale": 1,
+          "zIndex": 811
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 2
+    }
+  },
+  {
+    "theme": "fireplace",
+    "count": 4,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 28,
+          "y": 67,
+          "scale": 0.92,
+          "zIndex": 670
+        },
+        {
+          "member": {
+            "id": "1",
+            "name": "Мама",
+            "role": "parent",
+            "subtype": "mother",
+            "appearance": {
+              "skin": "peach",
+              "hair": "long",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "healer",
+              "bodyId": "starter-healer-body",
+              "weaponId": "starter-healer-weapon"
+            }
+          },
+          "x": 70,
+          "y": 67,
+          "scale": 0.92,
+          "zIndex": 671
+        },
+        {
+          "member": {
+            "id": "2",
+            "name": "Сын",
+            "role": "child",
+            "subtype": "son",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "rogue",
+              "bodyId": "starter-rogue-body",
+              "weaponId": "starter-rogue-weapon"
+            }
+          },
+          "x": 40,
+          "y": 89,
+          "scale": 0.84,
+          "zIndex": 892
+        },
+        {
+          "member": {
+            "id": "3",
+            "name": "Дочка",
+            "role": "child",
+            "subtype": "daughter",
+            "appearance": {
+              "skin": "peach",
+              "hair": "bob",
+              "hairColor": "ginger",
+              "beard": "none",
+              "classId": "mage",
+              "bodyId": "starter-mage-body",
+              "weaponId": "starter-mage-weapon"
+            }
+          },
+          "x": 68,
+          "y": 90,
+          "scale": 0.84,
+          "zIndex": 903
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 4
+    }
+  },
+  {
+    "theme": "fireplace",
+    "count": 6,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 25,
+          "y": 67,
+          "scale": 0.88,
+          "zIndex": 670
+        },
+        {
+          "member": {
+            "id": "1",
+            "name": "Мама",
+            "role": "parent",
+            "subtype": "mother",
+            "appearance": {
+              "skin": "peach",
+              "hair": "long",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "healer",
+              "bodyId": "starter-healer-body",
+              "weaponId": "starter-healer-weapon"
+            }
+          },
+          "x": 50,
+          "y": 67,
+          "scale": 0.88,
+          "zIndex": 671
+        },
+        {
+          "member": {
+            "id": "2",
+            "name": "Сын",
+            "role": "child",
+            "subtype": "son",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "rogue",
+              "bodyId": "starter-rogue-body",
+              "weaponId": "starter-rogue-weapon"
+            }
+          },
+          "x": 76,
+          "y": 67,
+          "scale": 0.7392,
+          "zIndex": 672
+        },
+        {
+          "member": {
+            "id": "3",
+            "name": "Дочка",
+            "role": "child",
+            "subtype": "daughter",
+            "appearance": {
+              "skin": "peach",
+              "hair": "bob",
+              "hairColor": "ginger",
+              "beard": "none",
+              "classId": "mage",
+              "bodyId": "starter-mage-body",
+              "weaponId": "starter-mage-weapon"
+            }
+          },
+          "x": 22,
+          "y": 91,
+          "scale": 0.8231999999999999,
+          "zIndex": 913
+        },
+        {
+          "member": {
+            "id": "4",
+            "name": "Сын",
+            "role": "child",
+            "subtype": "son",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "rogue",
+              "bodyId": "starter-rogue-body",
+              "weaponId": "starter-rogue-weapon"
+            }
+          },
+          "x": 49,
+          "y": 91,
+          "scale": 0.84,
+          "zIndex": 914
+        },
+        {
+          "member": {
+            "id": "5",
+            "name": "Дочка",
+            "role": "child",
+            "subtype": "daughter",
+            "appearance": {
+              "skin": "peach",
+              "hair": "bob",
+              "hairColor": "ginger",
+              "beard": "none",
+              "classId": "mage",
+              "bodyId": "starter-mage-body",
+              "weaponId": "starter-mage-weapon"
+            }
+          },
+          "x": 77,
+          "y": 91,
+          "scale": 0.8231999999999999,
+          "zIndex": 915
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 6
+    }
+  },
+  {
+    "theme": "library",
+    "count": 1,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 50,
+          "y": 79,
+          "scale": 1,
+          "zIndex": 800
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 1
+    }
+  },
+  {
+    "theme": "library",
+    "count": 2,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 36,
+          "y": 79,
+          "scale": 1,
+          "zIndex": 800
+        },
+        {
+          "member": {
+            "id": "1",
+            "name": "Мама",
+            "role": "parent",
+            "subtype": "mother",
+            "appearance": {
+              "skin": "peach",
+              "hair": "long",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "healer",
+              "bodyId": "starter-healer-body",
+              "weaponId": "starter-healer-weapon"
+            }
+          },
+          "x": 65,
+          "y": 80,
+          "scale": 1,
+          "zIndex": 811
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 2
+    }
+  },
+  {
+    "theme": "library",
+    "count": 4,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 28,
+          "y": 66,
+          "scale": 0.92,
+          "zIndex": 670
+        },
+        {
+          "member": {
+            "id": "1",
+            "name": "Мама",
+            "role": "parent",
+            "subtype": "mother",
+            "appearance": {
+              "skin": "peach",
+              "hair": "long",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "healer",
+              "bodyId": "starter-healer-body",
+              "weaponId": "starter-healer-weapon"
+            }
+          },
+          "x": 70,
+          "y": 66,
+          "scale": 0.92,
+          "zIndex": 671
+        },
+        {
+          "member": {
+            "id": "2",
+            "name": "Сын",
+            "role": "child",
+            "subtype": "son",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "rogue",
+              "bodyId": "starter-rogue-body",
+              "weaponId": "starter-rogue-weapon"
+            }
+          },
+          "x": 40,
+          "y": 88,
+          "scale": 0.84,
+          "zIndex": 892
+        },
+        {
+          "member": {
+            "id": "3",
+            "name": "Дочка",
+            "role": "child",
+            "subtype": "daughter",
+            "appearance": {
+              "skin": "peach",
+              "hair": "bob",
+              "hairColor": "ginger",
+              "beard": "none",
+              "classId": "mage",
+              "bodyId": "starter-mage-body",
+              "weaponId": "starter-mage-weapon"
+            }
+          },
+          "x": 68,
+          "y": 89,
+          "scale": 0.84,
+          "zIndex": 903
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 4
+    }
+  },
+  {
+    "theme": "library",
+    "count": 6,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 25,
+          "y": 66,
+          "scale": 0.88,
+          "zIndex": 670
+        },
+        {
+          "member": {
+            "id": "1",
+            "name": "Мама",
+            "role": "parent",
+            "subtype": "mother",
+            "appearance": {
+              "skin": "peach",
+              "hair": "long",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "healer",
+              "bodyId": "starter-healer-body",
+              "weaponId": "starter-healer-weapon"
+            }
+          },
+          "x": 50,
+          "y": 66,
+          "scale": 0.88,
+          "zIndex": 671
+        },
+        {
+          "member": {
+            "id": "2",
+            "name": "Сын",
+            "role": "child",
+            "subtype": "son",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "rogue",
+              "bodyId": "starter-rogue-body",
+              "weaponId": "starter-rogue-weapon"
+            }
+          },
+          "x": 76,
+          "y": 66,
+          "scale": 0.7392,
+          "zIndex": 672
+        },
+        {
+          "member": {
+            "id": "3",
+            "name": "Дочка",
+            "role": "child",
+            "subtype": "daughter",
+            "appearance": {
+              "skin": "peach",
+              "hair": "bob",
+              "hairColor": "ginger",
+              "beard": "none",
+              "classId": "mage",
+              "bodyId": "starter-mage-body",
+              "weaponId": "starter-mage-weapon"
+            }
+          },
+          "x": 22,
+          "y": 90,
+          "scale": 0.8231999999999999,
+          "zIndex": 913
+        },
+        {
+          "member": {
+            "id": "4",
+            "name": "Сын",
+            "role": "child",
+            "subtype": "son",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "rogue",
+              "bodyId": "starter-rogue-body",
+              "weaponId": "starter-rogue-weapon"
+            }
+          },
+          "x": 49,
+          "y": 90,
+          "scale": 0.84,
+          "zIndex": 914
+        },
+        {
+          "member": {
+            "id": "5",
+            "name": "Дочка",
+            "role": "child",
+            "subtype": "daughter",
+            "appearance": {
+              "skin": "peach",
+              "hair": "bob",
+              "hairColor": "ginger",
+              "beard": "none",
+              "classId": "mage",
+              "bodyId": "starter-mage-body",
+              "weaponId": "starter-mage-weapon"
+            }
+          },
+          "x": 77,
+          "y": 90,
+          "scale": 0.8231999999999999,
+          "zIndex": 915
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 6
+    }
+  },
+  {
+    "theme": "conservatory",
+    "count": 1,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 50,
+          "y": 81,
+          "scale": 1,
+          "zIndex": 800
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 1
+    }
+  },
+  {
+    "theme": "conservatory",
+    "count": 2,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 36,
+          "y": 81,
+          "scale": 1,
+          "zIndex": 800
+        },
+        {
+          "member": {
+            "id": "1",
+            "name": "Мама",
+            "role": "parent",
+            "subtype": "mother",
+            "appearance": {
+              "skin": "peach",
+              "hair": "long",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "healer",
+              "bodyId": "starter-healer-body",
+              "weaponId": "starter-healer-weapon"
+            }
+          },
+          "x": 65,
+          "y": 82,
+          "scale": 1,
+          "zIndex": 811
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 2
+    }
+  },
+  {
+    "theme": "conservatory",
+    "count": 4,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 28,
+          "y": 68,
+          "scale": 0.92,
+          "zIndex": 670
+        },
+        {
+          "member": {
+            "id": "1",
+            "name": "Мама",
+            "role": "parent",
+            "subtype": "mother",
+            "appearance": {
+              "skin": "peach",
+              "hair": "long",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "healer",
+              "bodyId": "starter-healer-body",
+              "weaponId": "starter-healer-weapon"
+            }
+          },
+          "x": 70,
+          "y": 68,
+          "scale": 0.92,
+          "zIndex": 671
+        },
+        {
+          "member": {
+            "id": "2",
+            "name": "Сын",
+            "role": "child",
+            "subtype": "son",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "rogue",
+              "bodyId": "starter-rogue-body",
+              "weaponId": "starter-rogue-weapon"
+            }
+          },
+          "x": 40,
+          "y": 90,
+          "scale": 0.84,
+          "zIndex": 892
+        },
+        {
+          "member": {
+            "id": "3",
+            "name": "Дочка",
+            "role": "child",
+            "subtype": "daughter",
+            "appearance": {
+              "skin": "peach",
+              "hair": "bob",
+              "hairColor": "ginger",
+              "beard": "none",
+              "classId": "mage",
+              "bodyId": "starter-mage-body",
+              "weaponId": "starter-mage-weapon"
+            }
+          },
+          "x": 68,
+          "y": 91,
+          "scale": 0.84,
+          "zIndex": 903
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 4
+    }
+  },
+  {
+    "theme": "conservatory",
+    "count": 6,
+    "width": 343,
+    "height": 514.5,
+    "layout": {
+      "members": [
+        {
+          "member": {
+            "id": "0",
+            "name": "Папа",
+            "role": "parent",
+            "subtype": "father",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "short",
+              "classId": "warrior",
+              "bodyId": "starter-warrior-body",
+              "weaponId": "starter-warrior-weapon"
+            }
+          },
+          "x": 25,
+          "y": 68,
+          "scale": 0.88,
+          "zIndex": 670
+        },
+        {
+          "member": {
+            "id": "1",
+            "name": "Мама",
+            "role": "parent",
+            "subtype": "mother",
+            "appearance": {
+              "skin": "peach",
+              "hair": "long",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "healer",
+              "bodyId": "starter-healer-body",
+              "weaponId": "starter-healer-weapon"
+            }
+          },
+          "x": 50,
+          "y": 68,
+          "scale": 0.88,
+          "zIndex": 671
+        },
+        {
+          "member": {
+            "id": "2",
+            "name": "Сын",
+            "role": "child",
+            "subtype": "son",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "rogue",
+              "bodyId": "starter-rogue-body",
+              "weaponId": "starter-rogue-weapon"
+            }
+          },
+          "x": 76,
+          "y": 68,
+          "scale": 0.7392,
+          "zIndex": 672
+        },
+        {
+          "member": {
+            "id": "3",
+            "name": "Дочка",
+            "role": "child",
+            "subtype": "daughter",
+            "appearance": {
+              "skin": "peach",
+              "hair": "bob",
+              "hairColor": "ginger",
+              "beard": "none",
+              "classId": "mage",
+              "bodyId": "starter-mage-body",
+              "weaponId": "starter-mage-weapon"
+            }
+          },
+          "x": 22,
+          "y": 92,
+          "scale": 0.8231999999999999,
+          "zIndex": 913
+        },
+        {
+          "member": {
+            "id": "4",
+            "name": "Сын",
+            "role": "child",
+            "subtype": "son",
+            "appearance": {
+              "skin": "peach",
+              "hair": "short",
+              "hairColor": "chestnut",
+              "beard": "none",
+              "classId": "rogue",
+              "bodyId": "starter-rogue-body",
+              "weaponId": "starter-rogue-weapon"
+            }
+          },
+          "x": 49,
+          "y": 92,
+          "scale": 0.84,
+          "zIndex": 914
+        },
+        {
+          "member": {
+            "id": "5",
+            "name": "Дочка",
+            "role": "child",
+            "subtype": "daughter",
+            "appearance": {
+              "skin": "peach",
+              "hair": "bob",
+              "hairColor": "ginger",
+              "beard": "none",
+              "classId": "mage",
+              "bodyId": "starter-mage-body",
+              "weaponId": "starter-mage-weapon"
+            }
+          },
+          "x": 77,
+          "y": 92,
+          "scale": 0.8231999999999999,
+          "zIndex": 915
+        }
+      ],
+      "page": 0,
+      "pageCount": 1,
+      "pageSize": 6,
+      "total": 6
+    }
+  }
+]

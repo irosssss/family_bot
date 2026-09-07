@@ -1,0 +1,34 @@
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| sitting/rare-healer-body-brown | 256×320, 43349 B | `public/assets/game/demo/characters/sitting/rare-healer-body-brown.png` | `src/demo/Character.tsx` |
+| sitting/rare-healer-body-deep | 256×320, 43161 B | `public/assets/game/demo/characters/sitting/rare-healer-body-deep.png` | `src/demo/Character.tsx` |
+| sitting/rare-healer-body-peach | 256×320, 43641 B | `public/assets/game/demo/characters/sitting/rare-healer-body-peach.png` | `src/demo/Character.tsx` |
+| sitting/rare-healer-body-warm | 256×320, 43514 B | `public/assets/game/demo/characters/sitting/rare-healer-body-warm.png` | `src/demo/Character.tsx` |
+| sitting/rare-mage-body-brown | 256×320, 43405 B | `public/assets/game/demo/characters/sitting/rare-mage-body-brown.png` | `src/demo/Character.tsx` |
+| sitting/rare-mage-body-deep | 256×320, 43324 B | `public/assets/game/demo/characters/sitting/rare-mage-body-deep.png` | `src/demo/Character.tsx` |
+| sitting/rare-mage-body-peach | 256×320, 43568 B | `public/assets/game/demo/characters/sitting/rare-mage-body-peach.png` | `src/demo/Character.tsx` |
+| sitting/rare-mage-body-warm | 256×320, 43482 B | `public/assets/game/demo/characters/sitting/rare-mage-body-warm.png` | `src/demo/Character.tsx` |
+| sitting/rare-rogue-body-brown | 256×320, 42184 B | `public/assets/game/demo/characters/sitting/rare-rogue-body-brown.png` | `src/demo/Character.tsx` |
+| sitting/rare-rogue-body-deep | 256×320, 42063 B | `public/assets/game/demo/characters/sitting/rare-rogue-body-deep.png` | `src/demo/Character.tsx` |
+| sitting/rare-rogue-body-peach | 256×320, 42444 B | `public/assets/game/demo/characters/sitting/rare-rogue-body-peach.png` | `src/demo/Character.tsx` |
+| sitting/rare-rogue-body-warm | 256×320, 42285 B | `public/assets/game/demo/characters/sitting/rare-rogue-body-warm.png` | `src/demo/Character.tsx` |
+| sitting/rare-warrior-body-brown | 256×320, 42277 B | `public/assets/game/demo/characters/sitting/rare-warrior-body-brown.png` | `src/demo/Character.tsx` |
+| sitting/rare-warrior-body-deep | 256×320, 42191 B | `public/assets/game/demo/characters/sitting/rare-warrior-body-deep.png` | `src/demo/Character.tsx` |
+| sitting/rare-warrior-body-peach | 256×320, 42443 B | `public/assets/game/demo/characters/sitting/rare-warrior-body-peach.png` | `src/demo/Character.tsx` |
+| sitting/rare-warrior-body-warm | 256×320, 42348 B | `public/assets/game/demo/characters/sitting/rare-warrior-body-warm.png` | `src/demo/Character.tsx` |
+| sitting/starter-healer-body-brown | 256×320, 36547 B | `public/assets/game/demo/characters/sitting/starter-healer-body-brown.png` | `src/demo/Character.tsx` |
+| sitting/starter-healer-body-deep | 256×320, 36406 B | `public/assets/game/demo/characters/sitting/starter-healer-body-deep.png` | `src/demo/Character.tsx` |
+| sitting/starter-healer-body-peach | 256×320, 36824 B | `public/assets/game/demo/characters/sitting/starter-healer-body-peach.png` | `src/demo/Character.tsx` |
+| sitting/starter-healer-body-warm | 256×320, 36656 B | `public/assets/game/demo/characters/sitting/starter-healer-body-warm.png` | `src/demo/Character.tsx` |
+| sitting/starter-mage-body-brown | 256×320, 32994 B | `public/assets/game/demo/characters/sitting/starter-mage-body-brown.png` | `src/demo/Character.tsx` |
+| sitting/starter-mage-body-deep | 256×320, 32990 B | `public/assets/game/demo/characters/sitting/starter-mage-body-deep.png` | `src/demo/Character.tsx` |
+| sitting/starter-mage-body-peach | 256×320, 33096 B | `public/assets/game/demo/characters/sitting/starter-mage-body-peach.png` | `src/demo/Character.tsx` |
+| sitting/starter-mage-body-warm | 256×320, 32982 B | `public/assets/game/demo/characters/sitting/starter-mage-body-warm.png` | `src/demo/Character.tsx` |
+| sitting/starter-rogue-body-brown | 256×320, 32796 B | `public/assets/game/demo/characters/sitting/starter-rogue-body-brown.png` | `src/demo/Character.tsx` |
+| sitting/starter-rogue-body-deep | 256×320, 32765 B | `public/assets/game/demo/characters/sitting/starter-rogue-body-deep.png` | `src/demo/Character.tsx` |
+| sitting/starter-rogue-body-peach | 256×320, 32917 B | `public/assets/game/demo/characters/sitting/starter-rogue-body-peach.png` | `src/demo/Character.tsx` |
+| sitting/starter-rogue-body-warm | 256×320, 32773 B | `public/assets/game/demo/characters/sitting/starter-rogue-body-warm.png` | `src/demo/Character.tsx` |
+| sitting/starter-warrior-body-brown | 256×320, 31996 B | `public/assets/game/demo/characters/sitting/starter-warrior-body-brown.png` | `src/demo/Character.tsx` |
+| sitting/starter-warrior-body-deep | 256×320, 31981 B | `public/assets/game/demo/characters/sitting/starter-warrior-body-deep.png` | `src/demo/Character.tsx` |
+| sitting/starter-warrior-body-peach | 256×320, 32092 B | `public/assets/game/demo/characters/sitting/starter-warrior-body-peach.png` | `src/demo/Character.tsx` |
+| sitting/starter-warrior-body-warm | 256×320, 31992 B | `public/assets/game/demo/characters/sitting/starter-warrior-body-warm.png` | `src/demo/Character.tsx` |
