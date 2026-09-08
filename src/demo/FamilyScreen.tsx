@@ -14,7 +14,7 @@ const defaultCatalog: Record<CatalogKind, Record<string, unknown>> = {
   themes: { name: '', description: '', art: '/assets/game/demo/home-fireplace.webp', enabled: true, order: 100, price: 50, currency: 'coins', palette: '#9b6346', layoutPresetId: 'fireplace' },
 };
 
-export function FamilyScreen({ state, user, act, busy }: ScreenProps) {
+export function FamilyScreen({ state, user, act, busy, allowCatalogEditing = true }: ScreenProps & { allowCatalogEditing?: boolean }) {
   const [section, setSection] = useState<keyof typeof sections>('users');
   const [query, setQuery] = useState('');
   const [showHidden, setShowHidden] = useState(false);
@@ -35,7 +35,7 @@ export function FamilyScreen({ state, user, act, busy }: ScreenProps) {
   const addEntry = () => {
     if (section === 'users') setEditingUser({ name: '', subtype: 'son', age: 8 });
     else if (section === 'tasks') setEditingTask({ title: '', description: '', category: 'home', requiresApproval: true, shared: false, assigneeIds: [], reward: { xp: 10, gold: 5, energy: 10, coins: 5 }, enabled: true, order: state.tasks.length });
-    else setEditingEntry({ ...defaultCatalog[section] });
+    else if (allowCatalogEditing) setEditingEntry({ ...defaultCatalog[section] });
   };
 
   return <div className="demo-v2-family">
@@ -48,11 +48,11 @@ export function FamilyScreen({ state, user, act, busy }: ScreenProps) {
         setShowHidden(false);
       }
     }}>
-      <summary><Settings2 size={20} /><span>Редактор семьи и игры<small>Участники, дела и игровые коллекции</small></span></summary>
+      <summary><Settings2 size={20} /><span>Редактор семьи{allowCatalogEditing ? ' и игры' : ''}<small>{allowCatalogEditing ? 'Участники, дела и игровые коллекции' : 'Участники и дела'}</small></span></summary>
       <div className="demo-v2-editor-body">
         <div className="demo-editor-notice"><ShieldCheck size={21} /><p>Инструменты взрослого в локальной демо. Это не настоящая авторизация Telegram. Скрытие обратимо: прогресс и покупки остаются.</p></div>
         <div className="demo-tabs" aria-label="Редактируемая коллекция">
-          {Object.entries(sections).map(([id, label]) => <button key={id} aria-pressed={section === id} onClick={() => { setSection(id as keyof typeof sections); setQuery(''); }}>{label}</button>)}
+          {Object.entries(sections).filter(([id]) => allowCatalogEditing || id === 'users' || id === 'tasks').map(([id, label]) => <button key={id} aria-pressed={section === id} onClick={() => { setSection(id as keyof typeof sections); setQuery(''); }}>{label}</button>)}
         </div>
         <div className="demo-editor-toolbar">
           <label className="demo-check"><input type="checkbox" checked={showHidden} onChange={event => setShowHidden(event.target.checked)} />Показать скрытые</label>
@@ -116,7 +116,7 @@ export function FamilyScreen({ state, user, act, busy }: ScreenProps) {
         </article>,
       )}
     </div>}
-    {adult && section !== 'users' && section !== 'tasks' && <>
+    {adult && allowCatalogEditing && section !== 'users' && section !== 'tasks' && <>
       <label className="demo-field">Поиск в каталоге «{sections[section]}»<input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Название" /></label>
       <p className="demo-muted">Показано {entries.length} из {state.catalog[section].length}. Уже надетые вещи и активные комнаты защищены от скрытия.</p>
       <div className="demo-editor-list">
@@ -130,7 +130,7 @@ export function FamilyScreen({ state, user, act, busy }: ScreenProps) {
     {!adult && <div className="demo-home-note"><Settings2 size={22} /><p>Добавлять участников и менять правила дел могут взрослые. Ваш образ меняется в гардеробе.</p></div>}
     {editingUser && <UserEditor value={editingUser} busy={busy} onClose={() => setEditingUser(null)} onSave={async value => { if (await act({ action: 'saveUser', user: value })) setEditingUser(null); }} />}
     {editingTask && <TaskEditor value={editingTask} state={state} busy={busy} onClose={() => setEditingTask(null)} onSave={async task => { if (await act({ action: 'saveTask', task })) setEditingTask(null); }} />}
-    {editingEntry && section !== 'users' && section !== 'tasks' && <CatalogEditor kind={section} value={editingEntry} busy={busy} onClose={() => setEditingEntry(null)} onSave={async entry => { if (await act({ action: 'saveCatalog', catalog: section, entry })) setEditingEntry(null); }} />}
+    {allowCatalogEditing && editingEntry && section !== 'users' && section !== 'tasks' && <CatalogEditor kind={section} value={editingEntry} busy={busy} onClose={() => setEditingEntry(null)} onSave={async entry => { if (await act({ action: 'saveCatalog', catalog: section, entry })) setEditingEntry(null); }} />}
   </div>;
 }
 

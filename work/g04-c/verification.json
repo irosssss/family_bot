@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "stage": "G04-C/W14",
+  "mode": "synthetic_local_only",
+  "production_ready": false,
+  "target": {
+    "passed": 488,
+    "failed": 0,
+    "skipped": 0,
+    "files": 21,
+    "new_storage_tests": 10,
+    "new_postgres_tests": 22
+  },
+  "postgres": {
+    "version": "18.6",
+    "image_id": "sha256:b07129cc272f688c98f5b343138a0a52fa45b3d82f50d7a53ff441330624cd2e",
+    "run_id": "22fb1beaad319a715276eea660de6f12",
+    "container_id": "1a0f1abfe6407c96ab218eece7d849fea4b6e20043786690db6e42c0bd660435",
+    "exact_cleanup": "passed"
+  },
+  "regression": {
+    "passed": 251,
+    "skipped_opt_in_postgres": 9,
+    "failed": 0
+  },
+  "lint": "passed",
+  "target_typecheck": "passed",
+  "target_build": "passed",
+  "compiled_esm_exports": "passed",
+  "compiled_storage_smoke": "passed",
+  "browser": {
+    "https_guest_shell": "passed",
+    "telegram_device_matrix": "not_repeated",
+    "visual_changes": false
+  },
+  "pending": [
+    "production_publication",
+    "production_authority_registry",
+    "binary_visual_approval",
+    "acquired_reference_rollback",
+    "gc",
+    "exact_candidate_preview_W15"
+  ],
+  "sources": [
+    {
+      "path": "src/target/content/localStorage.ts",
+      "sha256": "21b378e0a3b5e1d30df023b26dc7129d61d889ba7a1ef33e328cb7330a9952c8"
+    },
+    {
+      "path": "src/target/content/localRelease.ts",
+      "sha256": "ce870774fafe93341cbd707a26641c7a197e8945853ec6e0a34a0c99d0da943c"
+    },
+    {
+      "path": "src/target/db/schema/contentRelease.ts",
+      "sha256": "efaee07fdf0629835b3fba961ca936a6ccfead074234d87d281b0c27ae52a24b"
+    },
+    {
+      "path": "migrations/target/0007_content_release.sql",
+      "sha256": "0a1462fed1aa7e1e0638f94a9fa20b8fe9433e5bf875625ec51f6de05e31dd0f"
+    },
+    {
+      "path": "tests/target/content-release.test.ts",
+      "sha256": "beb1bbc158b3fb4918747fc2a7fc6b965203d086e5c50be9fe623cab7db6aebc"
+    },
+    {
+      "path": "tests/target/content-release-postgres.test.ts",
+      "sha256": "dfa52f95284f4aa0b224e829fc0808d0418b18a3c5896b4598eb95c8ff66ea1e"
+    }
+  ]
+}

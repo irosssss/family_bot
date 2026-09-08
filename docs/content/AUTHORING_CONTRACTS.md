@@ -1,8 +1,13 @@
 # Family Chores RPG — авторские контракты, lock и манифест
 
-Версия 1.0, 2026-09-07. **PIPE01–PIPE04 приняты пользователем как проект конвейера.** Связан с [конвейером](CONTENT_PIPELINE.md) и [CONTENT_DICTIONARY](../data/CONTENT_DICTIONARY.md). Все схемы ниже — документальная спецификация; schema registry/CLI в репозитории ещё не реализованы. Примеры не означают наличие production-каталога или файлов art.
+Версия 1.0, 2026-09-07. **PIPE01–PIPE04 приняты пользователем как проект конвейера.** Связан с [конвейером](CONTENT_PIPELINE.md) и [CONTENT_DICTIONARY](../data/CONTENT_DICTIONARY.md). Полная таблица ниже остаётся спецификацией; в [G04-A](../implementation/G04_AUTHORING_INPUT_RESULT.md) реализованы PackageInput v1, LocalizationInput v1 (plain_text), bounded parser и structural CLI. В [G04-B](../implementation/G04_COMPILER_RESULT.md) реализованы exact resolver, frozen lock и compiler для plain_text/local candidates. Остальные типы и production publication ещё не реализованы. Примеры не означают наличие production-каталога или файлов art.
 
 ## 1. Три представления данных
+
+В реализованном plain_text-входе `bundle_id` имеет вид
+`namespace:localization/name`: иной тип ID отклоняется до сборки. Проверка сообщений
+отклоняет pictographs, emoji presentation (включая флаги/модификаторы) и keycap-последовательности;
+обычные цифры, `#` и `*` остаются допустимым текстом.
 
 | Представление | Что содержит | Кто задаёт |
 |---|---|---|
@@ -199,3 +204,8 @@ Canonical content digest и public_projection_digest — разные облас
 При изменении любого значимого входа создаётся новый candidate, прежние approvals не копируются как действующие. Для чистого повторного build того же fingerprint можно использовать действующее согласие на те же байты, но publication service проверяет, что политики/права/поддержка всё ещё актуальны. Приёмка prompt/reference не равна приёмке результата генерации.
 
 JSON Schema-диалект сверён по [официальной спецификации 2020-12](https://json-schema.org/draft/2020-12/json-schema-core). Основание JCS — [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785.html); это опубликованная схема канонизации, не утверждение о встроенном каноническом JSON.stringify. Нумерация пакетов опирается на [SemVer 2.0.0](https://semver.org/spec/v2.0.0.html); более строгий production subset/exact dependencies — наше решение MVP.
+
+
+## 8. Реализованный локальный срез G04-B
+
+[Карточка G04-B](../implementation/G04_COMPILER_CARD.md) фиксирует hash scope v1 для plain_text, lookup-порядок entries, fixture compatibility registry и границы локального dependency adapter. Исполняемые схемы находятся в `src/target/content/{schemas,compilerContracts}.ts`; реестр закрыт и не загружает схемы из пакетов. Lock root имеет manifest_digest:null, dependency entries содержат вычисленный exact digest локального кандидата. Это не PublishedDependency из production-хранилища; публикация и проверка полномочий остаются W14.

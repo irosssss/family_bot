@@ -366,7 +366,7 @@ describe.skipIf(process.env.RPG_TARGET_PG_TESTS!=='1')('recovery invitation life
       await expect(runTargetMigrations(raw,config,directory)).rejects.toMatchObject({code:'22012'});
       expect((await raw`SELECT count(*)::int AS n FROM rpg.__target_migrations`)[0].n).toBe(5);
       expect((await raw`SELECT to_regclass('rpg.lifecycle_requests') AS t`)[0].t).toBeNull();
-      expect(await runTargetMigrations(raw,config,'migrations/target')).toBe(1);
+      expect(await runTargetMigrations(raw,config,'migrations/target')).toBe((await loadMigrations('migrations/target')).length-5);
     }finally{await rm(directory,{recursive:true,force:true});}
   });
 });

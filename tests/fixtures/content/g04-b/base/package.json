@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "package_id": "fixture:package/base_texts",
+  "package_version": "1.0.0",
+  "name_key": "base.package.name",
+  "purpose": "core",
+  "definition_paths": [], "asset_paths": [], "registry_paths": [],
+  "localization_paths": ["texts.json"],
+  "offer_paths": [], "credit_paths": [], "rights_paths": [],
+  "depends_on": [], "required_capabilities": ["plain_text_localization"]
+}

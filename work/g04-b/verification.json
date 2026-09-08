@@ -1,0 +1,29 @@
+{
+  "stage": "G04-B",
+  "sourceCLI": "passed",
+  "compiledCLI": "passed",
+  "compiledLibrary": "passed",
+  "identicalRuntimeBytes": true,
+  "artifacts": 4,
+  "packages": 2,
+  "buildFingerprint": "7eb4192f3185a1bc97bc21f5ac29a4469514fa1ba98d1ba3f4af6b2ebfda21df",
+  "manifestDigest": "09fc4ad715d00388c5162b4185a75613467f62475ea3b78b800f53f17393ff48",
+  "lockDigest": "d19274c9ed6082c44d11dc46e7d1baaadce54afb4e910323850b5d03a79f92a2",
+  "candidateDirectory": "work/target-build/g04-b-9ZOLMa",
+  "productionReady": false,
+  "targetTests": {
+    "passed": 456,
+    "failed": 0,
+    "postgresVersion": "18.6",
+    "ownedContainerCleanup": "passed"
+  },
+  "legacyTests": {
+    "passed": 251,
+    "skipped": 9,
+    "failed": 0
+  },
+  "lint": "passed",
+  "targetTypecheck": "passed",
+  "targetBuild": "passed",
+  "browser": "passed-expected-telegram-entry-screen"
+}

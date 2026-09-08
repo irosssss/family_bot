@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "package_id": "fixture:package/texts",
+  "package_version": "1.0.0",
+  "name_key": "fixture.package.name",
+  "purpose": "core",
+  "definition_paths": [],
+  "asset_paths": [],
+  "registry_paths": [],
+  "localization_paths": ["texts.json"],
+  "offer_paths": [],
+  "credit_paths": [],
+  "rights_paths": [],
+  "depends_on": [],
+  "required_capabilities": []
+}

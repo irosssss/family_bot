@@ -24,6 +24,10 @@
     {
       "name": "0006_access_lifecycle.sql",
       "sha256": "a2e2beb833cca83bf473101bd88bd7ddf30f163f5787100c9cd89cf6823bda99"
+    },
+    {
+      "name": "0007_content_release.sql",
+      "sha256": "0a1462fed1aa7e1e0638f94a9fa20b8fe9433e5bf875625ec51f6de05e31dd0f"
     }
   ]
 }

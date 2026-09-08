@@ -278,7 +278,7 @@ describe.skipIf(!enabled)('atomic identity exchange in owned PostgreSQL (G3C01â€
       await expect(runTargetMigrations(raw, config, directory)).rejects.toMatchObject({ code: '22012' });
       expect((await raw`SELECT count(*)::int AS n FROM rpg.__target_migrations`)[0].n).toBe(2);
       expect((await raw`SELECT to_regclass('rpg.external_identities') AS t`)[0].t).toBeNull();
-      expect(await runTargetMigrations(raw, config, 'migrations/target')).toBe(4);
+      expect(await runTargetMigrations(raw, config, 'migrations/target')).toBe((await loadMigrations('migrations/target')).length-2);
     } finally { await rm(directory, { recursive: true }); }
   });
 });

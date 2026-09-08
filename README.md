@@ -1,156 +1,119 @@
 # Family Chores RPG
 
 [![CI](https://github.com/irosssss/family_bot/actions/workflows/ci.yml/badge.svg)](https://github.com/irosssss/family_bot/actions/workflows/ci.yml)
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=111827)](https://react.dev/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Семейная RPG для домашних дел. Обычные обязанности превращаются в совместное приключение: дети выполняют задания, получают золото и опыт, растят питомцев и вместе с семьёй сражаются с боссом.
+Семейная игра домашних дел для Telegram Mini App: дети выполняют задания и развивают персонажей, взрослые управляют семьёй и подтверждают результаты. Интерфейс рассчитан прежде всего на телефоны 375–390 px.
 
-Проект рассчитан прежде всего на мобильный Telegram Mini App: основные сценарии проверяются на ширине 375–390 px.
+## Состояние проекта
 
-## Возможности
+На 2026-09-08 в репозитории существуют три отдельных части:
 
-- ежедневные, разовые и квестовые задачи;
-- семейный прогресс, streak и награды за идеальный день;
-- кооперативный рейд с общим боссом и семейным HP;
-- классы, навыки, золото, кристаллы, питомцы и маунты;
-- магазин, гардероб и единый образ персонажа во всех сценах;
-- родительская роль для управления семьёй и задачами;
-- Telegram initData HMAC-проверка в production;
-- Telegram Stars и webhook с проверкой секрета и дедупликацией платежей;
-- PWA-кэширование игровых ассетов.
+| Часть | Что работает | Границы |
+| --- | --- | --- |
+| Текущая демо — `src/demo/` | Дом, задания и подтверждение, общая копилка, бой, гардероб, питомцы, комнаты, редактор семьи | Тестовая игровая модель; не целевая экономика MVP |
+| Legacy — `src/App.tsx`, `server.ts`, `src/api/` | Прежнее приложение, PostgreSQL, бот, магазин, рейды и платежные интеграции | Production-сборка по-прежнему запускает этот клиент; наличие кода не означает готовность нового MVP |
+| Новый backend — `src/target/` | Изолированная БД, identity/session/guards, PIN/recovery/приглашения, синтетический HTTP transport; plain_text compiler и локальная публикация/активация | Fixture-среда; production onboarding, игровые механики и интеграция с UI ещё впереди |
 
-## Игровая модель
+G04-A/W12, G04-B/W13 и G04-C/W14 реализованы в ограниченном объёме. Следующий блок — **G04-D/W15: preview точного кандидата контента**. Полный G04 ещё не закрыт. Источник текущего плана: [IMPLEMENTATION_PLAN](docs/IMPLEMENTATION_PLAN.md) и [IMPLEMENTATION_BACKLOG](docs/IMPLEMENTATION_BACKLOG.md).
 
-| Роль | Возможности |
-| --- | --- |
-| Родитель | Администрирует семью, добавляет задачи, управляет участниками и видит прогресс |
-| Ребёнок | Выполняет задачи, получает награды, развивает персонажа и участвует в рейде |
-
-Родители не являются игровыми персонажами: игровые действия, золото, streak и урон по боссу предназначены для детей.
-
-## Технологии
-
-- **Frontend:** React 18, Vite, Tailwind CSS 4, Motion, PWA
-- **Backend:** Node.js 20+, Express, Socket.IO, node-cron, Sentry
-- **Database:** PostgreSQL 18, Drizzle ORM, postgres.js
-- **Bot:** node-telegram-bot-api, Telegram Mini App API, Telegram Stars
-- **Quality:** TypeScript, Vitest, GitHub Actions
-- **Visuals:** Habitica sprite pack, LPC/ULPC assets, Lucide icons
+Целевой продукт описан в [PRODUCT_CONTRACT](docs/PRODUCT_CONTRACT.md). Старые streak, рейды, общая копилка и ассортимент демо не задают целевой MVP автоматически. Родители управляют семьёй и не получают игровые награды за участие в боях.
 
 ## Быстрый старт
 
-### Локальный запуск
+Для текущей разработки используйте Node.js 24 и npm; локальная демо/legacy используют PostgreSQL 18. Docker нужен для изолированных target-тестов. Основной CI и legacy Dockerfile пока используют Node.js 20, target CI — Node.js 24.
 
-Требования: Node.js 20+, npm и PostgreSQL 18. Telegram bot token нужен для полноценного production-сценария; в development без него доступен demo-режим.
-
-~~~bash
+```bash
 npm ci
 cp .env.example .env
-# заполнить .env
+# Заполните параметры своей локальной БД.
 npm run dev
-~~~
+```
 
-Приложение: <http://localhost:3000><br>
-Healthcheck: <http://localhost:3000/api/health>
+- [Локальная демо](http://localhost:3000/) открывается по умолчанию в development.
+- [Legacy-клиент](http://localhost:3000/?legacy=1) доступен через `?legacy=1`.
+- [Healthcheck](http://localhost:3000/api/health).
 
-На Windows PostgreSQL запускается двойным кликом по scripts/start-pg.bat в отдельной консоли. Окно PostgreSQL должно оставаться открытым.
+Схема локальной legacy/demo БД управляется командами `db:push`/`db:migrate`; запускайте их только для выбранной вами БД. На Windows PostgreSQL можно запустить через `scripts/start-pg.bat` в отдельной открытой консоли. Инструкции legacy Docker/HTTPS: [DEPLOY](docs/DEPLOY.md).
 
-### Docker
+Основные параметры описаны в [.env.example](.env.example): `SQL_*` для БД, `BOT_TOKEN` и `TELEGRAM_WEBHOOK_SECRET` для бота, `VITE_API_URL` для Mini App, необязательные `SENTRY_DSN` и `S3_*`. `.env` и секреты не коммитятся.
 
-~~~bash
-docker compose up -d --build
-docker compose run --rm app npm run db:push
-~~~
+### Отдельная браузерная и Telegram preview
 
-После запуска приложение доступно на <http://localhost:3000>.
+`src/preview/` использует экраны демо. В обычном браузере создаётся отдельная семья в памяти страницы, сбрасываемая при обновлении. В Telegram сервер проверяет initData и хранит отдельный временный мир для каждого пользователя до перезапуска. Каталоги здесь не редактируются; участники и задания доступны взрослым.
 
-### Переменные окружения
+```bash
+node --import tsx scripts/build-telegram-preview.ts
+```
 
-Начните с [.env.example](.env.example). Основные группы настроек:
+Сборка находится в `work/telegram-preview/dist`. Запуск сервера с HTTPS-туннелем и безопасной передачей `BOT_TOKEN`: [TELEGRAM_DEVICE_PREVIEW](docs/implementation/TELEGRAM_DEVICE_PREVIEW.md). Постоянной публичной ссылки нет; последний временный URL при повторной проверке вернул DNS error.
 
-- BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET — Telegram и webhook;
-- SQL_HOST, SQL_USER, SQL_PASSWORD, SQL_DB_NAME — PostgreSQL;
-- VITE_API_URL — публичный URL Mini App;
-- SENTRY_DSN — необязательный мониторинг;
-- S3_* — необязательное внешнее хранилище ассетов.
-
-.env не коммитится. Секреты нельзя добавлять в исходники, README, логи или память агента.
-
-## Команды
+## Команды и проверки
 
 | Команда | Назначение |
 | --- | --- |
-| npm run dev | Vite/Express dev-сервер на порту 3000 |
-| npm run build | Production-бандл frontend и server в dist/ |
-| npm start | Запуск собранного production-сервера |
-| npm run lint | Проверка TypeScript без генерации файлов |
-| npm test | Запуск Vitest |
-| npm run db:push | Применение актуальной Drizzle-схемы к PostgreSQL |
-| npm run db:migrate | Запуск журналируемых SQL-миграций |
-| npm run unpack-local | Распаковка локальных asset-архивов |
+| `npm run dev` | Текущая демо и legacy Express/Vite, порт 3000 |
+| `npm run build` / `npm start` | Сборка и запуск legacy production frontend/server |
+| `npm run lint` | TypeScript проекта |
+| `npm test` | Демо/legacy/preview-регрессия |
+| `npm run target:typecheck` | Отдельная проверка типов нового backend |
+| `npm run target:build` | Библиотеки и CLI в `work/target-build/` |
+| `npm run target:test` | Target-тесты; PG-сценарии без отдельной среды пропускаются |
+| `npm run target:test:pg` | Полный target-прогон в собственном временном PostgreSQL с проверкой удаления контейнера |
+| `npm run target:content:validate -- <source-dir> <namespace>` | Проверка входного plain_text пакета |
+| `npm run target:content:build -- <new-output-dir> <package-id> <version> <namespace> <source-dir>...` | Сборка кандидата; существующий каталог не перезаписывается |
+| `npm run db:push` / `npm run db:migrate` | Схема и миграции legacy БД; не target-конвейер |
 
-Перед отправкой изменений в GitHub выполните:
+Пример проверки поставляемого контентного fixture:
 
-~~~bash
-npm run lint
-npm test
-npm run build
-~~~
+```bash
+npm run target:content:validate -- tests/fixtures/content/g04-b/base fixture
+npm run target:content:build -- /tmp/family-content-candidate fixture:package/root_texts 1.0.0 fixture tests/fixtures/content/g04-b/root tests/fixtures/content/g04-b/base
+```
 
-Эти же проверки запускаются в [GitHub Actions](.github/workflows/ci.yml) на push в main и для pull request.
+Выходной каталог примера должен отсутствовать. Build создаёт локального кандидата, публикация и активация — отдельные операции. Target использует только явную конфигурацию `RPG_TARGET_*` и собственную тестовую БД, не `SQL_*` legacy. Подробности: [G02 foundation](docs/implementation/G02_FOUNDATION_RESULT.md), [G04 compiler](docs/implementation/G04_COMPILER_RESULT.md), [G04 release](docs/implementation/G04_RELEASE_RESULT.md).
+
+Последняя проверка после исправлений ревью: **499 target-тестов** на PostgreSQL 18.6 и **253 регрессионных теста** прошли; 9 opt-in legacy PG-тестов пропущены. Lint, target:typecheck и target build прошли. [Ручная браузерная проверка](docs/implementation/BROWSER_FUNCTIONAL_QA_2026_09_08.md) покрывает основные игровые цепочки демо при 375 px, но не полную матрицу Telegram WebView.
+
+[GitHub Actions](.github/workflows/ci.yml) запускает lint/tests/legacy build и отдельный target job с typecheck/build, PIN benchmark и временной PostgreSQL. Локальный PASS и результат CI конкретного коммита проверяются отдельно.
 
 ## Архитектура
 
-~~~text
-server.ts                  Express + Socket.IO + Vite + bootstrap
-src/
-  api/                     HTTP-роутеры по доменам
-  services/                Бизнес-логика и persistence helpers
-  bot/                     Telegram webhook, notifications, cron
-  db/                      Drizzle schema, seed и database access
-  components/
-    scenes/                Family Hub, Boss Raid, Wardrobe
-    ui/                    PixelButton, PixelCard и UI primitives
-  utils/                   auth, API transport, assets, haptics, look mapping
-  data/                    demo/catalog data
-public/assets/game/        Runtime-ассеты игры
-tests/                     Unit и service tests
-docs/                      Deploy, asset manifest, roadmap и audit notes
-~~~
+```text
+server.ts                  Legacy Express/Socket.IO/Vite и demo API
+src/demo/                  Текущие игровые экраны и тестовая доменная модель
+src/preview/               Изолированный browser/Telegram preview
+src/target/
+  access/                  Identity, session, PIN, recovery и lifecycle
+  transport/               Синтетический HTTP transport
+  content/                 Входные схемы, compiler, storage, release/activation
+  db/                      Изолированный клиент и Drizzle-схемы
+src/api/, src/services/    Legacy API и бизнес-логика
+src/bot/, src/db/          Legacy бот и БД
+migrations/target/         Журналируемые target-миграции 0001–0007
+scripts/target/            CLI и собственная тестовая среда
+public/assets/game/        Runtime-ассеты демо/legacy
+tests/target/              Target contracts, compiler, concurrency и PG-тесты
+docs/                     Продуктовые контракты, план и результаты этапов
+```
 
-Клиентские запросы к собственному API проходят через src/utils/apiFetch.ts. В production auth guard требует Telegram initData; mutation-роуты проверяют actor и права администратора. Идентификатор пользователя из body запроса сам по себе не считается доказательством доступа.
+## Ассеты
 
-## Ассеты и визуальный канон
+Все текущие изображения — **демо**, не утверждённая финальная графика. В игре используются Habitica, LPC/ULPC и другие наборы; эмодзи в UI и игровых сообщениях запрещены. Целевая art-спецификация: [docs/art/ASSET_BIBLE.md](docs/art/ASSET_BIBLE.md).
 
-Основной визуальный канон — стиль Habitica. Вспомогательные LPC/ULPC-ассеты используются для отдельных питомцев, иконок магазина и torso items. Эмодзи в интерфейсе и игровых сообщениях не используются.
-
-Полный реестр ассетов с назначением, размерами и runtime-потребителями находится в [docs/ASSET_MANIFEST.md](docs/ASSET_MANIFEST.md). Перед изменением или удалением ассета необходимо проверить ссылки в src/ и production-сборке.
-
-## Текущий статус
-
-Текущий working tree проходит:
-
-- TypeScript lint без ошибок;
-- 46 unit/service tests;
-- production build frontend и backend;
-- локальный healthcheck и ручной проход сцен Дом, Арена и Гардероб.
-
-Перед полноценным production-релизом ещё требуется закрыть технический backlog: довести family isolation до всех маршрутов, сделать миграции самодостаточными для чистой БД, усилить Socket.IO auth/CORS, завершить интеграционные тесты HTTP-роутов и разделить крупный frontend bundle.
-
-План MAX-интеграции и двухканальной архитектуры: [docs/MAX_LAUNCH_PLAN.md](docs/MAX_LAUNCH_PLAN.md).
+Назначение и runtime-потребители перечислены в [ASSET_MANIFEST](docs/ASSET_MANIFEST.md). Перед удалением ассета проверяйте ссылки в `src/` и сборке. Входы генерации не размещаются среди runtime-ассетов.
 
 ## Документация
 
-- [AGENTS.md](AGENTS.md) — правила разработки и известные project quirks;
-- [docs/DEPLOY.md](docs/DEPLOY.md) — deployment checklist;
-- [docs/ASSET_MANIFEST.md](docs/ASSET_MANIFEST.md) — asset registry;
-- [docs/AGENT_MEMORY.md](docs/AGENT_MEMORY.md) — краткая память для следующих рабочих сессий;
-- [docs/archive/](docs/archive/README.md) — исторические материалы, не источник правды.
+- [Продуктовый контракт](docs/PRODUCT_CONTRACT.md) и [roadmap](docs/PRODUCT_ROADMAP.md).
+- [План реализации](docs/IMPLEMENTATION_PLAN.md) и [backlog](docs/IMPLEMENTATION_BACKLOG.md).
+- [Конвейер контента](docs/content/CONTENT_PIPELINE.md), [контракты](docs/content/AUTHORING_CONTRACTS.md), [публикация и активация](docs/content/RELEASE_OPERATIONS.md).
+- [Физическая схема](docs/data/PHYSICAL_SCHEMA.md) и [протокол доступа](docs/security/ACCESS_PROTOCOL.md).
+- [G04-A](docs/implementation/G04_AUTHORING_INPUT_RESULT.md), [G04-B](docs/implementation/G04_COMPILER_RESULT.md), [G04-C](docs/implementation/G04_RELEASE_RESULT.md) — выполненные работы и ограничения.
+- [Правила разработки](AGENTS.md), [память проекта](docs/AGENT_MEMORY.md), [legacy deployment](docs/DEPLOY.md).
+- [Архив](docs/archive/README.md) — исторические материалы.
 
 ## Лицензия
 
-Исходный код распространяется по [MIT License](LICENSE).
-
-Игровые ассеты имеют отдельные условия: Habitica — CC-BY-SA, Lucide — ISC, LPC/ULPC — согласно исходным наборам, отдельные Kenney-ассеты — CC0. Проверяйте атрибуцию перед публичным коммерческим релизом.
+Исходный код — [MIT](LICENSE). Игровые ассеты имеют отдельные условия: Habitica — CC-BY-SA, Lucide — ISC, LPC/ULPC — согласно исходным наборам, отдельные Kenney — CC0. Атрибуцию каждого набора проверяйте перед публикацией.

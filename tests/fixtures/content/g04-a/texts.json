@@ -1,0 +1,11 @@
+{
+  "record_type": "localization_bundle",
+  "schema_version": 1,
+  "bundle_id": "fixture:localization/interface",
+  "revision": 1,
+  "locale": "ru",
+  "fallback_locale": null,
+  "entries": [
+    { "key": "fixture.package.name", "message": "Тестовый пакет", "syntax": "plain_text", "status": "draft" }
+  ]
+}

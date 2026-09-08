@@ -63,9 +63,9 @@ describe.skipIf(!enabled)('family foundation in owned PostgreSQL (FB01–FB06)',
     await reset();
     const other = createTargetClient(config);
     try {
-      expect((await Promise.all([runTargetMigrations(raw, config, 'migrations/target'), runTargetMigrations(other, config, 'migrations/target')])).sort()).toEqual([0, 6]);
+      expect((await Promise.all([runTargetMigrations(raw, config, 'migrations/target'), runTargetMigrations(other, config, 'migrations/target')])).sort()).toEqual([0, (await loadMigrations('migrations/target')).length]);
       expect(await runTargetMigrations(raw, config, 'migrations/target')).toBe(0);
-      expect((await raw`SELECT name FROM rpg.__target_migrations ORDER BY ordinal`).map(r => r.name)).toEqual(['0001_bootstrap.sql', '0002_family_foundation.sql', '0003_identity_exchange.sql', '0004_family_access.sql', '0005_adult_protection.sql', '0006_access_lifecycle.sql']);
+      expect((await raw`SELECT name FROM rpg.__target_migrations ORDER BY ordinal`).map(r => r.name)).toEqual((await loadMigrations('migrations/target')).map(migration=>migration.name));
       expect((await raw`SELECT count(*)::int AS n FROM rpg.retention_policy_revisions`)[0].n).toBe(0);
     } finally { await other.end({ timeout: 5 }); }
   });
@@ -164,6 +164,6 @@ describe.skipIf(!enabled)('family foundation in owned PostgreSQL (FB01–FB06)',
     await expect(runTargetMigrations(raw, config, directory)).rejects.toMatchObject({ code: '22012' });
     expect((await raw`SELECT name FROM rpg.__target_migrations ORDER BY ordinal`).map(r => r.name)).toEqual(['0001_bootstrap.sql']);
     expect((await raw`SELECT to_regclass('rpg.families') AS family, to_regclass('rpg.retention_policy_revisions') AS policy`)[0]).toEqual({ family: null, policy: null });
-    expect(await runTargetMigrations(raw, config, 'migrations/target')).toBe(5);
+    expect(await runTargetMigrations(raw, config, 'migrations/target')).toBe((await loadMigrations('migrations/target')).length-1);
   });
 });

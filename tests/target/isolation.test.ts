@@ -13,6 +13,11 @@ vi.mock('node:net', async importOriginal => {
 
 describe('target import/config boundary (FT01/FT02/FT03/FT12)', () => {
   it('imports application, DB, runner and CLI modules without starting their dependencies', async () => {
+    await import('../../src/target/content/input');
+    await import('../../scripts/target/content-validate');
+    await import('../../src/target/content/compiler');
+    await import('../../src/target/content/buildDirectory');
+    await import('../../scripts/target/content-build');
     const postgres = (await import('postgres')).default;
     await import('../../src/target/app'); await import('../../src/target/db/client');
     await import('../../src/target/access/telegram');
@@ -50,7 +55,7 @@ describe('target import/config boundary (FT01/FT02/FT03/FT12)', () => {
         if (entry.isDirectory()) { await visit(file); continue; }
         if (!file.endsWith('.ts')) continue;
         const source = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
-        const external = new Set(['express', 'postgres', 'drizzle-orm', 'drizzle-orm/pg-core', 'drizzle-orm/postgres-js']);
+        const external = new Set(['express', 'postgres', 'drizzle-orm', 'drizzle-orm/pg-core', 'drizzle-orm/postgres-js', 'ajv/dist/2020.js']);
         function check(specifier: string) {
           if (file.startsWith(path.join('src', 'target', 'access', 'telegram') + path.sep)) {
             expect(['node:crypto', '../../contracts/errors', './parse']).toContain(specifier);

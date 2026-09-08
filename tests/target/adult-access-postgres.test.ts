@@ -248,7 +248,7 @@ describe.skipIf(process.env.RPG_TARGET_PG_TESTS !== '1')('adult protection in ow
       await expect(runTargetMigrations(raw, config, directory)).rejects.toMatchObject({ code: '22012' });
       expect((await raw`SELECT count(*)::int AS n FROM rpg.__target_migrations`)[0].n).toBe(4);
       expect((await raw`SELECT to_regclass('rpg.adult_protections') AS t`)[0].t).toBeNull();
-      expect(await runTargetMigrations(raw, config, 'migrations/target')).toBe(2);
+      expect(await runTargetMigrations(raw, config, 'migrations/target')).toBe((await loadMigrations('migrations/target')).length-4);
     } finally { await rm(directory, { recursive: true }); }
   });
   it('SQL rejects cross-family protection, mismatched launch, null proof and verifier substitutions',async () => {

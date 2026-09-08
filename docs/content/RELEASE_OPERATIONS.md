@@ -100,7 +100,7 @@ GC использует mark-and-sweep только после выбранно�
 
 ## 9. Приёмочные сценарии конвейера
 
-Каждая строка — будущий тест реализации. В этом документальном этапе они не запускались.
+Это полная матрица приёмки. G04-A проверил входную часть CPT01–CPT04; [G04-B](../implementation/G04_COMPILER_RESULT.md) проверил CPT05/06/08/09 и часть CPT11/12 для plain_text/local candidates. CPT07 проверен только JSON-аналогом изменения источника. [G04-C](../implementation/G04_RELEASE_RESULT.md) проверил CPT13–CPT15 и отказ неподдерживаемой схемы CPT19 в local fixture adapter. Binary/visual, production release и rollback с приобретениями не считаются выполненными.
 
 | ID | Проверка | Ожидаемый результат |
 |---|---|---|
@@ -127,4 +127,4 @@ GC использует mark-and-sweep только после выбранно�
 
 ## 10. Граница готовности
 
-Подготовлены: статусы, роли, входы/выходы, правила lock/hash/projection, публикация/активация/откат/GC и будущая проверочная матрица. Не выполнены: schema registry всех активных типов, CLI/compiler, CI integration, storage credentials/hosting, синтетический прототип, основные ассеты и visual QA. Конкретные библиотеки, resource limits и полномочия оператора выпуска выбираются в плане реализации; отсутствие этих решений не заменяется обещанием готового production-конвейера.
+Подготовлены: статусы, роли, входы/выходы, правила lock/hash/projection, публикация/активация/откат/GC и будущая проверочная матрица. G04-A/B реализовали ограниченный registry/CLI/compiler plain_text и синтетический набор из двух пакетов; G04-C добавил локальные immutable releases, approval gate и атомарный activation snapshot с CAS. Не выполнены: schema registry всех активных типов, production dependency/publication adapter, CI integration конвейера, storage credentials/hosting, визуальный прототип, основные ассеты и visual QA. Конкретные библиотеки, resource limits и полномочия оператора выпуска выбираются в плане реализации; отсутствие этих решений не заменяется обещанием готового production-конвейера.

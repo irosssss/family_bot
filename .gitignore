@@ -39,3 +39,4 @@ bun.lock
 /work/target-build/
 /work/demo-baseline.json
 /work/g03-d/update-status.py
+/work/telegram-preview/

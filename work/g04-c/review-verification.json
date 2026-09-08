@@ -1,0 +1,42 @@
+{
+  "date": "2026-09-08",
+  "scope": "G04 post-review fixes",
+  "target": {
+    "passed": 499,
+    "failed": 0,
+    "skipped": 0,
+    "postgres": "18.6",
+    "run_id": "54d7a33df6d5543d9aa8a1fb4e67f509",
+    "container_id": "7c0f93467e52dbb870ce0e322e183424aaf42a04d7217c1a2bb8b50c3714d5ae",
+    "exact_cleanup": "passed"
+  },
+  "regression": {
+    "passed": 253,
+    "failed": 0,
+    "skipped_opt_in_postgres": 9
+  },
+  "lint": "passed",
+  "target_typecheck": "passed",
+  "target_build": "passed",
+  "compiled_esm_freeze_compile_write": "passed",
+  "legacy_production_build": "passed-with-existing-chunk-size-warning",
+  "browser": "blocked-preview-DNS-error",
+  "sources": [
+    {
+      "path": "src/target/content/localRelease.ts",
+      "sha256": "f6a1235415657e67e77f620f12f8439146385d4753d85ac71f6c3f0eb4a0094f"
+    },
+    {
+      "path": "src/target/content/schemas.ts",
+      "sha256": "20a29c606b1697ad4029f3fbbbbd87e2dfc5f5baa643e436b71f2558d1c0c174"
+    },
+    {
+      "path": "tests/target/content-input.test.ts",
+      "sha256": "eea6d649903d2e709ed27f34a0d93f8cfb57689081f64337188b3d2eff20b3e2"
+    },
+    {
+      "path": "tests/target/content-release-postgres.test.ts",
+      "sha256": "24eb88a1a2441b6de841260a16ed925e02644479cb0ecf0ef9b98439f5592ffe"
+    }
+  ]
+}

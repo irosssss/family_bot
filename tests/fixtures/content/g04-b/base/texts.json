@@ -1,0 +1,9 @@
+{
+  "record_type": "localization_bundle", "schema_version": 1,
+  "bundle_id": "fixture:localization/base_texts", "revision": 1,
+  "locale": "ru", "fallback_locale": null,
+  "entries": [
+    { "key": "base.package.name", "message": "Общие тестовые тексты", "syntax": "plain_text", "status": "draft" },
+    { "key": "common.confirm", "message": "Подтвердить", "syntax": "plain_text", "status": "draft" }
+  ]
+}
