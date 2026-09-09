@@ -129,7 +129,7 @@ pg('V3 PostgreSQL foundation constraints', () => {
     await expect(db.sql`INSERT INTO rpg_v3.access_bindings (id,account_id,family_id,member_id,player_id,mode,status)
       VALUES (${uuid7()},${adult.account},${adult.family},${child.member},NULL,'adult','active')`).rejects.toMatchObject({ code: '23503' });
     await expect(db.sql`INSERT INTO rpg_v3.access_bindings (id,account_id,family_id,member_id,player_id,mode,status)
-      VALUES (${uuid7()},${adult.account},${adult.family},${adult.member},${child.player},'adult','active')`).rejects.toMatchObject({ code: '23503' });
+      VALUES (${uuid7()},${adult.account},${adult.family},${adult.member},${child.player},'managed_child','active')`).rejects.toMatchObject({ code: '23503' });
     await expect(db.sql`INSERT INTO rpg_v3.sessions (id,family_id,binding_id,status,expires_at)
       VALUES (${uuid7()},${adult.family},${child.binding},'active',now())`).rejects.toMatchObject({ code: '23503' });
   });
@@ -180,7 +180,7 @@ pg('V3 PostgreSQL foundation constraints', () => {
       await expect(db.sql`UPDATE rpg_v3.accounts SET revision=${revision} WHERE id=${adult.account}`).rejects.toMatchObject({ code: '23514' });
     }
     await expect(db.sql`UPDATE rpg_v3.member_profiles SET capability_revision=0 WHERE id=${adult.member}`).rejects.toMatchObject({ code: '23514' });
-    await expect(db.sql`UPDATE rpg_v3.access_bindings SET mode='managed_child' WHERE id=${adult.binding}`).rejects.toMatchObject({ code: '23514' });
+    await expect(db.sql`UPDATE rpg_v3.access_bindings SET mode='unregistered_mode' WHERE id=${adult.binding}`).rejects.toMatchObject({ code: '23514' });
     for (const [capability, scope] of [['unregistered.capability', 'self'], ['completion.review_child', 'self'], ['family.manage', 'children_of_family']]) {
       await expect(db.sql`INSERT INTO rpg_v3.capability_grants (id,family_id,member_id,capability,scope,status)
         VALUES (${uuid7()},${adult.family},${adult.member},${capability},${scope},'active')`).rejects.toMatchObject({ code: '23514' });
@@ -193,24 +193,24 @@ pg('V3 PostgreSQL foundation constraints', () => {
   });
 
   it('replays the migration and rejects changed applied content while preserving history', async () => {
-    expect(await migrateV3Database(db)).toEqual({ applied: [], version: 1 });
     const source = await loadV3Migrations();
+    expect(await migrateV3Database(db)).toEqual({ applied: [], version: source.length });
     const changed = { ...source[0], sql: `${source[0].sql}\n-- changed` };
     changed.sha256 = createHash('sha256').update(changed.sql).digest('hex');
-    await expect(migrateV3Database(db, [changed])).rejects.toThrow('v3.migration_history_mismatch');
-    const [row] = await db.sql`SELECT version, sha256 FROM rpg_v3.schema_migrations`;
+    await expect(migrateV3Database(db, [changed, ...source.slice(1)])).rejects.toThrow('v3.migration_history_mismatch');
+    const [row] = await db.sql`SELECT version, sha256 FROM rpg_v3.schema_migrations WHERE version=1`;
     expect({ version: row.version, sha256: row.sha256 }).toEqual({ version: 1, sha256: source[0].sha256 });
   });
 
   it('rolls back all pending DDL and manifest records when a later migration fails', async () => {
     const source = await loadV3Migrations();
     const marker = `failure_${randomBytes(8).toString('hex')}`;
-    await expect(migrateV3Database(db, [...source, migration(2, `CREATE TABLE rpg_v3.${marker} (id integer);`),
-      migration(3, 'SELECT 1 / 0;')])).rejects.toMatchObject({ code: '22012' });
+    await expect(migrateV3Database(db, [...source, migration(source.length + 1, `CREATE TABLE rpg_v3.${marker} (id integer);`),
+      migration(source.length + 2, 'SELECT 1 / 0;')])).rejects.toMatchObject({ code: '22012' });
     const [row] = await db.sql`SELECT to_regclass(${`rpg_v3.${marker}`})::text AS marker,
       (SELECT max(version) FROM rpg_v3.schema_migrations) AS version,
       (SELECT count(*)::int FROM rpg_v3.schema_migrations) AS count`;
-    expect(row).toMatchObject({ marker: null, version: 1, count: 1 });
+    expect(row).toMatchObject({ marker: null, version: source.length, count: source.length });
   });
 
   it('checks database/user/cluster identity at the live connection boundary', async () => {

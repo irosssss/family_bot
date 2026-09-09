@@ -26,6 +26,8 @@ export async function buildV3Server(): Promise<void> {
     entryPoints: [
       'src/v3-server/access/service.ts', 'src/v3-server/foundation/service.ts',
       'src/v3-server/db/client.ts', 'src/v3-server/db/migrate.ts',
+      'src/v3-server/game/service.ts', 'src/v3-server/auth/service.ts',
+      'src/v3-server/auth/telegram.ts', 'src/v3-server/transport/http.ts',
     ],
     bundle: true, platform: 'node', format: 'esm', packages: 'external',
     outdir, metafile: true, logLevel: 'info',

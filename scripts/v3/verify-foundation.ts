@@ -107,7 +107,7 @@ export async function withV3FoundationTestEnvironment(work: (env: NodeJS.Process
     const parallel = await connectV3Database(config);
     try {
       const results = await Promise.all([migrateV3Database(db), migrateV3Database(parallel)]);
-      if (results.some(result => result.version !== 1) || results.map(result => result.applied.length).sort().join(',') !== '0,1') {
+      if (results.some(result => result.version !== migrations.length) || results.map(result => result.applied.length).sort((a,b) => a-b).join(',') !== `0,${migrations.length}`) {
         throw new Error('v3.migration_serialization_failed');
       }
     } finally { await parallel.close(); }

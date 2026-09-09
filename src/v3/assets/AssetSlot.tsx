@@ -7,13 +7,14 @@ export interface AssetSlotProps {
   inspect?: boolean;
   onInspect?: (slotId: string) => void;
   className?: string;
+  resourceState?: 'not_supplied' | 'unsupported';
 }
 
 /**
  * Deliberately has no image, URL, source, loader, canvas or SVG interface.
  * targetPath is documentation and is never read by this renderer.
  */
-export function AssetSlot({ slotId, label, inspect = false, onInspect, className }: AssetSlotProps) {
+export function AssetSlot({ slotId, label, inspect = false, onInspect, className, resourceState=ASSET_FREE_POLICY.resourceState }: AssetSlotProps) {
   const slot = getAssetSlot(slotId);
   const title = label || slot?.label || 'Место для графики';
   const ratio = slot?.aspectRatio || '1 / 1';
@@ -23,13 +24,13 @@ export function AssetSlot({ slotId, label, inspect = false, onInspect, className
       style={{ aspectRatio: ratio }}
       data-asset-slot={slotId}
       data-asset-status={slot?.status || 'unregistered'}
-      data-resource-state={ASSET_FREE_POLICY.resourceState}
-      aria-label={`${title}. ${slot ? 'Графика ещё не добавлена.' : 'Место не зарегистрировано.'}`}
+      data-resource-state={resourceState}
+      aria-label={`${title}. ${resourceState==='unsupported'?'Этот вариант графики не поддерживается.':slot ? 'Графика ещё не добавлена.' : 'Место не зарегистрировано.'}`}
     >
       <figcaption>
         <span className="v3-asset-label">{title}</span>
         <span className="v3-asset-meta">
-          {slot ? `Место для графики · ${ratio.replace(/\s/g, '').replace('/', ':')}` : 'Место не зарегистрировано'}
+          {resourceState==='unsupported'?'Вариант графики не поддерживается':slot ? `Место для графики · ${ratio.replace(/\s/g, '').replace('/', ':')}` : 'Место не зарегистрировано'}
         </span>
       </figcaption>
       {inspect && onInspect && (

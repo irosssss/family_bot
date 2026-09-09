@@ -12,7 +12,7 @@ type Grant = Readonly<{ id: EntityId; capability: Capability; scope: CapabilityS
 declare const verifiedBrand: unique symbol;
 export type VerifiedActor = Readonly<{
   accountId: EntityId; sessionId: EntityId; bindingId: EntityId; familyId: EntityId;
-  actingMemberId: EntityId; actingPlayerId: EntityId | null; mode: 'adult' | 'own_child';
+  actingMemberId: EntityId; actingPlayerId: EntityId | null; mode: 'adult' | 'own_child' | 'managed_child';
   sessionRevision: Revision; capabilityRevision: Revision; grants: readonly Grant[];
   [verifiedBrand]: true;
 }>;
@@ -64,7 +64,7 @@ async function loadContext(tx: V3Transaction, sessionId: EntityId): Promise<Cont
       (initial.player_id !== null && !player)) return deny();
   const familyRole = parseFamilyRole(member.family_role);
   if ((binding.mode !== 'adult' || familyRole !== 'adult') &&
-      (binding.mode !== 'own_child' || familyRole !== 'child')) return deny();
+      (!['own_child', 'managed_child'].includes(binding.mode) || familyRole !== 'child')) return deny();
   const grantRows = await tx`select * from rpg_v3.capability_grants
     where family_id=${initial.family_id} and member_id=${initial.member_id} order by id for update`;
   const grants = Object.freeze(grantRows.filter(row => row.status === 'active').map(row => {
@@ -75,7 +75,7 @@ async function loadContext(tx: V3Transaction, sessionId: EntityId): Promise<Cont
   const actor = Object.freeze({
     accountId: parseEntityId(account.id), sessionId, bindingId: parseEntityId(binding.id), familyId: parseEntityId(family.id),
     actingMemberId: parseEntityId(member.id), actingPlayerId: player ? parseEntityId(player.id) : null,
-    mode: binding.mode as 'adult' | 'own_child', sessionRevision: revision(session.revision),
+    mode: binding.mode as VerifiedActor['mode'], sessionRevision: revision(session.revision),
     capabilityRevision: revision(member.capability_revision), grants,
   }) as VerifiedActor;
   return {
@@ -152,6 +152,23 @@ export function createAccessService<Credential>(database: V3Database, adapter: I
     return withOperation(actor, 'ReadSelfHistory', target, async (_tx, authorization) =>
       Object.freeze({ member: authorization.member, player: authorization.player! }));
   }
+  async function withResolvedOperation<T>(actor: VerifiedActor, familyId: EntityId,
+    resolve: (tx: V3Transaction) => Promise<{ operation: FoundationOperation; target: OperationTarget }>,
+    effect: (tx: V3Transaction, authorization: Authorization) => Promise<T>): Promise<T> {
+    parseEntityId(familyId);
+    const fingerprint = actor && issued.get(actor);
+    if (!fingerprint || familyId !== actor.familyId) return deny();
+    return await database.sql.begin(async tx => {
+      const context = await loadContext(tx, actor.sessionId);
+      if (context.fingerprint !== fingerprint) throw new V3Error('STALE_ACTOR');
+      // Resolver is trusted server code. It reads the resource under the same family guard,
+      // so the beneficiary used for authorization cannot change before the transition.
+      const resolved = await resolve(tx);
+      const target = parseTarget(resolved.operation, resolved.target);
+      const authorization = await authorize(tx, context, resolved.operation, target);
+      return effect(tx, authorization);
+    }) as T;
+  }
   async function revoke(actor: VerifiedActor, input: Readonly<{
     familyId: EntityId; kind: 'binding' | 'session' | 'grant'; id: EntityId; expectedRevision: Revision;
   }>): Promise<void> {
@@ -175,6 +192,6 @@ export function createAccessService<Credential>(database: V3Database, adapter: I
         where id=${rows[0].member_id} and family_id=${payload.familyId}`;
     });
   }
-  return Object.freeze({ authenticate, withOperation, readSelfProjection, revoke });
+  return Object.freeze({ authenticate, withOperation, withResolvedOperation, readSelfProjection, revoke });
 }
 export type AccessService = ReturnType<typeof createAccessService>;

@@ -1,4 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["src/v3-server", "tests/v3-server", "migrations/v3", "scripts/v3/verify-foundation.ts", "scripts/v3/build-server.ts", "vitest.v3-server.config.ts"]
+  "include": ["src/v3-server", "tests/v3-server", "migrations/v3", "scripts/v3/verify-foundation.ts", "scripts/v3/build-server.ts", "scripts/v3/local.ts", "vitest.v3-server.config.ts"]
 }

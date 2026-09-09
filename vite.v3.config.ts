@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Independent prototype entry: no production env, public assets, service worker or API.
+// Isolated V3 client artifacts. API and exact release assets are served by its runtime.
 export default defineConfig({
   envDir: false,
   publicDir: false,
@@ -23,5 +23,5 @@ export default defineConfig({
     },
   }],
   server: { host: '127.0.0.1', port: 3002, strictPort: true },
-  build: { outDir: 'work/v3-build', rollupOptions: { input: 'family-life-v3.html' } },
+  build: { outDir: 'work/v3-build', rollupOptions: { input: ['family-life-v3.html','family-life-v3-telegram.html'] } },
 });

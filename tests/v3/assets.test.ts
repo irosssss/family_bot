@@ -21,7 +21,7 @@ describe('V3 asset-free layout contract', () => {
       expect(slot.id).toMatch(/^[a-z]+\.[a-z_]+$/);
       expect(slot.status).toBe('planned');
       expect(slot.geometryStatus).toBe('candidate');
-      expect(slot.targetPath).toMatch(/^public\/assets\/game\/family_life_v3\/<release>\/.+__r<revision>\.png$/);
+      expect(slot.targetPath).toMatch(/^public\/assets\/game\/family_life_v3\/v1\/.+__r<revision>\.png$/);
       expect(slot.targetPath).not.toMatch(/https?:|\.\.|\\/);
       const [widthRatio, heightRatio] = slot.aspectRatio.split('/').map(Number);
       expect(widthRatio).toBeGreaterThan(0);

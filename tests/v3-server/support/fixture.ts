@@ -57,6 +57,10 @@ export async function grant(db: V3Database, fixture: Fixture, role: 'adult' | 'c
 export async function cleanFixture(db: V3Database, fixture: Fixture) {
   await db.sql.begin(async tx => {
     await tx`delete from v3_fixture.probes where family_id=${fixture.family}`;
+    await tx`delete from rpg_v3.game_receipts where family_id=${fixture.family}`;
+    await tx`delete from rpg_v3.game_ledger where family_id=${fixture.family}`;
+    await tx`delete from rpg_v3.game_claims where family_id=${fixture.family}`;
+    await tx`delete from rpg_v3.game_documents where family_id=${fixture.family}`;
     await tx`delete from rpg_v3.sessions where family_id=${fixture.family}`;
     await tx`delete from rpg_v3.access_bindings where family_id=${fixture.family}`;
     await tx`delete from rpg_v3.capability_grants where family_id=${fixture.family}`;
