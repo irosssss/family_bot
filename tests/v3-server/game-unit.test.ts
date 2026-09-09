@@ -7,6 +7,19 @@ import { parseGameCommand } from '../../src/v3-server/game/commands.js';
 import { newEntityId } from '../../src/v3-server/foundation/ids.js';
 
 describe('V3 complete free-cycle transitions', () => {
+  it('stops binding new work to a completed goal while preserving older work and its unique milestone',()=>{
+    const h=gameHarness();
+    const goal=h.run('adult','CreateGoal',{title:'Общий вечер',plannedDays:1,roster:[{playerId:h.member('adult').playerId,dailyNorm:1}]});
+    const old=h.create('adult');
+    for(let i=0;i<3;i++)h.complete('adult');
+    const completed=h.world.goals.find(g=>g.id===goal.id)!;expect(completed.milestoneId).toBeTruthy();
+    const milestone=completed.milestoneId,earned=BigInt(completed.earned);
+    const fresh=h.create('adult');expect(h.world.occurrences.find(o=>o.id===fresh.occurrenceId)?.goalId).toBeNull();
+    h.submit('adult',fresh.id);expect(h.world.goals[0].earned).toBe(String(earned));
+    h.submit('adult',old.id);expect(BigInt(h.world.goals[0].earned)).toBeGreaterThan(earned);expect(h.world.goals[0].milestoneId).toBe(milestone);
+    const next=h.run('adult','CreateGoal',{title:'Следующий вечер',plannedDays:1,roster:[{playerId:h.member('adult').playerId,dailyNorm:1}]});
+    const nextWork=h.create('adult');expect(h.world.occurrences.find(o=>o.id===nextWork.occurrenceId)?.goalId).toBe(next.id);auditWorld(h.world);
+  });
   it('mixed shared work conserves its explicit budget and never rewards the reviewer', () => {
     const h = gameHarness();
     h.run('adult', 'CreateTask', { title: 'Общий стол', description: '', assignment: 'shared',

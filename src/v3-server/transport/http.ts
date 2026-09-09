@@ -52,7 +52,16 @@ export function createV3HttpApp(options: V3HttpOptions) {
     void handler(req,res).catch(next);
   };
   const input=(req:Request)=>parseStrictJson(req.body);
-  const authenticate=async(req:Request)=>identity.access.authenticate(cookie(req));
+  const authenticate=async(req:Request)=>{
+    const actor=await identity.access.authenticate(cookie(req));
+    if(req.method==='POST') {
+      const expected=req.headers['x-v3-expected-member'];
+      if(typeof expected!=='string'||!expected)throw new V3Error('VALIDATION');
+      // A precondition, never an identity claim: the cookie and stored grants remain authoritative.
+      if(expected!==actor.actingMemberId)throw new V3Error('STALE_ACTOR');
+    }
+    return actor;
+  };
   const setSession=(res:Response,session:{token:string})=>{
     res.cookie(cookieName,session.token,{httpOnly:true,sameSite:'strict',secure:origin.protocol==='https:',path:'/v3/api',maxAge:7*24*60*60*1000});
   };
@@ -78,6 +87,11 @@ export function createV3HttpApp(options: V3HttpOptions) {
     res.clearCookie(cookieName,{path:'/v3/api',httpOnly:true,sameSite:'strict',secure:origin.protocol==='https:'});
     res.json({ok:true});
   }));
+  app.get('/v3/api/bootstrap',route(async(req,res)=>{
+    const bearer=cookie(req),actor=await identity.access.authenticate(bearer);
+    const [projection,session]=await Promise.all([game.read(actor),identity.describe(actor,bearer)]);
+    res.json({projection,session});
+  }));
   app.get('/v3/api/session',route(async(req,res)=>res.json(await identity.describe(await authenticate(req),cookie(req)))));
   app.get('/v3/api/game',route(async(req,res)=>res.json(await game.read(await authenticate(req)))));
   app.post('/v3/api/commands',route(async(req,res)=>res.json(await game.dispatch(await authenticate(req),req.body))));
@@ -92,7 +106,7 @@ export function createV3HttpApp(options: V3HttpOptions) {
     if(error instanceof V3Error) {
       const status=error.code==='VALIDATION'?400:error.code==='CONFLICT'||error.code==='STALE_ACTOR'?409:403;
       return res.status(status).json({code:error.code,message:error.code==='FORBIDDEN'?'Войдите в профиль или проверьте PIN. После пяти ошибок действует пауза 15 минут.':
-        error.code==='VALIDATION'?'Проверьте заполненные поля.':'Данные изменились. Обновите экран.'});
+        error.code==='VALIDATION'?'Проверьте заполненные поля.':error.code==='STALE_ACTOR'?'Профиль или права изменились. Обновите экран и проверьте выбранный профиль.':'Данные изменились. Обновите экран.'});
     }
     if(error instanceof GameError)return res.status(error.code==='VALIDATION'?400:409).json({code:error.code,message:error.message});
     if((error as {type?:string})?.type==='entity.too.large')return res.status(413).json({code:'VALIDATION',message:'Запрос слишком большой.'});

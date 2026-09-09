@@ -11,7 +11,11 @@ export function Family() {
   const {data}=useGame(),manage=data.capabilities.includes('family.manage');
   const [section,setSection]=useState('members'),[add,setAdd]=useState(false),[calendar,setCalendar]=useState(false);
   const [member,setMember]=useState<MemberAdmin|null>(null),[roster,setRoster]=useState<MemberAdmin[]>([]),[readError,setReadError]=useState('');
-  useEffect(()=>{if(manage)void getApi<MemberAdmin[]>('family/roster').then(setRoster).catch(e=>setReadError(e.message));},[manage,data.revision,add,member?.id]);
+  useEffect(()=>{
+    let current=true;
+    if(manage)void getApi<MemberAdmin[]>('family/roster').then(value=>{if(current){setRoster(value);setReadError('');}}).catch(e=>{if(current)setReadError(e.message);});
+    return()=>{current=false;};
+  },[manage,data.members,add,member?.id]);
   return <><PageHeading title="Наш семейный круг" text="У каждого свой путь, а дом у нас общий."/>
     <div className="v3-tabs" aria-label="Раздел семьи">{[['members','Участники'],['rewards','Обещания'],...(manage?[['history','Результаты']]:[])].map(([id,title])=>
       <button key={id} aria-pressed={section===id} onClick={()=>setSection(id)}>{title}</button>)}</div>
@@ -27,7 +31,7 @@ export function Family() {
       {readError&&<p className="v3-live-error" role="alert">{readError}</p>}
     </>}
     {section==='rewards'&&<Rewards/>}
-    {section==='history'&&<><p className="v3-caption v3-live-help">Принятые детские результаты и исправления. Личная история другого взрослого здесь не отображается.</p><History childrenOnly/></>}
+    {section==='history'&&manage&&<><p className="v3-caption v3-live-help">Принятые детские результаты и исправления. Личная история другого взрослого здесь не отображается.</p><History childrenOnly/></>}
     {add&&<AddMember close={()=>setAdd(false)}/>}
     {calendar&&<CalendarEditor close={()=>setCalendar(false)}/>}
     {member&&<MemberEditor member={member} close={()=>setMember(null)}/>}

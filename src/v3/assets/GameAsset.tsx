@@ -9,7 +9,7 @@ function LoadedLayers({asset,label,className}:{asset:ReleasedAsset;label:string;
     style={{aspectRatio:asset.logicalWidth+' / '+asset.logicalHeight}} aria-label={label}
     data-asset-slot={asset.slotId} data-resource-state={failed?'failed':ready?'ready':'loading'}>
     {!ready&&<div className="v3-game-art-fallback">{label}<small>{failed?'Изображение временно недоступно':'Загрузка изображения'}</small></div>}
-    {!failed&&asset.layers.map(layer=><img key={layer.path} src={layer.path} alt="" aria-hidden="true"
+    {!failed&&asset.layers.map(layer=><img key={layer.role} src={layer.path} alt="" aria-hidden="true"
       width={layer.width} height={layer.height} decoding="async"
       style={{visibility:ready?'visible':'hidden'}}
       onLoad={()=>setLoaded(current=>current.includes(layer.path)?current:[...current,layer.path])}

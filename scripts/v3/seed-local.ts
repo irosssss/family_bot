@@ -6,9 +6,9 @@ import { resolve } from 'node:path';
 const root=fileURLToPath(new URL('../../',import.meta.url)),origin='http://127.0.0.1:3003';
 const meta=await (await fetch(origin+'/v3/api/meta')).json();
 if(meta.mode!=='local')throw new Error('v3.seed_requires_local_mode');
-let cookie='';
+let cookie='',expectedMember='';
 async function post(path:string,value:object) {
-  const response=await fetch(origin+'/v3/api/'+path,{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,'X-V3-Request':'1',Cookie:cookie},body:JSON.stringify(value)});
+  const response=await fetch(origin+'/v3/api/'+path,{method:'POST',headers:{'Content-Type':'application/json',Origin:origin,'X-V3-Request':'1','X-V3-Expected-Member':expectedMember,Cookie:cookie},body:JSON.stringify(value)});
   if(!response.ok)throw new Error('v3.seed_request_failed');
   const next=response.headers.get('set-cookie');if(next)cookie=next.split(';')[0];
   return response.json();
@@ -22,6 +22,7 @@ function key(name:string){
   const h=createHash('sha256').update('v3-local-demo-v1:'+name).digest('hex');
   return '01989b11-0000-7'+h.slice(0,3)+'-8'+h.slice(3,6)+'-'+h.slice(6,18);
 }
+expectedMember=(await (await fetch(origin+'/v3/api/game',{headers:{Cookie:cookie}})).json()).memberId;
 const child=await post('family/add-member',{idempotencyKey:key('child'),displayName:'Саша',role:'child'});
 const projection=await (await fetch(origin+'/v3/api/game',{headers:{Cookie:cookie}})).json();
 async function command(name:string,command:string,payload:object){

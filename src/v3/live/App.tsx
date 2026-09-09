@@ -12,6 +12,7 @@ import { TaskCard, TaskDetails, Tasks } from './Tasks';
 import { Hero } from './Hero';
 import { Family } from './Family';
 import { World, ActiveGoal } from './World';
+import { isExpiredWork } from './taskTiming';
 export type Page='home'|'tasks'|'world'|'hero'|'family';
 type Session={mode:'adult'|'own_child'|'managed_child';homeMemberId:string;hasAdultHome:boolean};
 const pages=[{id:'home',title:'Сегодня',icon:Home},{id:'tasks',title:'Дела',icon:ListChecks},{id:'world',title:'Мир',icon:Compass},
@@ -22,19 +23,19 @@ export function LiveApp(){
   const [busy,setBusy]=useState(false),[pending,setPending]=useState<PreparedRequest|null>(()=>loadPending()),[error,setError]=useState<string|null>(null);
   const [notice,setNotice]=useState(''),[recovery,setRecovery]=useState<string|null>(null),[profiles,setProfiles]=useState(false);
   const [retryEpoch,setRetryEpoch]=useState(0);
-  const dataRef=useRef(data),busyRef=useRef(false),epoch=useRef(0),pendingRef=useRef(pending),opened=useRef(new Set<string>());
+  const dataRef=useRef(data),busyRef=useRef(false),epoch=useRef(0),readSequence=useRef(0),pendingRef=useRef(pending),opened=useRef(new Set<string>());
   dataRef.current=data;pendingRef.current=pending;
   const setProjection=(projection:GameProjection)=>{
     setData(current=>current&&current.memberId===projection.memberId&&current.familyId===projection.familyId&&current.revision>projection.revision?current:projection);
   };
   const refresh=useCallback(async()=>{
-    const generation=epoch.current;
+    const generation=epoch.current,sequence=++readSequence.current;
     try{
-      const [projection,context]=await Promise.all([getApi<GameProjection>('game'),getApi<Session>('session')]);
-      if(generation!==epoch.current)return;
-      setProjection(projection);setSession(context);
+      const {projection,session}=await getApi<{projection:GameProjection;session:Session}>('bootstrap');
+      if(generation!==epoch.current||sequence!==readSequence.current)return;
+      setProjection(projection);setSession(session);
     }catch(e){
-      if(generation===epoch.current&&e instanceof TransportError&&e.code==='FORBIDDEN'){
+      if(generation===epoch.current&&sequence===readSequence.current&&e instanceof TransportError&&e.code==='FORBIDDEN'){
         epoch.current++;setData(null);setSession(null);opened.current.clear();
       }
       throw e;
@@ -56,7 +57,7 @@ export function LiveApp(){
   const send=async<T,>(prepared:PreparedRequest,retry=false):Promise<T|null>=>{
     if(busyRef.current||(!retry&&pendingRef.current))return null;
     if(prepared.memberId!==dataRef.current?.memberId){setError('Этот запрос относится к другому профилю. Вернись в него для проверки результата.');return null;}
-    busyRef.current=true;setBusy(true);setError(null);setNotice('');
+    epoch.current++;busyRef.current=true;setBusy(true);setError(null);setNotice('');
     pendingRef.current=prepared;setPending(prepared);savePending(prepared);
     try{
       const result=await sendPrepared<T>(prepared);
@@ -80,10 +81,10 @@ export function LiveApp(){
     dataRef.current?send<T>({path:'/v3/api/family/'+name,memberId:dataRef.current.memberId,label,body:JSON.stringify({...payload,idempotencyKey:requestId()})}):null;
   useEffect(()=>{
     if(!data||pending||busy)return;
-    const key=data.memberId+':'+data.today;
+    const key=data.memberId+':'+data.today+':'+data.members.map(m=>m.id+':'+m.active+':'+m.playerStatus).join('|');
     if(opened.current.has(key))return;opened.current.add(key);
     void command('OpenToday',{},'Открытие дня');
-  },[data?.memberId,data?.today,pending,busy]);
+  },[data?.memberId,data?.today,data?.members,pending,busy]);
   useEffect(()=>{
     if(!data)return;
     const update=()=>{if(!busyRef.current&&!pendingRef.current&&document.visibilityState==='visible')void refresh().catch(()=>{});};
@@ -97,16 +98,17 @@ export function LiveApp(){
   };
   const switchProfile=async(memberId:string,pin:string|null)=>{
     if(busyRef.current||(pendingRef.current&&pendingRef.current.memberId===dataRef.current?.memberId))return false;
-    busyRef.current=true;setBusy(true);setError(null);
+    epoch.current++;busyRef.current=true;setBusy(true);setLoading(true);setError(null);
     try{
-      await postApi('auth/switch',{memberId,pin});epoch.current++;setData(null);setPage('home');setProfiles(false);opened.current.clear();
+      await postApi('auth/switch',{memberId,pin},dataRef.current?.memberId);epoch.current++;setData(null);setPage('home');setProfiles(false);opened.current.clear();
       await refresh();return true;
-    }catch(e){setError(e instanceof Error?e.message:'Не удалось сменить профиль.');return false;}finally{busyRef.current=false;setBusy(false);}
+    }catch(e){setError(e instanceof Error?e.message:'Не удалось сменить профиль.');void refresh().catch(()=>{});return false;}finally{busyRef.current=false;setBusy(false);setLoading(false);}
   };
   const logout=async()=>{
-    if(busyRef.current)return;setError(null);
-    try{await postApi('auth/logout',{});epoch.current++;setData(null);setSession(null);setProfiles(false);}
-    catch(e){setError(e instanceof Error?e.message:'Не удалось выйти.');}
+    if(busyRef.current)return;epoch.current++;busyRef.current=true;setBusy(true);setError(null);
+    try{await postApi('auth/logout',{},dataRef.current?.memberId);epoch.current++;setData(null);setSession(null);setProfiles(false);}
+    catch(e){setError(e instanceof Error?e.message:'Не удалось выйти.');void refresh().catch(()=>{});}
+    finally{busyRef.current=false;setBusy(false);}
   };
   const go=(next:Page)=>{setPage(next);setError(null);setNotice('');window.scrollTo({top:0,behavior:'instant'});};
   if(loading)return <Frame><PageHeading title="Открываем наш дом" text="Загружаем сохранённое состояние семьи."/></Frame>;
@@ -127,7 +129,7 @@ export function LiveApp(){
         {pending.memberId===data.memberId?<Button onClick={()=>{void send(pending,true);}}>Повторить тот же запрос</Button>:<p>Войди в профиль, из которого отправлялось действие.</p>}</div>}
       {error&&<p className="v3-live-error v3-live-notice" role="alert">{error}</p>}
       {notice&&<p className="v3-live-notice" role="status">{notice}</p>}
-      <main className="v3-main" key={data.memberId+':'+retryEpoch}>
+      <main className="v3-main" key={data.memberId+':'+retryEpoch+':'+data.capabilities.slice().sort().join(',')+':'+member.playerStatus}>
         {page==='home'&&<HomePage go={go}/>}
         {page==='tasks'&&<Tasks/>}
         {page==='world'&&<World/>}
@@ -156,7 +158,7 @@ function ProfileSwitch({session,switchProfile,resumePending}:{session:Session;sw
 }
 function HomePage({go}:{go:(page:Page)=>void}) {
   const {data}=useGame(),[task,setTask]=useState<string|null>(null);
-  const next=data.allocations.find(a=>a.playerId===data.playerId&&['open','returned'].includes(a.status));
+  const next=data.allocations.find(a=>a.playerId===data.playerId&&['open','returned'].includes(a.status)&&!isExpiredWork(data,a));
   const pending=data.allocations.filter(a=>a.role==='child'&&a.status==='submitted').length;
   return <><PageHeading title="Сегодня мы команда" text="Одно доброе дело меняет общий день."><span className="v3-date">{prettyDate(data.today)}</span></PageHeading>
     <section className="v3-home-scene"><GameAsset slotId="home.room" label="Наш семейный дом"/><div className="v3-scene-caption"><span><Home size={16}/>Точка встречи семьи</span><button onClick={()=>go('family')}><Users size={16}/>{data.members.filter(m=>m.active).length}</button></div></section>

@@ -4,13 +4,14 @@ import type { Allocation, Difficulty, TaskDefinition, TaskPart } from '../../v3-
 import { getTaskReward } from '../model/balance';
 import { Button, PageHeading, Sheet } from '../ui';
 import { ActionError, difficultyNames, Empty, Field, Form, nameOf, prettyDate, useGame } from './context';
+import { isExpiredWork, workTiming } from './taskTiming';
 const states={open:'Можно выполнить',submitted:'На проверке',returned:'Нужно уточнить',settled:'Принято',cancelled:'Отменено'} as const;
 export function TaskCard({allocation,onOpen}:{allocation:Allocation;onOpen:()=>void}) {
   const {data}=useGame(),occurrence=data.occurrences.find(o=>o.id===allocation.occurrenceId)!;
   return <article className="v3-task-card"><div className="v3-task-top"><span className="v3-task-glyph home"><ListChecks size={22}/></span>
     <div><p className="v3-caption">{nameOf(data,allocation.playerId)} · {prettyDate(occurrence.scheduledFor)}</p><h3>{occurrence.title}</h3></div></div>
     <p className="v3-task-copy">{occurrence.assignment==='shared'?allocation.label:occurrence.description||difficultyNames[allocation.difficulty]}</p>
-    <div className="v3-live-task-meta"><span>{states[allocation.status]}</span><span>{allocation.reward.gold} монет · {allocation.reward.heroXp} XP</span></div>
+    <div className="v3-live-task-meta"><span>{isExpiredWork(data,allocation)?'Срок отправки прошёл':states[allocation.status]}</span><span>{allocation.reward.gold} монет · {allocation.reward.heroXp} XP</span></div>
     <div className="v3-task-bottom"><span><ShieldCheck size={15}/>{allocation.role==='child'?'Подтвердит взрослый':'Самостоятельно'}</span>
       <Button secondary onClick={onOpen}>Подробнее<ArrowRight size={16}/></Button></div>
   </article>;
@@ -20,17 +21,17 @@ export function Tasks() {
   const [scope,setScope]=useState('mine'),[status,setStatus]=useState('active'),[selected,setSelected]=useState<string|null>(null);
   const [editor,setEditor]=useState<TaskDefinition|'new'|null>(null);
   const items=data.allocations.filter(a=>(scope==='review'?a.role==='child'&&a.status==='submitted':
-    scope==='all'?true:a.playerId===data.playerId)&&(scope==='review'||status==='all'||(status==='active'?['open','returned','submitted'].includes(a.status):a.status===status)));
+    scope==='all'?true:a.playerId===data.playerId)&&(scope==='review'||status==='all'||(status==='active'?['open','returned','submitted'].includes(a.status)&&!isExpiredWork(data,a):status==='expired'?isExpiredWork(data,a):a.status===status)));
   return <>
     <PageHeading title="Маленькие дела" text="Выбрать, сделать, поделиться результатом."/>
     <div className="v3-tabs" aria-label="Чьи дела">{[['mine','Мои'],...(review?[['review','Проверить']]:[]),...(manage?[['all','Все']]:[])].map(([id,title])=>
       <button key={id} aria-pressed={scope===id} onClick={()=>setScope(id)}>{title}</button>)}</div>
     <div className="v3-live-toolbar">{scope!=='review'&&<Field title="Состояние"><select value={status} onChange={e=>setStatus(e.target.value)}>
-      <option value="active">Текущие дела</option><option value="settled">Принятые</option><option value="cancelled">Отменённые</option><option value="all">Все состояния</option></select></Field>}
+      <option value="active">Текущие дела</option><option value="expired">Срок отправки прошёл</option><option value="settled">Принятые</option><option value="cancelled">Отменённые</option><option value="all">Все состояния</option></select></Field>}
       {manage&&<Button onClick={()=>setEditor('new')}><Plus size={18}/>Добавить дело</Button>}</div>
     <div className="v3-task-list">{items.map(a=><TaskCard key={a.id} allocation={a} onOpen={()=>setSelected(a.id)}/>)}</div>
     {!items.length&&<Empty title={scope==='review'?'Всё проверено':'Здесь спокойно'}>{scope==='review'?'Новые результаты появятся, когда ребёнок отправит выполненное дело.':
-      manage?'Добавь дело себе или семье. Оно появится по выбранному расписанию.':'Пока нет дел в этом разделе.'}</Empty>}
+      status!=='active'?'Дел с выбранным состоянием пока нет.':manage?'Добавь дело себе или семье. Оно появится по выбранному расписанию.':'Пока нет дел в этом разделе.'}</Empty>}
     {manage&&<section><div className="v3-section-heading"><h2>Расписания</h2><span className="v3-caption">{data.tasks.filter(t=>t.status==='active').length} активных</span></div>
       <div className="v3-live-list">{data.tasks.filter(t=>t.status==='active').map(t=><button className="v3-live-row" key={t.id} onClick={()=>setEditor(t)}><span><strong>{t.title}</strong><small>
         {t.status==='retired'?'В архиве':t.schedule.kind==='daily'?'Каждый день':t.schedule.kind==='weekly'?'По дням недели':'Один раз'}</small></span><ArrowRight size={18}/></button>)}</div>
@@ -42,29 +43,33 @@ export function Tasks() {
 export function TaskDetails({allocationId,close}:{allocationId:string;close:()=>void}) {
   const {data,command,busy,pending}=useGame();
   const allocation=data.allocations.find(a=>a.id===allocationId),occurrence=data.occurrences.find(o=>o.id===allocation?.occurrenceId);
-  const [note,setNote]=useState(''),[performed,setPerformed]=useState(data.today),[reason,setReason]=useState('');
+  const [note,setNote]=useState(''),[performed,setPerformed]=useState(()=>occurrence?workTiming(data,occurrence).today:data.today),[reason,setReason]=useState('');
   if(!allocation||!occurrence)return <Sheet title="Дело недоступно" close={close}><p>Обнови список дел.</p></Sheet>;
+  const timing=workTiming(data,occurrence),goal=data.goals.find(g=>g.id===occurrence.goalId);
+  const adventure=data.adventures.find(a=>a.id===occurrence.adventureId&&a.roster.includes(allocation.playerId));
   const own=allocation.playerId===data.playerId,canReview=data.capabilities.includes('completion.review_child')&&allocation.role==='child';
   const attempt=data.attempts.find(a=>a.id===allocation.latestAttemptId);
   const canSubmit=own&&['open','returned'].includes(allocation.status)&&data.members.find(m=>m.id===data.memberId)?.playerStatus==='active';
   return <Sheet title={occurrence.title} close={close}>
     <p>{occurrence.description||allocation.label}</p>
     <dl className="v3-details"><div><dt>Участник</dt><dd>{nameOf(data,allocation.playerId)}</dd></div>
-      <div><dt>Состояние</dt><dd>{states[allocation.status]}</dd></div><div><dt>Награда</dt><dd>{allocation.reward.gold} монет, {allocation.reward.heroXp} XP героя,
+      <div><dt>Состояние</dt><dd>{isExpiredWork(data,allocation)?'Срок отправки прошёл':states[allocation.status]}</dd></div><div><dt>Награда</dt><dd>{allocation.reward.gold} монет, {allocation.reward.heroXp} XP героя,
         {' '}{allocation.reward.familyContribution} вклада{allocation.petId?', '+allocation.reward.petXp+' XP выбранного питомца':'. Питомец для этого дела не был выбран.'}</dd></div>
+      <div><dt>Семейная цель</dt><dd>{goal?goal.title+(goal.milestoneId?' · уже достигнута, прежний адрес вклада сохранён':''):'Без цели: вклад сохранится в истории'}</dd></div>
+      <div><dt>Приключение</dt><dd>{adventure?adventure.title:'Без участия в приключении'}</dd></div>
       <div><dt>Плановый день</dt><dd>{prettyDate(occurrence.scheduledFor)}</dd></div><div><dt>Отправить до</dt><dd>{prettyDate(occurrence.submissionThrough)}</dd></div>
       {occurrence.assignment==='shared'&&<div><dt>Твоя часть</dt><dd>{allocation.label}. Общий бюджет распределён между частями один раз.</dd></div>}
     </dl>
     {attempt&&<div className="v3-live-panel"><h3>Последний результат</h3><p>{prettyDate(attempt.performedOn)}{attempt.note?' · '+attempt.note:''}</p>
       {attempt.decision?.reason&&<p>Комментарий взрослого: {attempt.decision.reason}</p>}</div>}
-    {canSubmit&&data.today<=occurrence.submissionThrough&&<Form submit={allocation.role==='child'?'Отправить на проверку':'Отметить выполненным'} onSubmit={async()=>{
+    {canSubmit&&!timing.expired&&<Form submit={allocation.role==='child'?'Отправить на проверку':'Отметить выполненным'} onSubmit={async()=>{
       const result=await command('SubmitCompletion',{allocationId,expectedRevision:allocation.revision,performedOn:performed,note:note.trim()||null,
         continuation:allocation.status==='returned'?{kind:'after_return',returnedAttemptId:allocation.latestAttemptId}:{kind:'first'}},'Выполнение дела');
       if(result)close();
-    }}><Field title="Когда выполнено"><input required type="date" value={performed} min={occurrence.scheduledFor} max={data.today} onChange={e=>setPerformed(e.target.value)}/></Field>
+    }}><Field title="Когда выполнено"><input required type="date" value={performed} min={timing.earliest} max={timing.today} onChange={e=>setPerformed(e.target.value)}/></Field>
       <Field title="Что получилось" hint="Можно оставить пустым."><input maxLength={500} value={note} onChange={e=>setNote(e.target.value)}/></Field>
       <p className="v3-caption">{allocation.role==='child'?'Награда появится после подтверждения взрослым.':'Своё дело взрослый подтверждает этой отметкой.'}</p></Form>}
-    {canSubmit&&data.today>occurrence.submissionThrough&&<p className="v3-boundary-note">Срок отправки закончился. Это не уменьшает накопления.</p>}
+    {canSubmit&&timing.expired&&<p className="v3-boundary-note">Срок отправки закончился. Это не уменьшает накопления.</p>}
     {canReview&&allocation.status==='submitted'&&attempt&&<section className="v3-live-form">
       <Field title="Комментарий к решению"><input maxLength={500} value={reason} onChange={e=>setReason(e.target.value)}/></Field><ActionError/>
       <div className="v3-live-actions"><Button disabled={busy||pending} onClick={async()=>{if(await command('ReviewCompletion',{attemptId:attempt.id,expectedRevision:attempt.revision,decision:'accept',reason:reason.trim()||null},'Подтверждение дела'))close();}}><Check size={17}/>Принять</Button>

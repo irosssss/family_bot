@@ -156,12 +156,34 @@ pg('V3 identity, shared device, invites and HTTP boundary',()=>{
     await expect(identities.access.authenticate(switched.token)).rejects.toMatchObject({code:'FORBIDDEN'});
     expect((await db.sql`select id from rpg_v3.players where id=${child.playerId}`)).toHaveLength(1);
   });
+  it('rejects stale-tab writes after cookie rotation, including switch/logout, without changing the child',async()=>{
+    const child=await add();
+    server=createServer();await new Promise<void>(resolve=>server!.listen(0,'127.0.0.1',resolve));
+    const origin='http://127.0.0.1:'+(server.address() as AddressInfo).port;
+    server.on('request',createV3HttpApp({database:db,origin,mode:'local',verifyIdentity:verify}));
+    const switched=await identities.switchProfile(await actor(),login.token,{memberId:child.memberId,pin:null});
+    const headers={'Content-Type':'application/json',Origin:origin,'X-V3-Request':'1',Cookie:'family_v3_session='+switched.token};
+    const bootstrap=await (await fetch(origin+'/v3/api/bootstrap',{headers})).json();
+    expect(bootstrap.projection.memberId).toBe(child.memberId);expect(bootstrap.session.mode).toBe('managed_child');
+    const body={contract:'family_life_v3.commands',version:'0.1',command:'SelectAppearance',idempotencyKey:newEntityId(),
+      payload:{slot:'outfit',ownedItemId:null,expectedRevision:bootstrap.projection.progress.revision}};
+    const stale=(path:string,value:object)=>fetch(origin+'/v3/api/'+path,{method:'POST',headers:{...headers,'X-V3-Expected-Member':login.memberId},body:JSON.stringify(value)});
+    for(const [path,value] of [['commands',body],['family/add-member',{displayName:'Unexpected',role:'child',idempotencyKey:newEntityId()}],
+      ['auth/switch',{memberId:login.memberId,pin:'123456'}],['auth/logout',{}]] as const){
+      const response=await stale(path,value);expect(response.status).toBe(409);expect((await response.json()).code).toBe('STALE_ACTOR');
+    }
+    const after=await (await fetch(origin+'/v3/api/bootstrap',{headers})).json();
+    expect(after.projection.memberId).toBe(child.memberId);expect(after.projection.revision).toBe(bootstrap.projection.revision);
+    const missing=await fetch(origin+'/v3/api/commands',{method:'POST',headers,body:JSON.stringify(body)});expect(missing.status).toBe(400);
+    const valid=await fetch(origin+'/v3/api/commands',{method:'POST',headers:{...headers,'X-V3-Expected-Member':child.memberId},body:JSON.stringify(body)});
+    expect(valid.status).toBe(200);expect((await valid.json()).projection.memberId).toBe(child.memberId);
+  });
   it('enforces same-origin JSON HTTP requests and cookie sessions, including lost-response command replay',async()=>{
     // Allocate a port first; the actual origin is passed to the app before serving any request.
     server=createServer();await new Promise<void>(resolve=>server!.listen(0,'127.0.0.1',resolve));
     const port=(server.address() as AddressInfo).port,origin='http://127.0.0.1:'+port;
     server.on('request',createV3HttpApp({database:db,origin,mode:'local',verifyIdentity:verify}));
-    const headers={'Content-Type':'application/json','Origin':origin,'X-V3-Request':'1'};
+    const headers={'Content-Type':'application/json','Origin':origin,'X-V3-Request':'1','X-V3-Expected-Member':login.memberId};
     const response=await fetch(origin+'/v3/api/auth/login',{method:'POST',headers,body:JSON.stringify(person())});
     expect(response.status).toBe(200);
     const setCookie=response.headers.get('set-cookie')!;

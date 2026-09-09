@@ -88,10 +88,11 @@ function StarterChoice({close}:{close:()=>void}) {
     {selected&&<Button disabled={busy||pending||!active} onClick={async()=>{if(await command('SelectStarterEgg',{itemId:selected.id},'Выбор стартового яйца'))close();}}>Выбрать: {petName(selected.knownPetId!)}</Button>}
   </Sheet>;
 }
-function PetDetails({petId,close}:{petId:string;close:()=>void}) {
+export function PetDetails({petId,close}:{petId:string;close:()=>void}) {
   const {data,command,busy,pending}=useGame(),pet=data.pets.find(p=>p.id===petId)!,progress=data.progress!;
   const active=data.members.find(m=>m.id===data.memberId)?.playerStatus==='active';
-  const [name,setName]=useState(pet.corner?.name??'Уютный уголок'),[theme,setTheme]=useState<NonNullable<Pet['corner']>['theme']>(pet.corner?.theme??'meadow');
+  const [name,setName]=useState(pet?.corner?.name??'Уютный уголок'),[theme,setTheme]=useState<NonNullable<Pet['corner']>['theme']>(pet?.corner?.theme??'meadow');
+  if(!pet||!progress)return <Sheet title="Питомец недоступен" close={close}><p>Обнови коллекцию.</p></Sheet>;
   const hatch=BALANCE_POLICY_V01.pet.hatchXp,grow=hatch+BALANCE_POLICY_V01.pet.firstGrowthAdditionalXp;
   const target=pet.hatched?grow:hatch;
   return <Sheet title={petName(pet.species)} close={close}><GameAsset slotId={pet.hatched?'pet.companion':'pet.egg'} variant={pet.species}
@@ -127,9 +128,10 @@ export function History({childrenOnly=false}:{childrenOnly?:boolean}) {
     {selected&&<SettlementDetails settlementId={selected} close={()=>setSelected(null)}/>}
   </>;
 }
-function SettlementDetails({settlementId,close}:{settlementId:string;close:()=>void}) {
+export function SettlementDetails({settlementId,close}:{settlementId:string;close:()=>void}) {
   const {data,command,busy,pending}=useGame(),settlement=data.settlements.find(s=>s.id===settlementId)!;
   const [reason,setReason]=useState(''),[preview,setPreview]=useState<(CorrectionPreview&{settlementRevision:number})|null>(null);
+  if(!settlement)return <Sheet title="Результат недоступен" close={close}><p>Обнови историю. Доступ к результату мог измениться.</p></Sheet>;
   const correction=data.corrections.find(c=>c.id===settlement.correctionId);
   return <Sheet title="Принятый результат" close={close}><p>{nameOf(data,settlement.playerId)} · выполнено {prettyDate(settlement.performedOn)}.</p>
     <dl className="v3-details"><div><dt>Награда</dt><dd>{settlement.reward.gold} монет · {settlement.reward.heroXp} XP · {settlement.reward.familyContribution} вклада · {settlement.reward.petXp} XP питомца</dd></div>

@@ -42,12 +42,12 @@ PIN 6…12 цифр хранится как scrypt hash с salt. После пя
 
 Сессия — случайный 256-bit token, в БД hash, HttpOnly SameSite=Strict cookie `/v3/api`, Secure при HTTPS, TTL 7 дней. Adult→managed child отзывает старый контекст; возврат требует PIN домашнего взрослого. Приглашённый own child не получает возврат к взрослому. Приглашение 7 дней, роль берётся из member, старое заменяется новым, consume один раз. Для replay код приглашения хранится также в защищённой actor-scoped квитанции: не утверждать, что вообще все секреты существуют только в hash. API не логирует credentials/личный текст.
 
-Host/Origin точные, cross-site denied, мутации требуют JSON + Origin + `X-V3-Request: 1`; raw body до 64 KiB, без CORS. Auth rate limit ограничен в памяти процесса плюс постоянный per-identity PIN lock. Reverse proxy, общий rate limit нескольких узлов и secure deployment headers относятся к конфигурации выпуска.
+Host/Origin точные, cross-site denied, мутации требуют JSON + Origin + `X-V3-Request: 1`; authenticated POST также требуют `X-V3-Expected-Member`, совпадающий с проверенным actor (иначе409 STALE_ACTOR); raw body до 64 KiB, без CORS. Auth rate limit ограничен в памяти процесса плюс постоянный per-identity PIN lock. Reverse proxy, общий rate limit нескольких узлов и secure deployment headers относятся к конфигурации выпуска.
 
 ## Клиент и неизвестный ответ
 
 Команда сохраняет точное тело/ключ в scoped `sessionStorage` до отправки; cookie/PIN туда не пишутся. Пока результат неизвестен, новые записи блокируются, доступен повтор того же запроса. Ошибка 5xx/обрыв/timeout/невалидный JSON считается неизвестным результатом; timeout покрывает тело ответа. Подтверждённый retry обновляет projection и закрывает прежнюю форму, чтобы повторное нажатие не создало новую сущность.
 
-Pending привязан к member; другой профиль не может воспроизвести его. Session re-auth сохраняет неизвестный запрос до возврата в правильный профиль. Revision/epoch не позволяют старому GET затереть более новое состояние или результат смены профиля. Focus/visibility/30 секунд обновляют read model. Browser reload и рестарт HTTP сохраняют данные PostgreSQL.
+Pending привязан к member; другой профиль не может воспроизвести его. Session re-auth сохраняет неизвестный запрос до возврата в правильный профиль. `GET /v3/api/bootstrap` читает game/session из одного verified actor. Порядок запросов и revision/epoch не позволяют старому GET затереть более новое состояние или результат смены профиля. Focus/visibility/30 секунд обновляют read model. Browser reload и рестарт HTTP сохраняют данные PostgreSQL.
 
 SessionStorage — вкладка текущего браузера, не долговременная очередь команд между устройствами; серверная semantic uniqueness остаётся отдельной защитой. Ротация auth cookie после полностью потерянного ответа может потребовать повторного входа, который не повторяет игровое начисление.

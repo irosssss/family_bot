@@ -60,9 +60,10 @@ function OfferEditor({offer,close}:{offer?:RealOffer;close:()=>void}) {
       <Button secondary disabled={busy||pending} onClick={async()=>{if(await command('RetireRealOffer',{offerId:offer.id,expectedRevision:offer.revision},'Архивирование обещания'))close();}}>Убрать из доступных</Button></details>}
   </Sheet>;
 }
-function OrderDetails({orderId,close}:{orderId:string;close:()=>void}) {
+export function OrderDetails({orderId,close}:{orderId:string;close:()=>void}) {
   const {data,command,busy,pending}=useGame(),order=data.orders.find(o=>o.id===orderId)!;
   const [reason,setReason]=useState(''),[done,setDone]=useState(false);
+  if(!order)return <Sheet title="Заявка недоступна" close={close}><p>Обнови список. Доступ к заявке мог измениться.</p></Sheet>;
   const canReview=data.capabilities.includes('real_reward.review_child'),canCancel=data.capabilities.includes('real_reward.cancel_child');
   const canDeliver=data.capabilities.includes('real_reward.deliver_child'),own=order.playerId===data.playerId;
   const requests=data.cancellations.filter(c=>c.orderId===order.id),active=requests.find(c=>c.status==='pending'),last=requests[requests.length-1];

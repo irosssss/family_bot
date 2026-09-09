@@ -16,7 +16,7 @@ function materialize(world: GameWorld, ctx: GameContext) {
     if (eligible.length === 0 || (task.assignment === 'shared' && eligible.length !== task.parts.length)) continue;
     const groups = task.assignment === 'shared' ? [eligible] : task.assignment === 'rotation'
       ? [[eligible[task.rotationIndex % eligible.length]]] : eligible.map(part => [part]);
-    const goalId = world.goals.find(goal => goal.active)?.id ?? null;
+    const goalId = world.goals.find(goal => goal.active && !goal.milestoneId)?.id ?? null;
     const adventure = world.adventures.find(value => value.status === 'active');
     for (const parts of groups) {
       const occurrenceId = ctx.id();

@@ -14,13 +14,13 @@ export function prepareCommand(memberId:string,command:string,payload:object,lab
     contract:'family_life_v3.commands',version:'0.1',command,idempotencyKey:requestId(),payload,
   })};
 }
-async function request<T>(path:string,method:'GET'|'POST',body?:string):Promise<T> {
+async function request<T>(path:string,method:'GET'|'POST',body?:string,expectedMember?:string):Promise<T> {
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),20000);
   try {
     let response:Response;
     try {
       response=await fetch(path,{method,credentials:'same-origin',cache:'no-store',signal:controller.signal,
-        headers:method==='POST'?{'Content-Type':'application/json','X-V3-Request':'1'}:undefined,body});
+        headers:method==='POST'?{'Content-Type':'application/json','X-V3-Request':'1',...(expectedMember?{'X-V3-Expected-Member':expectedMember}:{})}:undefined,body});
     }catch{throw new TransportError('UNKNOWN','Ответ не получен. Действие могло сохраниться. Повторите тот же запрос.',method==='POST');}
     let value:any;
     try{value=await response.json();}catch{throw new TransportError('UNAVAILABLE','Сервис недоступен. Проверьте локальный запуск.',method==='POST');}
@@ -30,8 +30,8 @@ async function request<T>(path:string,method:'GET'|'POST',body?:string):Promise<
   finally{clearTimeout(timeout);}
 }
 export const getApi=<T>(path:string)=>request<T>('/v3/api/'+path,'GET');
-export const postApi=<T>(path:string,value:object)=>request<T>('/v3/api/'+path,'POST',JSON.stringify(value));
-export const sendPrepared=<T>(prepared:PreparedRequest)=>request<T>(prepared.path,'POST',prepared.body);
+export const postApi=<T>(path:string,value:object,expectedMember?:string)=>request<T>('/v3/api/'+path,'POST',JSON.stringify(value),expectedMember);
+export const sendPrepared=<T>(prepared:PreparedRequest)=>request<T>(prepared.path,'POST',prepared.body,prepared.memberId);
 const storageKey='family-life-v3.pending-command.v1';
 export function savePending(value:PreparedRequest|null) {
   try{value?sessionStorage.setItem(storageKey,JSON.stringify(value)):sessionStorage.removeItem(storageKey);}catch{/* In-memory retry still works if storage is unavailable. */}

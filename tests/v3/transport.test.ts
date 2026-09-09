@@ -10,6 +10,7 @@ describe('V3 browser command retry contract',()=>{
     await expect(sendPrepared(prepared)).rejects.toMatchObject({unknownResult:true});
     expect(await sendPrepared(prepared)).toEqual({outcome:'already_applied'});
     expect(fetchMock.mock.calls.map(c=>c[1].body)).toEqual([prepared.body,prepared.body]);
+    expect(fetchMock.mock.calls.map(c=>c[1].headers['X-V3-Expected-Member'])).toEqual(['member','member']);
     expect(fetchMock.mock.calls[0][1].credentials).toBe('same-origin');
   });
   it('distinguishes unknown server failures from a definitive validation result',async()=>{
