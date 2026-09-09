@@ -84,6 +84,14 @@ export const assetSlots: readonly AssetSlotDefinition[] = Object.freeze([
     description: 'Сборка выбранного питомца. Просмотр другого питомца не меняет спутника; экземпляр, вид и стадия развития различаются.',
   }),
   planned({
+    id: 'pet.corner', label: 'Базовый уголок питомца', category: 'scene', aspectRatio: '4 / 3',
+    targetPath: `${plannedRoot}/pet_corner__<species>__<layer>__r<revision>.png`,
+    logicalCanvas: { width: 320, height: 240 }, anchor: anchor('scene_origin', 0, 0),
+    layers: ['corner_shell', 'resting_place', 'foreground'],
+    states: ['base'], screens: ['pets', 'hero'],
+    description: 'Бесплатная основа уголка конкретного питомца. Сам питомец вставляется отдельной сборкой; оформление не управляет ростом, владением и доступом.',
+  }),
+  planned({
     id: 'item.outfit', label: 'Предмет одежды', category: 'item', aspectRatio: '1 / 1',
     targetPath: `${plannedRoot}/item_outfit__<slug>__preview__r<revision>.png`,
     logicalCanvas: { width: 64, height: 64 }, anchor: anchor('preview_center'),

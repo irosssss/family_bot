@@ -8,7 +8,7 @@ import { assetSlots, getAssetSlot } from '../../src/v3/assets/registry';
 describe('V3 asset-free layout contract', () => {
   it('covers every required place with independent stable identities', () => {
     const required = ['home.room', 'hero.adult', 'hero.child', 'hero.portrait', 'boss.main',
-      'adventure.map', 'pet.egg', 'pet.companion', 'item.outfit', 'item.weapon',
+      'adventure.map', 'pet.egg', 'pet.companion', 'pet.corner', 'item.outfit', 'item.weapon',
       'home.furniture', 'family.trophy', 'collection.cover'];
     expect(new Set(assetSlots.map(slot => slot.id)).size).toBe(assetSlots.length);
     for (const id of required) expect(getAssetSlot(id)?.id).toBe(id);
