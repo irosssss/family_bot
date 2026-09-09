@@ -1,8 +1,8 @@
 # Family Life RPG V3 — ограниченная карточка этапа 3.1
 
-Дата: 2026-09-09. Статус: **проект следующего отдельного поручения**. Текущее «делай» разрешило этап 2: контракты и offline-симуляцию. Оно не запускает эту карточку, остальные подэтапы 3 или исторический legacy/target техплан.
+Дата: 2026-09-09. Статус: **этап 3.1 выполнен по отдельному «Продолжай»**. Матрица F31-01–F31-20 закрыта в ограниченном синтетическом объёме; [результаты и доказательства](STAGE_3_1_RESULT.md), [решения реализации](STAGE_3_1_DESIGN.md). Остальные подэтапы 3 и исторический legacy/target техплан этим не запускаются.
 
-Основа: [PRODUCT_CONTRACT_V01](PRODUCT_CONTRACT_V01.md), [COMMAND_CONTRACT_V01](COMMAND_CONTRACT_V01.md), [STAGED_PLAN](STAGED_PLAN.md). Взрослые-игроки, взрослые самоотметки, взрослая проверка детских результатов и реальные награды только детям приняты. Конкретная структура сервера и технические механизмы ниже — проект.
+Основа: [PRODUCT_CONTRACT_V01](PRODUCT_CONTRACT_V01.md), [COMMAND_CONTRACT_V01](COMMAND_CONTRACT_V01.md), [STAGED_PLAN](STAGED_PLAN.md). Взрослые-игроки, взрослые самоотметки, взрослая проверка детских результатов и реальные награды только детям приняты. Ниже сохранена ограниченная спецификация; конкретные механизмы и их проверенный объём описаны в результате 3.1.
 
 ## 1. Единственная цель 3.1
 
@@ -14,7 +14,7 @@
 
 Все изменения только в worktree `family-life-v3`, ветка `codex/family-life-v3`. Основной `main`, Folio, действующий бот, меню бота, `.env`, существующие `demo_worlds` и `rpg`-таблицы не затрагиваются.
 
-Предлагаемые новые места — согласовать в начале реализации, а не автоматически создать сейчас:
+Структура принята для реализации 3.1:
 
 ```text
 src/v3-server/contracts/       # закрытые DTO, ID/quantity/role/capability validation
@@ -60,7 +60,7 @@ docs/v3/STAGE_3_1_RESULT.md    # фактический scope, evidence, огр�
 
 ## 5. Приёмочная матрица 3.1
 
-Все статусы ниже **не выполнялись** на этапе 2.
+На этапе 2 проверки не выполнялись. На этапе 3.1 все 20 строк получили PASS в указанном ограниченном объёме; точная привязка к доказательствам — в [отчёте](STAGE_3_1_RESULT.md).
 
 | ID | Проверка | Доказательство при завершении 3.1 |
 |---|---|---|
@@ -91,10 +91,10 @@ docs/v3/STAGE_3_1_RESULT.md    # фактический scope, evidence, огр�
 
 | ID | Решение | До какого шага требуется |
 |---|---|---|
-| Q31-DB | Конкретный независимый local test database/run directory, доступный PostgreSQL runtime и точный безопасный cleanup. | До любого запуска 3.1 с БД. Не использовать реальную семейную БД ради удобства. |
-| Q31-SCHEMA | Имя V3 schema/manifest и правило версий; предлагается новый `rpg_v3` только в собственной тестовой БД. | До DDL. Не расширять child-only таблицу `rpg.players` на месте. |
-| Q31-GUARD | Lock/CAS, порядок блокировок и policy inactive actors/history reads. | До concurrency tests F31-08/12. |
-| Q31-AUTH | Какая часть существующих чистых auth primitives пригодна повторно; как fixture adapter исключается из публичного runtime. | До сборки/экспорта нового access модуля. Реальная identity flow отдельным этапом. |
+| Q31-DB | Закрыто для synthetic 3.1: собственный Docker PostgreSQL 18.6, уникальный run, explicit identity и exact ID/labels cleanup. | Настоящая семейная БД не использована. Production destination остаётся отдельным решением. |
+| Q31-SCHEMA | Закрыто: новый `rpg_v3`, manifest v1 с SHA-256 и атомарным применением pending DDL. | Существующая child-only `rpg.players` не изменена. |
+| Q31-GUARD | Закрыто: family row lock, canonical actor locks, CAS revoke; inactive/history policy и обе гонки проверены. | Не является доказательством будущего settlement. |
+| Q31-AUTH | Закрыто для 3.1: новые чистые V3-контракты, trusted adapter port, opaque actor; FixtureIdentityAdapter только в tests/support. | Настоящая identity flow и managed_child остаются отдельным этапом. |
 | Q31-RETENTION | Только явно synthetic retention для тестов; production-сроки/полномочия и обработка данных ещё не утверждены. | Не мешает чистым fixture tests. Обязательное решение до реальных данных/публичного доступа. |
 | Q32-CALENDAR | Допустимые performedOn/late submission, переход family zone без повторного period, границы окна. | До 3.2 occurrences; не блокирует Foundation+Capabilities 3.1. |
 | Q33-CORRECTION | Ограниченная компенсация spent Gold, waived, восстановление и неизменность прав. | До correction commands 3.3; наличие описанного проекта не считается готовой реализацией. |
