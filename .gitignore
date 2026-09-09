@@ -13,7 +13,7 @@ backups/
 raw_archives/
 
 # Node.js
-node_modules/
+node_modules
 dist/
 npm-debug.log*
 
@@ -40,3 +40,5 @@ bun.lock
 /work/demo-baseline.json
 /work/g03-d/update-status.py
 /work/telegram-preview/
+/work/v3-build/
+/work/v3-qa/
