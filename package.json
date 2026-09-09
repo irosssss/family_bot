@@ -20,6 +20,8 @@
     "v3:audit": "node --import tsx scripts/v3/audit-balance.ts",
     "v3:simulate": "node --import tsx scripts/v3/simulate-balance.ts",
     "v3:typecheck": "tsc --noEmit -p tsconfig.v3.json",
+    "v3:tgrep": "node scripts/v3/tgrep.mjs",
+    "v3:tgrep:install": "node scripts/v3/tgrep.mjs --install-local",
     "target:typecheck": "tsc --noEmit -p tsconfig.target.json",
     "target:build": "esbuild scripts/target/dev.ts src/target/db/database.ts src/target/access/telegram/index.ts src/target/access/identityExchange.ts src/target/access/familySession.ts src/target/access/adultAccess.ts src/target/access/accessLifecycle.ts src/target/transport/http.ts src/target/content/input.ts src/target/content/compiler.ts scripts/target/content-validate.ts scripts/target/content-build.ts --bundle --platform=node --format=esm --packages=external --sourcemap --outdir=work/target-build",
     "target:content:validate": "node --import tsx scripts/target/content-validate.ts",
