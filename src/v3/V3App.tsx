@@ -1,6 +1,6 @@
 import {outfitImage} from './content';
 import {useState} from 'react';
-import {Button,Modal,SectionTitle} from '../demo/ui';
+import {Button,Modal,SectionTitle} from './components/ui';
 import {availableCoins,OUTFITS,type Command,type MemberId} from './domain';
 import './v3.css';
 import './hero.css';

@@ -1,1 +1,0 @@
-ALTER TABLE completions ADD COLUMN IF NOT EXISTS effects JSONB;

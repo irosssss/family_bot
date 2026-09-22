@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react';
-import {Button,Modal,SectionTitle} from '../demo/ui';
+import {Button,Modal,SectionTitle} from './components/ui';
 import {availableCoins,PROMISE_OFFERS,type State,type Command,type MemberId,type AvatarId} from './domain';
 
 import {WalletSummary} from './WalletPanel';

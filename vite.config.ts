@@ -17,11 +17,11 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico}'],
         runtimeCaching: [
           {
-            // Игровые ассеты (Habitica/ULPC спрайты, фоны) — CacheFirst
+            // Игровые ассеты (утверждённый каталог V3) — CacheFirst
             urlPattern: /\/assets\/game\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'rpg-assets-cache',
+              cacheName: 'family-v3-assets',
               expiration: {
                 maxEntries: 300,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 Days
@@ -59,12 +59,8 @@ export default defineConfig({
     })
   ],
   server: {
-    host: '0.0.0.0',
-    port: 3000,
-    allowedHosts: true,
-    hmr: {
-      host: '0.0.0.0',
-      clientPort: 3000,
-    },
+    host: '127.0.0.1',
+    port: 3217,
+    strictPort: true,
   },
 });

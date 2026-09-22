@@ -53,3 +53,10 @@ bun.lock
 
 # Полный воспроизводимый аудит файлов (компактный итог находится в docs)
 /work/repository-audit/
+
+# Локальные доказательства и исследовательские рабочие файлы
+/output/
+/work/g04-d-compiled-preview-v1/
+/work/g04-d-preview-v1/
+/work/tooling-research-2026-09-21/
+/work/unity/

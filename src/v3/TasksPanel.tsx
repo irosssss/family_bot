@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {Button,Modal,SectionTitle} from '../demo/ui';
+import {Button,Modal,SectionTitle} from './components/ui';
 import {canReviewTask,type State,type Command,type MemberId} from './domain';
 
 export function TasksPanel({state,actor,act}:{state:State;actor:MemberId;act:(command:Command)=>boolean}) {

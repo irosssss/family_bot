@@ -1,6 +1,6 @@
 import {assetPath, LOCATIONS} from './content';
 import {useState} from 'react';
-import {Button,Modal,SectionTitle} from '../demo/ui';
+import {Button,Modal,SectionTitle} from './components/ui';
 import {FIRST_BOSS_HP,TASK_STRENGTH,type State,type Command,type MemberId} from './domain';
 import './world.css';
 

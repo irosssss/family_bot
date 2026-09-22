@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import {Coins, LockKeyhole, Star} from 'lucide-react';
-import {Button} from '../demo/ui';
+import {Button} from './components/ui';
 import {availableCoins,reservedCoins,type State,type MemberId} from './domain';
 import './wallet.css';
 

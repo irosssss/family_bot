@@ -13,3 +13,10 @@ Dockerfile
 docker-compose.yml
 README.md
 *.md
+
+work
+output
+art
+dist-wardrobe-pilot
+.agents
+.codex
