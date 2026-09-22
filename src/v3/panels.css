@@ -1,0 +1,20 @@
+/* Shared bright panels for Tasks and Family only; World keeps its own presentation. */
+.v3-panels-active main{gap:12px}
+.v3-panels-active .demo-section-title{padding:16px;background:linear-gradient(120deg,#fff9eb,#f8e5bf);border:2px solid #dca953;border-radius:20px;overflow-wrap:anywhere}
+.v3-panels-active .v3-card{background:linear-gradient(120deg,#fffaf0,#f8e8ca);border:2px solid #dca953;border-radius:18px;box-shadow:inset 0 0 0 1px #fff4db,0 3px 0 #71431250;padding:16px;gap:8px}
+.v3-panels-active .v3-filter{padding:4px;gap:4px;background:#f7e5bf;border:1px solid #dca953;border-radius:16px}
+.v3-panels-active .v3-filter .demo-button{border:0;border-radius:12px;background:transparent;color:#624421;font-size:13px;padding:8px 5px;line-height:1.3}
+.v3-panels-active .v3-filter .demo-button[aria-pressed=true]{background:linear-gradient(#fff8e5,#f3cb70);box-shadow:inset 0 0 0 1px #c18e38;color:#42250f}
+.v3-panels-active .demo-button.primary{background:linear-gradient(#759e47,#426c2e);border:1px solid #456b2c;border-radius:13px;color:#fff;box-shadow:inset 0 1px 1px #c4da9b}
+.v3-panels-active .demo-button.quiet{background:#fff7e6;border:1px solid #cba776;border-radius:13px;color:#51331a}
+.v3-panels-active .v3-form{background:#fff5df;border:1px solid #dca953;border-radius:16px;padding:12px}
+.v3-panels-active .v3-form input,.v3-panels-active .v3-form select,.v3-panels-active .v3-form textarea{background:#fffdf6;border:1px solid #b78a50;border-radius:10px}
+.v3-panels-active main>h2,.v3-panels-active main>p:not(.v3-demo){color:#fff8e9;text-shadow:0 1px 2px #432710}
+.v3-panels-active .v3-check{background:#fff5df;border:1px solid #dca953;border-radius:12px;padding:10px;color:#51331a}
+.v3-panels-active .v3-member-row{gap:16px;min-width:0}
+.v3-panels-active .v3-member-row>div{min-width:0;overflow-wrap:anywhere}
+.v3-panels-active .v3-member-row img{width:72px;height:108px;flex-shrink:0;background:radial-gradient(ellipse,#fffdf0,#edcf94);border:1px solid #dca953;border-radius:36px 36px 12px 12px;padding:4px}
+.v3-panels-active .demo-modal{border:2px solid #dca953;background:linear-gradient(120deg,#fff9eb,#f8e5bf);box-shadow:inset 0 0 0 3px #fff4db}
+.v3-panels-active .demo-modal [role=alert]{color:#922d1c;font-weight:800}
+.v3-panels-active .v3-task-mode{font-size:12px;color:#68533f}
+.v3-filter-count{display:block;margin:4px auto 0;width:fit-content;min-width:24px;padding:1px 6px;border-radius:12px;background:#ead3a6;color:#51331a;font-size:12px;font-weight:800}

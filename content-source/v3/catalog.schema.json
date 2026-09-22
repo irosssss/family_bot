@@ -1,0 +1,274 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "assets",
+    "styles",
+    "outfits",
+    "offers",
+    "locations",
+    "bosses"
+  ],
+  "properties": {
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "path",
+          "source",
+          "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^core:asset/[a-z][a-z0-9_]*$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "local_preview"
+            ]
+          }
+        }
+      }
+    },
+    "styles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "legacyId",
+          "title",
+          "price",
+          "kind",
+          "index"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^core:outfit_style/[a-z][a-z0-9_]*$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "legacyId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "price": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "kind": {
+            "enum": [
+              "basic",
+              "seasonal"
+            ]
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "outfits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "avatar",
+          "styleId",
+          "assetId"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^core:outfit/[a-z][a-z0-9_]*$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "avatar": {
+            "enum": [
+              "father",
+              "mother",
+              "daughter",
+              "son"
+            ]
+          },
+          "styleId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "assetId": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "offers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "legacyId",
+          "title",
+          "cost"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^core:promise_offer/[a-z][a-z0-9_]*$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "legacyId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cost": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "locations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "title",
+          "status",
+          "mapX",
+          "mapY"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^core:location/[a-z][a-z0-9_]*$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "playable",
+              "preview",
+              "planned"
+            ]
+          },
+          "mapX": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "mapY": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      }
+    },
+    "bosses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "title",
+          "locationId",
+          "assetId",
+          "hp",
+          "unlockLocationId",
+          "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^core:boss/[a-z][a-z0-9_]*$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "locationId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "assetId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hp": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "unlockLocationId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "playable",
+              "planned"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

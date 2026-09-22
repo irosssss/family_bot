@@ -1,0 +1,16 @@
+[
+  {
+    "id": "core:promise_offer/family_walk",
+    "revision": 1,
+    "legacyId": "family-walk",
+    "title": "Совместный поход",
+    "cost": 120
+  },
+  {
+    "id": "core:promise_offer/movie_night",
+    "revision": 1,
+    "legacyId": "movie-night",
+    "title": "Семейный киновечер",
+    "cost": 80
+  }
+]

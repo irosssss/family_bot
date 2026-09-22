@@ -4,6 +4,9 @@
 
 Состав: этот процесс; [авторские контракты и манифесты](AUTHORING_CONTRACTS.md); [выпуск, активация, откат](RELEASE_OPERATIONS.md). Основа: [контентные данные](../data/CONTENT_DICTIONARY.md), [физическая модель](../data/PHYSICAL_SCHEMA.md), [Asset Bible](../art/ASSET_BIBLE.md), [производственный план](../art/ART_PRODUCTION.md).
 
+> Обновление 22.09.2026: действующий локальный каталог V3 вынесен в `content-source/v3/`.
+> См. [V3_AUTHORING](V3_AUTHORING.md). Это адаптер локального приложения, не production-пакет G04.
+
 ## 1. Принятые решения проекта
 
 | ID | Решение | Результат / стоимость сопровождения |

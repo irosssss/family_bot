@@ -1,0 +1,43 @@
+{
+  "counts": {
+    "active": 17366,
+    "prepared": 2066,
+    "archived": 5,
+    "cleanup_candidate": 33987
+  },
+  "reviewRequired": 18939,
+  "v3Dependencies": [
+    "content-source/v3/assets.json",
+    "content-source/v3/bosses.json",
+    "content-source/v3/locations.json",
+    "content-source/v3/outfit-styles.json",
+    "content-source/v3/outfits.json",
+    "content-source/v3/promise-offers.json",
+    "src/demo/types.ts",
+    "src/demo/ui.tsx",
+    "src/v3/FamilyPanel.tsx",
+    "src/v3/TasksPanel.tsx",
+    "src/v3/TodayPanel.tsx",
+    "src/v3/V3App.tsx",
+    "src/v3/WalletPanel.tsx",
+    "src/v3/WorldPanel.tsx",
+    "src/v3/content/index.ts",
+    "src/v3/domain.ts",
+    "src/v3/hero.css",
+    "src/v3/panels.css",
+    "src/v3/session.ts",
+    "src/v3/today.css",
+    "src/v3/v3.css",
+    "src/v3/wallet.css",
+    "src/v3/world.css"
+  ],
+  "sharedV3Dependencies": [
+    "src/demo/types.ts",
+    "src/demo/ui.tsx"
+  ],
+  "limitations": [
+    "Static imports, exports, literal dynamic imports and require only; dynamic filenames and external callers not proven",
+    "Prepared with review_required means retained pending review, not confirmed roadmap scope",
+    "No files deleted; public assets conservatively retained"
+  ]
+}

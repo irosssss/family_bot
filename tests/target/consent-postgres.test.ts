@@ -1,0 +1,44 @@
+import {createRegistrationAssessment} from '../../src/target/access/registrationAssessment';
+import {beforeAll,afterAll,it,expect,describe} from 'vitest';
+import {readFile} from 'node:fs/promises';
+import {generateDrizzleJson,generateMigration} from 'drizzle-kit/api';
+import {targetSchema as previous} from '../../src/target/db/schema/contentRelease';
+import {targetSchema,consentGuards} from '../../src/target/db/schema/consent';
+import {loadMigrations,runTargetMigrations} from '../../src/target/db/migrator';
+import {openTargetDatabase} from '../../src/target/db/database';
+import {createTargetClient,assertTargetDatabase} from '../../src/target/db/client';
+import {readTargetConfig} from '../../src/target/config';
+import {assertOwnedContainer} from '../../scripts/target/test-environment';
+import {createConsentService} from '../../src/target/consent/service';
+import {accountFixture,familyFixture,profileFixture,retentionFixture} from './foundation-fixtures';
+import {accounts,families,memberProfiles,retentionPolicyRevisions} from '../../src/target/db/schema/foundation';
+it('matches the generated consent schema and verified migration manifest',async()=>{
+ const before=generateDrizzleJson(previous);const generated=await generateMigration(before,generateDrizzleJson(targetSchema,before.id));
+ expect(await readFile('migrations/target/0008_consent_events.sql','utf8')).toBe('-- V3 consent event storage; no production policy seeded.\n'+generated.join('\n\n')+'\n'+consentGuards+'\n');
+ expect((await loadMigrations('migrations/target')).at(-1)?.name).toBe('0008_consent_events.sql');
+});
+describe.skipIf(process.env.RPG_TARGET_PG_TESTS!=='1')('consent storage on disposable PostgreSQL',()=>{
+ let config:ReturnType<typeof readTargetConfig>,raw:ReturnType<typeof createTargetClient>,database:Awaited<ReturnType<typeof openTargetDatabase>>;
+ beforeAll(async()=>{config=readTargetConfig(process.env);await assertOwnedContainer({id:process.env.RPG_TARGET_CONTAINER_ID??'',runId:config.runId});raw=createTargetClient(config);await assertTargetDatabase(raw,config);await runTargetMigrations(raw,config,'migrations/target');database=await openTargetDatabase(config);});
+ afterAll(async()=>{if(raw){await assertTargetDatabase(raw,config);await raw`DROP SCHEMA IF EXISTS content CASCADE`;await raw`DROP SCHEMA IF EXISTS rpg CASCADE`;}await database?.close();await raw?.end({timeout:5});});
+ it('serializes competing writes, retains revocation, isolates purposes and denies unverified authority',async()=>{
+  const account=accountFixture(),family=familyFixture(),profile=profileFixture(family.id);
+  await database.db.insert(retentionPolicyRevisions).values(retentionFixture());await database.db.insert(accounts).values(account);await database.db.insert(families).values(family);await database.db.insert(memberProfiles).values(profile);
+  let allowed=true,digest='a'.repeat(64);
+  const svc=createConsentService(database.db,{now:()=>new Date('2026-09-16T12:00:00Z'),authorize:async()=>{if(!allowed)throw Error('denied');return {actorAccountId:account.id,reference:'synthetic-evidence',retentionPolicyId:'fixture_only',retentionPolicyRevision:1};},currentDocument:async()=>digest});
+  const scope={familyId:family.id,subjectId:profile.id,purpose:'service'};
+  let ageVerified=true;
+  const assessment=createRegistrationAssessment(database.db,svc,async()=>({familyId:family.id,profileId:profile.id,evidence:{country:'RU',age:14,ageVerified,path:'own_child',representativeVerified:true,representativeApproval:true,platformEligible:true}}));
+  expect((await assessment('synthetic')).blocker).toBe('consent');
+  allowed=false;await expect(svc.record(scope,'grant',0,'a'.repeat(64))).rejects.toThrow('denied');allowed=true;
+  await expect(svc.record(scope,'grant',0,'b'.repeat(64))).rejects.toThrow('consent.document_changed');
+  const race=await Promise.allSettled([svc.record(scope,'grant',0,'a'.repeat(64)),svc.record(scope,'grant',0,'a'.repeat(64))]);expect(race.filter(r=>r.status==='fulfilled')).toHaveLength(1);
+  expect(await database.db.transaction(tx=>svc.isCurrent(tx,scope))).toBe(true);
+  expect((await assessment('synthetic')).eligible).toBe(true);
+  ageVerified=false;expect((await assessment('synthetic')).blocker).toBe('age');ageVerified=true;
+  expect(await database.db.transaction(tx=>svc.isCurrent(tx,{...scope,purpose:'analytics'}))).toBe(false);
+  digest='b'.repeat(64);expect(await database.db.transaction(tx=>svc.isCurrent(tx,scope))).toBe(false);
+  digest='';await svc.record(scope,'withdraw',1);expect((await assessment('synthetic')).blocker).toBe('consent');expect(await database.db.transaction(tx=>svc.isCurrent(tx,scope))).toBe(false);
+  await expect(raw`UPDATE rpg.consent_events SET decision='grant'`).rejects.toThrow();
+ });
+});

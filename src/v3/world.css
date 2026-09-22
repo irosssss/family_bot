@@ -1,0 +1,10 @@
+.v3-world-map{position:relative;width:100%;aspect-ratio:941/1672;background:#73934e url('/assets/game/v3-ui/world-map.png') center/cover;border:2px solid #dca953;border-radius:22px;overflow:hidden}
+.v3-world-route{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+/* Preserve the authored route and labels; remove only the park lock after victory. */
+.v3-world-route-won{clip-path:polygon(0 0,100% 0,100% 66%,60% 66%,60% 74.8%,100% 74.8%,100% 100%,0 100%)}
+.v3-world-park-open{position:absolute;left:59%;top:65%;width:18%;height:auto;pointer-events:none}
+.v3-world-map .v3-world-stop{position:absolute;width:24%;height:13%;min-width:44px;min-height:44px;padding:0;border:0;border-radius:16px;background:transparent;box-shadow:none;transform:translate(-50%,-50%)}
+.v3-world-map .v3-world-stop:disabled{opacity:1;background:transparent;cursor:default}
+.v3-world-map .v3-world-stop:focus-visible{outline:3px solid #fff3aa;outline-offset:2px;background:#ffd56c22}
+.v3-world-caption{font-size:13px;color:#624931;text-align:center;line-height:1.5}
+.v3-boss-scene{width:100%;max-height:300px;object-fit:cover;object-position:center 25%;border-radius:14px}.v3-boss-health{display:flex;flex-direction:column;gap:8px;font-weight:800}.v3-boss-health progress{width:100%;height:18px;accent-color:#678740}

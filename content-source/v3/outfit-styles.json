@@ -1,0 +1,65 @@
+[
+  {
+    "id": "core:outfit_style/basic_1",
+    "revision": 1,
+    "legacyId": "basic-1",
+    "title": "Уютный день",
+    "price": 0,
+    "kind": "basic",
+    "index": 1
+  },
+  {
+    "id": "core:outfit_style/basic_2",
+    "revision": 1,
+    "legacyId": "basic-2",
+    "title": "В движении",
+    "price": 48,
+    "kind": "basic",
+    "index": 2
+  },
+  {
+    "id": "core:outfit_style/basic_3",
+    "revision": 1,
+    "legacyId": "basic-3",
+    "title": "Приключение",
+    "price": 72,
+    "kind": "basic",
+    "index": 3
+  },
+  {
+    "id": "core:outfit_style/seasonal_1",
+    "revision": 1,
+    "legacyId": "seasonal-1",
+    "title": "Зимняя сказка",
+    "price": 120,
+    "kind": "seasonal",
+    "index": 1
+  },
+  {
+    "id": "core:outfit_style/seasonal_2",
+    "revision": 1,
+    "legacyId": "seasonal-2",
+    "title": "Космос",
+    "price": 120,
+    "kind": "seasonal",
+    "index": 2
+  },
+  {
+    "id": "core:outfit_style/seasonal_3",
+    "revision": 1,
+    "legacyId": "seasonal-3",
+    "title": "Жар-птица",
+    "price": 120,
+    "kind": "seasonal",
+    "index": 3
+  },
+  {
+    "id": "core:outfit_style/seasonal_4",
+    "revision": 1,
+    "legacyId": "seasonal-4",
+    "title": "Лесная история",
+    "price": 120,
+    "kind": "seasonal",
+    "index": 4
+  }
+]

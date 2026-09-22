@@ -1,0 +1,198 @@
+[
+  {
+    "id": "core:outfit/father_basic_1",
+    "revision": 1,
+    "avatar": "father",
+    "styleId": "core:outfit_style/basic_1",
+    "assetId": "core:asset/father_basic_1"
+  },
+  {
+    "id": "core:outfit/father_basic_2",
+    "revision": 1,
+    "avatar": "father",
+    "styleId": "core:outfit_style/basic_2",
+    "assetId": "core:asset/father_basic_2"
+  },
+  {
+    "id": "core:outfit/father_basic_3",
+    "revision": 1,
+    "avatar": "father",
+    "styleId": "core:outfit_style/basic_3",
+    "assetId": "core:asset/father_basic_3"
+  },
+  {
+    "id": "core:outfit/father_seasonal_1",
+    "revision": 1,
+    "avatar": "father",
+    "styleId": "core:outfit_style/seasonal_1",
+    "assetId": "core:asset/father_seasonal_1"
+  },
+  {
+    "id": "core:outfit/father_seasonal_2",
+    "revision": 1,
+    "avatar": "father",
+    "styleId": "core:outfit_style/seasonal_2",
+    "assetId": "core:asset/father_seasonal_2"
+  },
+  {
+    "id": "core:outfit/father_seasonal_3",
+    "revision": 1,
+    "avatar": "father",
+    "styleId": "core:outfit_style/seasonal_3",
+    "assetId": "core:asset/father_seasonal_3"
+  },
+  {
+    "id": "core:outfit/father_seasonal_4",
+    "revision": 1,
+    "avatar": "father",
+    "styleId": "core:outfit_style/seasonal_4",
+    "assetId": "core:asset/father_seasonal_4"
+  },
+  {
+    "id": "core:outfit/mother_basic_1",
+    "revision": 1,
+    "avatar": "mother",
+    "styleId": "core:outfit_style/basic_1",
+    "assetId": "core:asset/mother_basic_1"
+  },
+  {
+    "id": "core:outfit/mother_basic_2",
+    "revision": 1,
+    "avatar": "mother",
+    "styleId": "core:outfit_style/basic_2",
+    "assetId": "core:asset/mother_basic_2"
+  },
+  {
+    "id": "core:outfit/mother_basic_3",
+    "revision": 1,
+    "avatar": "mother",
+    "styleId": "core:outfit_style/basic_3",
+    "assetId": "core:asset/mother_basic_3"
+  },
+  {
+    "id": "core:outfit/mother_seasonal_1",
+    "revision": 1,
+    "avatar": "mother",
+    "styleId": "core:outfit_style/seasonal_1",
+    "assetId": "core:asset/mother_seasonal_1"
+  },
+  {
+    "id": "core:outfit/mother_seasonal_2",
+    "revision": 1,
+    "avatar": "mother",
+    "styleId": "core:outfit_style/seasonal_2",
+    "assetId": "core:asset/mother_seasonal_2"
+  },
+  {
+    "id": "core:outfit/mother_seasonal_3",
+    "revision": 1,
+    "avatar": "mother",
+    "styleId": "core:outfit_style/seasonal_3",
+    "assetId": "core:asset/mother_seasonal_3"
+  },
+  {
+    "id": "core:outfit/mother_seasonal_4",
+    "revision": 1,
+    "avatar": "mother",
+    "styleId": "core:outfit_style/seasonal_4",
+    "assetId": "core:asset/mother_seasonal_4"
+  },
+  {
+    "id": "core:outfit/daughter_basic_1",
+    "revision": 1,
+    "avatar": "daughter",
+    "styleId": "core:outfit_style/basic_1",
+    "assetId": "core:asset/daughter_basic_1"
+  },
+  {
+    "id": "core:outfit/daughter_basic_2",
+    "revision": 1,
+    "avatar": "daughter",
+    "styleId": "core:outfit_style/basic_2",
+    "assetId": "core:asset/daughter_basic_2"
+  },
+  {
+    "id": "core:outfit/daughter_basic_3",
+    "revision": 1,
+    "avatar": "daughter",
+    "styleId": "core:outfit_style/basic_3",
+    "assetId": "core:asset/daughter_basic_3"
+  },
+  {
+    "id": "core:outfit/daughter_seasonal_1",
+    "revision": 1,
+    "avatar": "daughter",
+    "styleId": "core:outfit_style/seasonal_1",
+    "assetId": "core:asset/daughter_seasonal_1"
+  },
+  {
+    "id": "core:outfit/daughter_seasonal_2",
+    "revision": 1,
+    "avatar": "daughter",
+    "styleId": "core:outfit_style/seasonal_2",
+    "assetId": "core:asset/daughter_seasonal_2"
+  },
+  {
+    "id": "core:outfit/daughter_seasonal_3",
+    "revision": 1,
+    "avatar": "daughter",
+    "styleId": "core:outfit_style/seasonal_3",
+    "assetId": "core:asset/daughter_seasonal_3"
+  },
+  {
+    "id": "core:outfit/daughter_seasonal_4",
+    "revision": 1,
+    "avatar": "daughter",
+    "styleId": "core:outfit_style/seasonal_4",
+    "assetId": "core:asset/daughter_seasonal_4"
+  },
+  {
+    "id": "core:outfit/son_basic_1",
+    "revision": 1,
+    "avatar": "son",
+    "styleId": "core:outfit_style/basic_1",
+    "assetId": "core:asset/son_basic_1"
+  },
+  {
+    "id": "core:outfit/son_basic_2",
+    "revision": 1,
+    "avatar": "son",
+    "styleId": "core:outfit_style/basic_2",
+    "assetId": "core:asset/son_basic_2"
+  },
+  {
+    "id": "core:outfit/son_basic_3",
+    "revision": 1,
+    "avatar": "son",
+    "styleId": "core:outfit_style/basic_3",
+    "assetId": "core:asset/son_basic_3"
+  },
+  {
+    "id": "core:outfit/son_seasonal_1",
+    "revision": 1,
+    "avatar": "son",
+    "styleId": "core:outfit_style/seasonal_1",
+    "assetId": "core:asset/son_seasonal_1"
+  },
+  {
+    "id": "core:outfit/son_seasonal_2",
+    "revision": 1,
+    "avatar": "son",
+    "styleId": "core:outfit_style/seasonal_2",
+    "assetId": "core:asset/son_seasonal_2"
+  },
+  {
+    "id": "core:outfit/son_seasonal_3",
+    "revision": 1,
+    "avatar": "son",
+    "styleId": "core:outfit_style/seasonal_3",
+    "assetId": "core:asset/son_seasonal_3"
+  },
+  {
+    "id": "core:outfit/son_seasonal_4",
+    "revision": 1,
+    "avatar": "son",
+    "styleId": "core:outfit_style/seasonal_4",
+    "assetId": "core:asset/son_seasonal_4"
+  }
+]

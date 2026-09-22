@@ -9,6 +9,12 @@
 
 ## Локальная демо — визуальное обновление 2026-09-05
 
+V3, 21.09.2026: `today-room` — статический фон выбранного яркого направления, не модульный дом Мира. Исходник и промпт: `output/v3-bright-direction/README.md`.
+
+| Name | Описание | Size | Path | Used by |
+|------|----------|------|------|---------|
+| today-room | Светлая гостиная без персонажей и UI | 1536×1024; сцена высотой 230 CSS px, cover | /assets/game/v3-ui/today-room.png | src/v3/TodayPanel.tsx, src/v3/today.css |
+
 | Name | Описание | Size | Path | Used by |
 |------|----------|------|------|---------|
 | demo-world-map-v2 | Оригинальная карта пяти регионов без впечённых кнопок, людей и питомцев | 1024×1536; 522858 bytes; adaptive 2:3 | /assets/game/demo/world-map-v2.webp | src/demo/AdventureScreen.tsx |
@@ -344,3 +350,164 @@ BossRaidScene берёт `appState.boss.spriteSheetUrl` (Habitica) или фол
 | sitting/starter-warrior-body-peach | 256×320, 32092 B | `public/assets/game/demo/characters/sitting/starter-warrior-body-peach.png` | `src/demo/Character.tsx` |
 | sitting/starter-warrior-body-warm | 256×320, 31992 B | `public/assets/game/demo/characters/sitting/starter-warrior-body-warm.png` | `src/demo/Character.tsx` |
 | home-evening-v5 | 1672×941, 2123818 B | `public/assets/game/demo/home-evening-v5.png` | `src/demo/homeScenes.ts` → `AuthoredRoom`; clean built-in imagegen edit of responsive v4, prompt: `work/overnight/art-prompts.md` |
+
+### SpriteCook wardrobe exploration — 2026-09-11 (not runtime assets)
+
+Uploaded the four user-approved transparent bases to SpriteCook project `ffc3e855-24c2-4784-8a48-c53910e050e9`. Generated three outfits and three hairstyles per character as transparent sheets. Asset IDs, SHA-256 prefixes, prompts, and limitations: `output/spritecook/wardrobe/spritecook-assets.json`. These sheets need alignment and layer preparation before equipping in-game; some hair variants include ear details. No runtime code consumes them yet.
+
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| Mother base | 1024×1536 RGBA | `output/imagegen/family-transparent/mother.png` | SpriteCook reference |
+| Boy base | 1024×1536 RGBA | `output/imagegen/family-transparent/boy.png` | SpriteCook reference |
+| Girl base | 1024×1536 RGBA | `output/imagegen/family-transparent/girl.png` | SpriteCook reference |
+| Father base | 1024×1536 RGBA | `output/imagegen/family-transparent/father.png` | SpriteCook reference |
+| Mother wardrobe | 1024×1024 RGBA | `output/spritecook/wardrobe/mother-sheet.png` | Wardrobe art exploration |
+| Boy wardrobe | 1024×1024 RGBA | `output/spritecook/wardrobe/boy-sheet.png` | Wardrobe art exploration |
+| Girl wardrobe | 1024×1024 RGBA | `output/spritecook/wardrobe/girl-sheet.png` | Wardrobe art exploration |
+| Father wardrobe | 1024×1024 RGBA | `output/spritecook/wardrobe/father-sheet.png` | Wardrobe art exploration |
+
+### Figma character workshop — user bases and son pilot
+
+Authoring assets only; not loaded by the game. Figma page `15 · Персонажи · мастерская`, file `7D5G4cp3ui5cSlXqbwWIMv`. Original bodies are byte-preserving copies of the user-provided files.
+
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| Father supplied base | 1024×1536 RGBA | `output/figma-character-workshop/Папа-body-base.png` | Figma master Основа/Папа |
+| Mother supplied base | 1024×1536 RGBA | `output/figma-character-workshop/Мама-body-base.png` | Figma master Основа/Мама |
+| Son supplied base | 1024×1536 RGBA | `output/figma-character-workshop/Сын-body-base.png` | Figma master Основа/Сын |
+| Daughter supplied base | 1024×1536 RGBA | `output/figma-character-workshop/Дочь-body-base.png` | Figma master Основа/Дочь |
+| Son forest outfit source | 1024×1536 RGBA | `output/figma-character-workshop/outfit-forest.png` | Figma registered costume component |
+| Son blue outfit source | 1024×1536 RGB | `output/figma-character-workshop/outfit-blue.png` | Figma vector-masked costume; do not consume unmasked |
+| Son side-part source | 1024×1536 RGBA | `output/figma-character-workshop/hair-part.png` | Figma registered hair component |
+| Son curls source | 1024×1536 RGBA | `output/figma-character-workshop/hair-curls.png` | Figma registered hair component |
+| Son cap source | 1024×1536 RGBA | `output/figma-character-workshop/headwear.png` | Figma registered cap component |
+| Son boots source | 1024×1536 RGBA | `output/figma-character-workshop/shoes.png` | Figma registered boots component |
+
+Готовые совмещённые слои Figma (RGBA 1024×1536, проверены; authoring-only):
+
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| son-eyes-blue | 1024×1536 RGBA | `output/figma-character-workshop/export/son-eyes-blue.png` | Figma son constructor / registered layer pack |
+| son-eyes-hazel | 1024×1536 RGBA | `output/figma-character-workshop/export/son-eyes-hazel.png` | Figma son constructor / registered layer pack |
+| son-hair-curls | 1024×1536 RGBA | `output/figma-character-workshop/export/son-hair-curls.png` | Figma son constructor / registered layer pack |
+| son-hair-part | 1024×1536 RGBA | `output/figma-character-workshop/export/son-hair-part.png` | Figma son constructor / registered layer pack |
+| son-headwear | 1024×1536 RGBA | `output/figma-character-workshop/export/son-headwear.png` | Figma son constructor / registered layer pack |
+| son-outfit-blue | 1024×1536 RGBA | `output/figma-character-workshop/export/son-outfit-blue.png` | Figma son constructor / registered layer pack |
+| son-outfit-forest | 1024×1536 RGBA | `output/figma-character-workshop/export/son-outfit-forest.png` | Figma son constructor / registered layer pack |
+| son-shoes | 1024×1536 RGBA | `output/figma-character-workshop/export/son-shoes.png` | Figma son constructor / registered layer pack |
+
+Прежняя мастерская сына отвергнута пользователем, страница15 удалена. Перечисленные выше файлы — исторические authoring-материалы, не принятый набор.
+
+Прежние отдельные глаза мамы — исторический Figma-пилот, заменён новой основой со встроенными глазами; без runtime-подключения:
+
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| Mother eyes reference | 1774×887 RGBA | Figma `7D5G4cp3ui5cSlXqbwWIMv`, node `250:39` | Replaced with user source without skin/lashes; mother eye components |
+| Mother eye left / right | 600×450 each | Figma nodes `254:39`, `254:48`; board `254:5126` | Page13 eye preview; white/iris/pupil/highlight, editable iris Fill; pending user review |
+
+| Mother body with native eyes | 1024×1536 RGBA | Figma `260:40`, `228:40`; imageHash `c5cc646a89e08e284a45ffa7ba7f8eb9b71a5dde` | Current mother master, family height board, fitting instance `267:5174`, face preview; native iris recoloring via COLOR overlays |
+| Father body with native eyes | 1024×1536 RGBA | Figma `262:5155`, `228:39`; imageHash `a4aba628ce70d896833a0722a13178d33a2ed715` | Current father master, family height board, fitting instance `263:5155`, face preview `270:5144`; independent native iris recoloring via COLOR overlays |
+| Son body with native eyes | 1024×1536 RGBA | Figma `262:5162`, `228:42`; imageHash `f21d6d67de1deb9168716239653f128ac8424cec` | Current son master, family height board, fitting instance `263:5199`, face preview `273:5150`; independent native iris recoloring via COLOR overlays |
+| Daughter body with native eyes | 1024×1536 RGBA | Figma `262:5169`, `228:41`; imageHash `60662c1eebc9cccc545358e509809fcd2771372c` | Current daughter master, family height board, fitting instance `263:5210`, face preview `278:83`; independent native iris recoloring via COLOR overlays |
+
+Готовые пользовательские сеты мамы — целые персонажи, authoring-only:
+
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| Мишка дома | 1024×1536 RGBA | Desktop `Мама_1_базовый сет.png`; Figma `295:88` | Mother Комплект selector |
+| Команда двора | 1024×1536 RGBA | Desktop `Мама_2_базовый сет..png`; Figma `295:89` | Mother Комплект selector |
+| Дачный изобретатель | 1024×1536 RGBA | Desktop `Мама_3_базовый сет..png`; Figma `295:90` | Mother Комплект selector |
+| Морозные узоры | 1024×1536 RGBA | Desktop `Мама_1_платный сезонный сет..png`; Figma `295:91` | Mother Комплект selector |
+| Звёздная экспедиция | 1024×1536 RGBA | Desktop `Мама_2_платный сезонный сет..png`; Figma `295:92` | Mother Комплект selector |
+| Жар-птица | 1024×1536 RGBA | Desktop `Мама_3_платный сезонный сет..png`; Figma `295:93` | Mother Комплект selector |
+| Лесной дракон | 1024×1536 RGBA | Desktop `Мама_4_платный сезонный сет.png`; Figma `295:94` | Mother Комплект selector |
+
+Готовые пользовательские сеты папы — целые персонажи, authoring-only:
+
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| Мишка дома | 1024×1536 RGBA | Desktop `Папа_1_базовый сет.png`; Figma `309:82` | Father Комплект selector |
+| Команда двора | 1024×1536 RGBA | Desktop `Папа_2_базовый сет.png`; Figma `309:83` | Father Комплект selector |
+| Дачный изобретатель | 1024×1536 RGBA | Desktop `Папа_3_базовый сет.png`; Figma `309:84` | Father Комплект selector |
+| Морозные узоры | 1024×1536 RGBA | Desktop `Папа_1_платный сезонный сет.png`; Figma `309:85` | Father Комплект selector |
+| Звёздная экспедиция | 1024×1536 RGBA | Desktop `Папа_2_платный сезонный сет.png`; Figma `309:86` | Father Комплект selector |
+| Жар-птица | 1024×1536 RGBA | Desktop `Папа_3_платный сезонный сет.png`; Figma `309:87` | Father Комплект selector |
+| Лесной дракон | 1024×1536 RGBA | Desktop `Папа_4_платный сезонный сет.png`; Figma `309:88` | Father Комплект selector |
+
+Готовые пользовательские сеты дочери — целые персонажи, authoring-only:
+
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| Мишка дома | 1024×1536 RGBA | Desktop `Дочь_1_базовый сет.png`; Figma `325:76` | Daughter Комплект selector |
+| Команда двора | 1024×1536 RGBA | Desktop `Дочь_2_базовый сет.png`; Figma `325:77` | Daughter Комплект selector |
+| Дачный изобретатель | 1024×1536 RGBA | Desktop `Дочь_3_базовый сет.png`; Figma `325:78` | Daughter Комплект selector |
+| Морозные узоры | 1024×1536 RGBA | Desktop `Дочь_1_платный сезонный сет.png`; Figma `325:79` | Daughter Комплект selector |
+| Звёздная экспедиция | 1024×1536 RGBA | Desktop `Дочь_2_платный сезонный сет.png`; Figma `325:80` | Daughter Комплект selector |
+| Жар-птица | 1024×1536 RGBA | Desktop `Дочь_3_платный сезонный сет.png`; Figma `325:81` | Daughter Комплект selector |
+| Лесной дракон | 1024×1536 RGBA | Desktop `Дочь_4_платный сезонный сет.png`; Figma `325:82` | Daughter Комплект selector |
+
+Готовые пользовательские сеты сына — целые персонажи, authoring-only:
+
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| Мишка дома | 1024×1536 RGBA | Desktop `Сын_1_базовый сет.png`; Figma `341:70` | Son Комплект selector |
+| Команда двора | 1024×1536 RGBA | Desktop `Сын_2_базовый сет.png`; Figma `341:71` | Son Комплект selector |
+| Дачный изобретатель | 1024×1536 RGBA | Desktop `Сын_3_базовый сет.png`; Figma `341:72` | Son Комплект selector |
+| Морозные узоры | 1024×1536 RGBA | Desktop `Сын_1_платный сезонный сет.png`; Figma `341:73` | Son Комплект selector |
+| Звёздная экспедиция | 1024×1536 RGBA | Desktop `Сын_2_платный сезонный сет.png`; Figma `341:74` | Son Комплект selector |
+| Жар-птица | 1024×1536 RGBA | Desktop `Сын_3_платный сезонный сет.png`; Figma `341:75` | Son Комплект selector |
+| Лесной дракон | 1024×1536 RGBA | Desktop `Сын_4_платный сезонный сет.png`; Figma `341:76` | Son Комплект selector |
+
+## V3 — пользовательские цельные комплекты, runtime-пилот 16.09.2026
+
+Копии без изменения байтов. Исходники предоставлены пользователем; это не отдельная проверка прав для публичного выпуска. Профиль: 1024×1536, цельный персонаж; не смешивать с ULPC-слоями. SHA-256, размеры и источник: `src/preview/wardrobePilot/v3Assets.json`.
+
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| V3 father-basic-1 | 1024×1536; 2072693 bytes | `public/assets/game/wardrobe-pilot/v3/father-basic-1.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 father-seasonal-1 | 1024×1536; 2060784 bytes | `public/assets/game/wardrobe-pilot/v3/father-seasonal-1.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 father-basic-2 | 1024×1536; 1876112 bytes | `public/assets/game/wardrobe-pilot/v3/father-basic-2.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 father-seasonal-2 | 1024×1536; 1882991 bytes | `public/assets/game/wardrobe-pilot/v3/father-seasonal-2.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 father-basic-3 | 1024×1536; 2096188 bytes | `public/assets/game/wardrobe-pilot/v3/father-basic-3.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 father-seasonal-3 | 1024×1536; 2192613 bytes | `public/assets/game/wardrobe-pilot/v3/father-seasonal-3.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 father-seasonal-4 | 1024×1536; 2197162 bytes | `public/assets/game/wardrobe-pilot/v3/father-seasonal-4.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 mother-basic-1 | 1024×1536; 1761261 bytes | `public/assets/game/wardrobe-pilot/v3/mother-basic-1.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 mother-seasonal-1 | 1024×1536; 1841819 bytes | `public/assets/game/wardrobe-pilot/v3/mother-seasonal-1.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 mother-basic-2 | 1024×1536; 1620538 bytes | `public/assets/game/wardrobe-pilot/v3/mother-basic-2.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 mother-seasonal-2 | 1024×1536; 1548319 bytes | `public/assets/game/wardrobe-pilot/v3/mother-seasonal-2.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 mother-basic-3 | 1024×1536; 1804921 bytes | `public/assets/game/wardrobe-pilot/v3/mother-basic-3.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 mother-seasonal-3 | 1024×1536; 1694786 bytes | `public/assets/game/wardrobe-pilot/v3/mother-seasonal-3.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 mother-seasonal-4 | 1024×1536; 1711259 bytes | `public/assets/game/wardrobe-pilot/v3/mother-seasonal-4.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 son-basic-1 | 1024×1536; 1791398 bytes | `public/assets/game/wardrobe-pilot/v3/son-basic-1.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 son-seasonal-1 | 1024×1536; 1960889 bytes | `public/assets/game/wardrobe-pilot/v3/son-seasonal-1.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 son-basic-2 | 1024×1536; 1829636 bytes | `public/assets/game/wardrobe-pilot/v3/son-basic-2.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 son-seasonal-2 | 1024×1536; 1972623 bytes | `public/assets/game/wardrobe-pilot/v3/son-seasonal-2.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 son-basic-3 | 1024×1536; 2001521 bytes | `public/assets/game/wardrobe-pilot/v3/son-basic-3.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 son-seasonal-3 | 1024×1536; 2040177 bytes | `public/assets/game/wardrobe-pilot/v3/son-seasonal-3.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 son-seasonal-4 | 1024×1536; 1963325 bytes | `public/assets/game/wardrobe-pilot/v3/son-seasonal-4.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 daughter-basic-1 | 1024×1536; 1831342 bytes | `public/assets/game/wardrobe-pilot/v3/daughter-basic-1.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 daughter-seasonal-1 | 1024×1536; 1896098 bytes | `public/assets/game/wardrobe-pilot/v3/daughter-seasonal-1.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 daughter-basic-2 | 1024×1536; 1866513 bytes | `public/assets/game/wardrobe-pilot/v3/daughter-basic-2.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 daughter-seasonal-2 | 1024×1536; 1808789 bytes | `public/assets/game/wardrobe-pilot/v3/daughter-seasonal-2.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 daughter-basic-3 | 1024×1536; 1932857 bytes | `public/assets/game/wardrobe-pilot/v3/daughter-basic-3.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 daughter-seasonal-3 | 1024×1536; 1870967 bytes | `public/assets/game/wardrobe-pilot/v3/daughter-seasonal-3.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+| V3 daughter-seasonal-4 | 1024×1536; 1930549 bytes | `public/assets/game/wardrobe-pilot/v3/daughter-seasonal-4.png` | `src/preview/wardrobePilot/V3Pilot.tsx` — isolated preview, not production |
+
+### V3 UI — точные экспорты Figma, 16.09.2026
+
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| Navigation strip | 2172×724 | public/assets/game/v3-ui/navigation.png | src/v3/V3App.tsx |
+| Wood | 2172×724 | public/assets/game/v3-ui/wood.png | src/v3/v3.css |
+| Parchment | 2172×724 | public/assets/game/v3-ui/parchment.png | src/v3/v3.css |
+
+Source: Figma 7D5G4cp3ui5cSlXqbwWIMv, design context 442:198. Bytes downloaded unchanged; no new generated art.
+
+### V3 — первая глава Мира, 21.09.2026
+| Name | Size | Path | Used-by |
+|---|---|---|---|
+| Карта без надписей, Figma 622:4293 | 941×1672 PNG | public/assets/game/v3-ui/world-map.png | src/v3/world.css |
+| Первый босс, Figma 622:4292, экспорт для мобильного окна | 394×700 PNG | public/assets/game/v3-ui/first-boss.png | src/v3/WorldPanel.tsx |
+
+| World route (Figma 627:4313) | 941×1672 PNG | public/assets/game/v3-ui/world-route.png | src/v3/WorldPanel.tsx |
+| Open location (Figma 622:4294) | 1254×1254 PNG | public/assets/game/v3-ui/world-open.png | src/v3/WorldPanel.tsx, park after victory |
