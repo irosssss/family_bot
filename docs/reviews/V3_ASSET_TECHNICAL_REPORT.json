@@ -1,0 +1,326 @@
+[
+  {
+    "id": "core:asset/father_basic_1",
+    "path": "/assets/game/wardrobe-pilot/v3/father-basic-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2072693,
+    "sha256": "e06285e78729e0efc860080560339ea87d9698d0cd1d5a0997ecae0f453f1194",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/father_basic_2",
+    "path": "/assets/game/wardrobe-pilot/v3/father-basic-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1876112,
+    "sha256": "9d01c29a9cf0a7243b43d79ff649dc25a41c3a4496a891f50c5de7e2edfc9f65",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/father_basic_3",
+    "path": "/assets/game/wardrobe-pilot/v3/father-basic-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2096188,
+    "sha256": "cd970926f744b3708de228b0ed33c1ed294e3b3c17604d6ae01431eb96ed6552",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/father_seasonal_1",
+    "path": "/assets/game/wardrobe-pilot/v3/father-seasonal-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2060784,
+    "sha256": "f4e36fc4dd981ed261c1c3cd46ae95b88d9d4c18ee786980b11c2f1ef746eb43",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/father_seasonal_2",
+    "path": "/assets/game/wardrobe-pilot/v3/father-seasonal-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1882991,
+    "sha256": "d7173fe5a78a43bb10ae44edaef7569850472876f878f1e5a4b8bcb8f4e39838",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/father_seasonal_3",
+    "path": "/assets/game/wardrobe-pilot/v3/father-seasonal-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2192613,
+    "sha256": "e6139969c617e2b7a133d5e0ef57eb9fdb66f70e684b5caf29c64a51cfa6a3b2",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/father_seasonal_4",
+    "path": "/assets/game/wardrobe-pilot/v3/father-seasonal-4.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2197162,
+    "sha256": "8fa519ecd3f31fe39fb571fcf194f72a069fbff075a74cd93710bae29ac750d9",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/mother_basic_1",
+    "path": "/assets/game/wardrobe-pilot/v3/mother-basic-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1761261,
+    "sha256": "952a36f442cae61bc5702b22e7a35f1838ca0aee4c74eda80be491a1b8b807fe",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/mother_basic_2",
+    "path": "/assets/game/wardrobe-pilot/v3/mother-basic-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1620538,
+    "sha256": "26bbe2dae4e3f49e2324dde3934d99d4f88f66e6eb007814f2008c9c8d57fe9a",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/mother_basic_3",
+    "path": "/assets/game/wardrobe-pilot/v3/mother-basic-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1804921,
+    "sha256": "892b1077c24d8f5fe11514bf749292c455fd5c2e4a5a1b49a3928516ea016d7e",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/mother_seasonal_1",
+    "path": "/assets/game/wardrobe-pilot/v3/mother-seasonal-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1841819,
+    "sha256": "c50f3cb76b331ceced6d4c8c6c6f5c2ef97cd43885434758ab109adc462913e6",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/mother_seasonal_2",
+    "path": "/assets/game/wardrobe-pilot/v3/mother-seasonal-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1548319,
+    "sha256": "8d435013d240b6287b908feb71dde89bd8728adc850267725e9214d300bf2c43",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/mother_seasonal_3",
+    "path": "/assets/game/wardrobe-pilot/v3/mother-seasonal-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1694786,
+    "sha256": "b71776714561d3f3699255a0083cb79f6f42d6cdaad72b8636cea966cdc862b3",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/mother_seasonal_4",
+    "path": "/assets/game/wardrobe-pilot/v3/mother-seasonal-4.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1711259,
+    "sha256": "f7427677465669b2d4be45b6a55631c83c3a396e3976e6afe9e310c8fe2dbc7d",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/daughter_basic_1",
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-basic-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1831342,
+    "sha256": "0813c4edc24d52936b3859e465e2e79b37cff85e937a484ef61b10a1fb9bceb5",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/daughter_basic_2",
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-basic-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1866513,
+    "sha256": "72d9151428fba61d41bbebc5747289dd36a8a2356e8c72a86158e1cbcaa0a990",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/daughter_basic_3",
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-basic-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1932857,
+    "sha256": "3a6d22b4a21ac9d8b233ac32499404d60069423f70b6bad0e3b32007189b73fd",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/daughter_seasonal_1",
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1896098,
+    "sha256": "6703cce6efcb7f9976e21128a4d1bab16e9382290cd21f2c4215f19581f78277",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/daughter_seasonal_2",
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1808789,
+    "sha256": "cef38836022fcd179f9c8eae8ce601b636887db5232a8889c7e52e4b2822a14a",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/daughter_seasonal_3",
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1870967,
+    "sha256": "39eb9af04bf148eb83ae326d338fa894360dc23e4d7dcb2179c8877fdbfc292e",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/daughter_seasonal_4",
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-4.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1930549,
+    "sha256": "5ca4d747a0280d1f382a0a02e93cb1b7987acfe57eae3303548f5793d85103a7",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/son_basic_1",
+    "path": "/assets/game/wardrobe-pilot/v3/son-basic-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1791398,
+    "sha256": "1a020155313b4e2a3d47b4a77e2441e87343cc3603d91780d3a38abacd3f85f6",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/son_basic_2",
+    "path": "/assets/game/wardrobe-pilot/v3/son-basic-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1829636,
+    "sha256": "616dad0c7b55097357064e23e00b3b7e1de83c235c218276b507e2b431500976",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/son_basic_3",
+    "path": "/assets/game/wardrobe-pilot/v3/son-basic-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2001521,
+    "sha256": "9b0c356ce20eb78bff1b9bdc647dd10cb54bb9d5234bef88b7513d886b647f06",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/son_seasonal_1",
+    "path": "/assets/game/wardrobe-pilot/v3/son-seasonal-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1960889,
+    "sha256": "626e1c5e4fd74f476a2e46d8c601668b2184326a35566b1aaccdb19b0e186842",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/son_seasonal_2",
+    "path": "/assets/game/wardrobe-pilot/v3/son-seasonal-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1972623,
+    "sha256": "a254311724f7e3378b5d37a3681f79185975a33b51470f8ac4cd49b06fcfe7e7",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/son_seasonal_3",
+    "path": "/assets/game/wardrobe-pilot/v3/son-seasonal-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2040177,
+    "sha256": "4559c3551032208a4cdb4580c1f36a59ab838798b28f7b4c3c748bfacdae02d6",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/son_seasonal_4",
+    "path": "/assets/game/wardrobe-pilot/v3/son-seasonal-4.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1963325,
+    "sha256": "aec42cdb7fbf70dc18d90caf2fb82ef0a098bbdf8964cb505be744b5c65c57bb",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/first_boss",
+    "path": "/assets/game/v3-ui/first-boss.png",
+    "width": 394,
+    "height": 700,
+    "bytes": 541428,
+    "sha256": "adee1ea0d38dbd8109a42cd1bcf081f9e9d3684cc4a0b1ef6ebb64b930509b6c",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/navigation",
+    "path": "/assets/game/v3-ui/navigation.png",
+    "width": 2172,
+    "height": 724,
+    "bytes": 1690632,
+    "sha256": "57f13f550a1149ec9d39d7fecb6f2c617379864827b6966d650714e6869117ec",
+    "pngColorType": 2
+  },
+  {
+    "id": "core:asset/parchment",
+    "path": "/assets/game/v3-ui/parchment.png",
+    "width": 2172,
+    "height": 724,
+    "bytes": 1848773,
+    "sha256": "d7b2bf6a0434b38ea91799a99b0bdebe8a85c3a417faf14fd8bc0f7eb94a0bcc",
+    "pngColorType": 2
+  },
+  {
+    "id": "core:asset/today_room",
+    "path": "/assets/game/v3-ui/today-room.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2721400,
+    "sha256": "53f73c3de5fd8b7ad0ae41fd4568c537c8149219b242809d0aee6cc033269e9a",
+    "pngColorType": 2
+  },
+  {
+    "id": "core:asset/wood",
+    "path": "/assets/game/v3-ui/wood.png",
+    "width": 2172,
+    "height": 724,
+    "bytes": 1374274,
+    "sha256": "ceca05e3fd5c8727a0dfd7e3efc0a636e9e09a281195593296fce6fc1c5b8c7d",
+    "pngColorType": 2
+  },
+  {
+    "id": "core:asset/world_map",
+    "path": "/assets/game/v3-ui/world-map.png",
+    "width": 941,
+    "height": 1672,
+    "bytes": 3730271,
+    "sha256": "2be06d479b72c3464fabe280a5bb3f0c6f02be08f6a08e34b2be5e42ec4b9cff",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/world_open",
+    "path": "/assets/game/v3-ui/world-open.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1412104,
+    "sha256": "89f8a57202418082f17d70cde556f278aa5d3f90b89d7f4e979c92e2b67f0c8e",
+    "pngColorType": 6
+  },
+  {
+    "id": "core:asset/world_route",
+    "path": "/assets/game/v3-ui/world-route.png",
+    "width": 941,
+    "height": 1672,
+    "bytes": 326592,
+    "sha256": "74be86986fe4e7de9a27109ff14fe832a11b5f9b388606b689ca7d32d99fad23",
+    "pngColorType": 6
+  }
+]

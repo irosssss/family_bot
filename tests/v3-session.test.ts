@@ -26,3 +26,18 @@ it('restores added members and edited names from the journal',()=>{
  session=commitSession(s,session,{type:'member.rename',memberId:'test-new',name:'Второе'},'father');
  expect(loadSession(s).state).toEqual(session.state);
 });
+
+it('preserves a save from a newer version and refuses to overwrite it',()=>{
+ const s=storage();const raw=JSON.stringify({version:2,soloAdult:false,events:[]});
+ s.setItem(SESSION_KEY,raw);const session=loadSession(s);
+ expect(session.error).toBeTruthy();
+ expect(()=>commitSession(s,session,{type:'outfit.buy',outfitId:'basic-2'},'daughter')).toThrow();
+ expect(s.getItem(SESSION_KEY)).toBe(raw);
+});
+
+it('keeps the previous journal when a reset cannot be persisted',()=>{
+ const s=storage();const before=commitSession(s,loadSession(s),{type:'outfit.buy',outfitId:'basic-2'},'daughter');
+ const failing={getItem:s.getItem,setItem:()=>{throw Error('quota');}};
+ expect(()=>resetSession(failing,true)).toThrow('quota');
+ expect(loadSession(s).state).toEqual(before.state);
+});

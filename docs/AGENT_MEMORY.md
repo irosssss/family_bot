@@ -478,3 +478,10 @@ production), dist-wardrobe-pilot добавлен в gitignore. Реестр с�
 полные изолированные PG прогоны target535 PASS и v3-server225 PASS, контейнеры удалены.
 Обе сборки и серверные сборки PASS. Browser375/390 без overflow/broken images;
 production ?legacy=1 остаётся V3, старый /api/users404.
+
+## Практическое применение skills — 22.09.2026
+Применены game-ui-ux/save-systems/create-game-assets: Modal переведён на нативный dialog
+с возвратом фокуса, safe-area CSS; добавлены два теста защиты сохранений без изменения
+version/key. Каталог36 PNG получил отчёт dimensions/SHA256 (без изменений изображений).
+Lint,14 focused tests,build PASS; браузер375 modal/Escape/focus PASS. Подробности
+ docs/reviews/V3_SKILLS_APPLICATION.md. Запасное восстановление сохранений пока отсутствует.
