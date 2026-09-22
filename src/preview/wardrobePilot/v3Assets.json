@@ -1,0 +1,478 @@
+[
+  {
+    "id": "father-basic-1",
+    "role": "father",
+    "collection": "basic",
+    "number": 1,
+    "src": "/assets/game/wardrobe-pilot/v3/father-basic-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2072693,
+    "sha256": "e06285e78729e0efc860080560339ea87d9698d0cd1d5a0997ecae0f453f1194",
+    "source": "Папа_1_базовый сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "father-seasonal-1",
+    "role": "father",
+    "collection": "seasonal",
+    "number": 1,
+    "src": "/assets/game/wardrobe-pilot/v3/father-seasonal-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2060784,
+    "sha256": "f4e36fc4dd981ed261c1c3cd46ae95b88d9d4c18ee786980b11c2f1ef746eb43",
+    "source": "Папа_1_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "father-basic-2",
+    "role": "father",
+    "collection": "basic",
+    "number": 2,
+    "src": "/assets/game/wardrobe-pilot/v3/father-basic-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1876112,
+    "sha256": "9d01c29a9cf0a7243b43d79ff649dc25a41c3a4496a891f50c5de7e2edfc9f65",
+    "source": "Папа_2_базовый сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "father-seasonal-2",
+    "role": "father",
+    "collection": "seasonal",
+    "number": 2,
+    "src": "/assets/game/wardrobe-pilot/v3/father-seasonal-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1882991,
+    "sha256": "d7173fe5a78a43bb10ae44edaef7569850472876f878f1e5a4b8bcb8f4e39838",
+    "source": "Папа_2_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "father-basic-3",
+    "role": "father",
+    "collection": "basic",
+    "number": 3,
+    "src": "/assets/game/wardrobe-pilot/v3/father-basic-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2096188,
+    "sha256": "cd970926f744b3708de228b0ed33c1ed294e3b3c17604d6ae01431eb96ed6552",
+    "source": "Папа_3_базовый сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "father-seasonal-3",
+    "role": "father",
+    "collection": "seasonal",
+    "number": 3,
+    "src": "/assets/game/wardrobe-pilot/v3/father-seasonal-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2192613,
+    "sha256": "e6139969c617e2b7a133d5e0ef57eb9fdb66f70e684b5caf29c64a51cfa6a3b2",
+    "source": "Папа_3_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "father-seasonal-4",
+    "role": "father",
+    "collection": "seasonal",
+    "number": 4,
+    "src": "/assets/game/wardrobe-pilot/v3/father-seasonal-4.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2197162,
+    "sha256": "8fa519ecd3f31fe39fb571fcf194f72a069fbff075a74cd93710bae29ac750d9",
+    "source": "Папа_4_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "mother-basic-1",
+    "role": "mother",
+    "collection": "basic",
+    "number": 1,
+    "src": "/assets/game/wardrobe-pilot/v3/mother-basic-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1761261,
+    "sha256": "952a36f442cae61bc5702b22e7a35f1838ca0aee4c74eda80be491a1b8b807fe",
+    "source": "Мама_1_базовый сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "mother-seasonal-1",
+    "role": "mother",
+    "collection": "seasonal",
+    "number": 1,
+    "src": "/assets/game/wardrobe-pilot/v3/mother-seasonal-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1841819,
+    "sha256": "c50f3cb76b331ceced6d4c8c6c6f5c2ef97cd43885434758ab109adc462913e6",
+    "source": "Мама_1_платный сезонный сет..png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "mother-basic-2",
+    "role": "mother",
+    "collection": "basic",
+    "number": 2,
+    "src": "/assets/game/wardrobe-pilot/v3/mother-basic-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1620538,
+    "sha256": "26bbe2dae4e3f49e2324dde3934d99d4f88f66e6eb007814f2008c9c8d57fe9a",
+    "source": "Мама_2_базовый сет..png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "mother-seasonal-2",
+    "role": "mother",
+    "collection": "seasonal",
+    "number": 2,
+    "src": "/assets/game/wardrobe-pilot/v3/mother-seasonal-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1548319,
+    "sha256": "8d435013d240b6287b908feb71dde89bd8728adc850267725e9214d300bf2c43",
+    "source": "Мама_2_платный сезонный сет..png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "mother-basic-3",
+    "role": "mother",
+    "collection": "basic",
+    "number": 3,
+    "src": "/assets/game/wardrobe-pilot/v3/mother-basic-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1804921,
+    "sha256": "892b1077c24d8f5fe11514bf749292c455fd5c2e4a5a1b49a3928516ea016d7e",
+    "source": "Мама_3_базовый сет..png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "mother-seasonal-3",
+    "role": "mother",
+    "collection": "seasonal",
+    "number": 3,
+    "src": "/assets/game/wardrobe-pilot/v3/mother-seasonal-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1694786,
+    "sha256": "b71776714561d3f3699255a0083cb79f6f42d6cdaad72b8636cea966cdc862b3",
+    "source": "Мама_3_платный сезонный сет..png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "mother-seasonal-4",
+    "role": "mother",
+    "collection": "seasonal",
+    "number": 4,
+    "src": "/assets/game/wardrobe-pilot/v3/mother-seasonal-4.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1711259,
+    "sha256": "f7427677465669b2d4be45b6a55631c83c3a396e3976e6afe9e310c8fe2dbc7d",
+    "source": "Мама_4_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "son-basic-1",
+    "role": "son",
+    "collection": "basic",
+    "number": 1,
+    "src": "/assets/game/wardrobe-pilot/v3/son-basic-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1791398,
+    "sha256": "1a020155313b4e2a3d47b4a77e2441e87343cc3603d91780d3a38abacd3f85f6",
+    "source": "Сын_1_базовый сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "son-seasonal-1",
+    "role": "son",
+    "collection": "seasonal",
+    "number": 1,
+    "src": "/assets/game/wardrobe-pilot/v3/son-seasonal-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1960889,
+    "sha256": "626e1c5e4fd74f476a2e46d8c601668b2184326a35566b1aaccdb19b0e186842",
+    "source": "Сын_1_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "son-basic-2",
+    "role": "son",
+    "collection": "basic",
+    "number": 2,
+    "src": "/assets/game/wardrobe-pilot/v3/son-basic-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1829636,
+    "sha256": "616dad0c7b55097357064e23e00b3b7e1de83c235c218276b507e2b431500976",
+    "source": "Сын_2_базовый сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "son-seasonal-2",
+    "role": "son",
+    "collection": "seasonal",
+    "number": 2,
+    "src": "/assets/game/wardrobe-pilot/v3/son-seasonal-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1972623,
+    "sha256": "a254311724f7e3378b5d37a3681f79185975a33b51470f8ac4cd49b06fcfe7e7",
+    "source": "Сын_2_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "son-basic-3",
+    "role": "son",
+    "collection": "basic",
+    "number": 3,
+    "src": "/assets/game/wardrobe-pilot/v3/son-basic-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2001521,
+    "sha256": "9b0c356ce20eb78bff1b9bdc647dd10cb54bb9d5234bef88b7513d886b647f06",
+    "source": "Сын_3_базовый сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "son-seasonal-3",
+    "role": "son",
+    "collection": "seasonal",
+    "number": 3,
+    "src": "/assets/game/wardrobe-pilot/v3/son-seasonal-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 2040177,
+    "sha256": "4559c3551032208a4cdb4580c1f36a59ab838798b28f7b4c3c748bfacdae02d6",
+    "source": "Сын_3_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "son-seasonal-4",
+    "role": "son",
+    "collection": "seasonal",
+    "number": 4,
+    "src": "/assets/game/wardrobe-pilot/v3/son-seasonal-4.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1963325,
+    "sha256": "aec42cdb7fbf70dc18d90caf2fb82ef0a098bbdf8964cb505be744b5c65c57bb",
+    "source": "Сын_4_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "daughter-basic-1",
+    "role": "daughter",
+    "collection": "basic",
+    "number": 1,
+    "src": "/assets/game/wardrobe-pilot/v3/daughter-basic-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1831342,
+    "sha256": "0813c4edc24d52936b3859e465e2e79b37cff85e937a484ef61b10a1fb9bceb5",
+    "source": "Дочь_1_базовый сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "daughter-seasonal-1",
+    "role": "daughter",
+    "collection": "seasonal",
+    "number": 1,
+    "src": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-1.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1896098,
+    "sha256": "6703cce6efcb7f9976e21128a4d1bab16e9382290cd21f2c4215f19581f78277",
+    "source": "Дочь_1_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "daughter-basic-2",
+    "role": "daughter",
+    "collection": "basic",
+    "number": 2,
+    "src": "/assets/game/wardrobe-pilot/v3/daughter-basic-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1866513,
+    "sha256": "72d9151428fba61d41bbebc5747289dd36a8a2356e8c72a86158e1cbcaa0a990",
+    "source": "Дочь_2_базовый сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 22
+  },
+  {
+    "id": "daughter-seasonal-2",
+    "role": "daughter",
+    "collection": "seasonal",
+    "number": 2,
+    "src": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-2.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1808789,
+    "sha256": "cef38836022fcd179f9c8eae8ce601b636887db5232a8889c7e52e4b2822a14a",
+    "source": "Дочь_2_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "daughter-basic-3",
+    "role": "daughter",
+    "collection": "basic",
+    "number": 3,
+    "src": "/assets/game/wardrobe-pilot/v3/daughter-basic-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1932857,
+    "sha256": "3a6d22b4a21ac9d8b233ac32499404d60069423f70b6bad0e3b32007189b73fd",
+    "source": "Дочь_3_базовый сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "daughter-seasonal-3",
+    "role": "daughter",
+    "collection": "seasonal",
+    "number": 3,
+    "src": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-3.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1870967,
+    "sha256": "39eb9af04bf148eb83ae326d338fa894360dc23e4d7dcb2179c8877fdbfc292e",
+    "source": "Дочь_3_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  },
+  {
+    "id": "daughter-seasonal-4",
+    "role": "daughter",
+    "collection": "seasonal",
+    "number": 4,
+    "src": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-4.png",
+    "width": 1024,
+    "height": 1536,
+    "bytes": 1930549,
+    "sha256": "5ca4d747a0280d1f382a0a02e93cb1b7987acfe57eae3303548f5793d85103a7",
+    "source": "Дочь_4_платный сезонный сет.png",
+    "alpha_range": [
+      0,
+      254
+    ],
+    "offsetY": 0
+  }
+]

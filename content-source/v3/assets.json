@@ -1,0 +1,254 @@
+[
+  {
+    "id": "core:asset/father_basic_1",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/father-basic-1.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/father_basic_2",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/father-basic-2.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/father_basic_3",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/father-basic-3.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/father_seasonal_1",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/father-seasonal-1.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/father_seasonal_2",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/father-seasonal-2.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/father_seasonal_3",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/father-seasonal-3.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/father_seasonal_4",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/father-seasonal-4.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/mother_basic_1",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/mother-basic-1.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/mother_basic_2",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/mother-basic-2.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/mother_basic_3",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/mother-basic-3.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/mother_seasonal_1",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/mother-seasonal-1.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/mother_seasonal_2",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/mother-seasonal-2.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/mother_seasonal_3",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/mother-seasonal-3.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/mother_seasonal_4",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/mother-seasonal-4.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/daughter_basic_1",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-basic-1.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/daughter_basic_2",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-basic-2.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/daughter_basic_3",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-basic-3.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/daughter_seasonal_1",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-1.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/daughter_seasonal_2",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-2.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/daughter_seasonal_3",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-3.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/daughter_seasonal_4",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/daughter-seasonal-4.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/son_basic_1",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/son-basic-1.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/son_basic_2",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/son-basic-2.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/son_basic_3",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/son-basic-3.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/son_seasonal_1",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/son-seasonal-1.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/son_seasonal_2",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/son-seasonal-2.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/son_seasonal_3",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/son-seasonal-3.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/son_seasonal_4",
+    "revision": 1,
+    "path": "/assets/game/wardrobe-pilot/v3/son-seasonal-4.png",
+    "source": "user_supplied",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/first_boss",
+    "revision": 1,
+    "path": "/assets/game/v3-ui/first-boss.png",
+    "source": "existing_v3_asset",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/navigation",
+    "revision": 1,
+    "path": "/assets/game/v3-ui/navigation.png",
+    "source": "existing_v3_asset",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/parchment",
+    "revision": 1,
+    "path": "/assets/game/v3-ui/parchment.png",
+    "source": "existing_v3_asset",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/today_room",
+    "revision": 1,
+    "path": "/assets/game/v3-ui/today-room.png",
+    "source": "existing_v3_asset",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/wood",
+    "revision": 1,
+    "path": "/assets/game/v3-ui/wood.png",
+    "source": "existing_v3_asset",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/world_map",
+    "revision": 1,
+    "path": "/assets/game/v3-ui/world-map.png",
+    "source": "existing_v3_asset",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/world_open",
+    "revision": 1,
+    "path": "/assets/game/v3-ui/world-open.png",
+    "source": "existing_v3_asset",
+    "status": "local_preview"
+  },
+  {
+    "id": "core:asset/world_route",
+    "revision": 1,
+    "path": "/assets/game/v3-ui/world-route.png",
+    "source": "existing_v3_asset",
+    "status": "local_preview"
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "directory": "dist",
+    "bytes": 53151911,
+    "identicalToPublic": 16971,
+    "differentFromPublic": 0,
+    "compiledOrOther": 11,
+    "deletionApproved": false
+  },
+  {
+    "directory": "dist-wardrobe-pilot",
+    "bytes": 108201492,
+    "identicalToPublic": 17002,
+    "differentFromPublic": 0,
+    "compiledOrOther": 3,
+    "deletionApproved": false
+  }
+]

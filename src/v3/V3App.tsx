@@ -1,0 +1,36 @@
+import {outfitImage} from './content';
+import {useState} from 'react';
+import {Button,Modal,SectionTitle} from '../demo/ui';
+import {availableCoins,OUTFITS,type Command,type MemberId} from './domain';
+import './v3.css';
+import './hero.css';
+import './panels.css';
+import {FamilyPanel} from './FamilyPanel';
+import {WorldPanel} from './WorldPanel';
+import {WalletPanel} from './WalletPanel';
+import {TodayPanel} from './TodayPanel';
+import {TasksPanel} from './TasksPanel';
+import {loadSession,commitSession,resetSession} from './session';
+const browserStorage={getItem:(key:string)=>window.localStorage.getItem(key),setItem:(key:string,value:string)=>window.localStorage.setItem(key,value)};
+const tabs=['Сегодня','Дела','Мир','Герой','Семья'];
+const crops=[[-1.72,-12.24,207.757,69.252,44,41.513],[-49.3,-13.95,213.321,71.107,36.732,44],[-91.45,-10.95,220.203,73.401,37.106,44],[-124.6,-12.1,208.664,69.555,34.009,44],[-159.38,-12.84,205.082,68.361,44,41.356]];
+function Portrait({role,outfit='basic-1'}:{role:string;outfit?:string}){return <img className="v3-portrait" src={outfitImage(role,outfit)} alt=""/>;}
+export default function V3App(){
+ const [session,setSession]=useState(()=>loadSession(browserStorage));const state=session.state;const [actor,setActor]=useState<MemberId>('daughter');const [tab,setTab]=useState(0);const [profiles,setProfiles]=useState(false);const [outfit,setOutfit]=useState<string|null>(null);const [notice,setNotice]=useState('');const [ownedOnly,setOwnedOnly]=useState(false);const [wallet,setWallet]=useState(false);const [resetChoice,setResetChoice]=useState<boolean|null>(null);const [modalError,setModalError]=useState('');
+ const user=state.members.find(m=>m.id===actor)!;const selected=OUTFITS.find(o=>o.id===outfit);const owned=state.ownedOutfits[actor];const equipped=state.equippedOutfits[actor];
+ function act(command:Command){setModalError('');try{setSession(commitSession(browserStorage,session,command,actor));setNotice('Готово');return true;}catch(e){const message=e instanceof Error?e.message:'Не удалось выполнить действие';setNotice(message);setModalError(message);return false;}}
+
+ function navigate(next:number){setTab(next);setNotice('');document.querySelector('.v3-app main')?.scrollTo(0,0);}
+ return <div className={`v3-app v3-today-active ${tab===3?'v3-hero-active':''} ${tab===1||tab===2||tab===4?'v3-panels-active':''}`}><header className="v3-header"><div><strong>FAMILY LIFE</strong><small>{tabs[tab]}</small></div><Button variant="quiet" onClick={()=>setProfiles(true)}>{user.name}</Button></header><main><p className="v3-demo">Тестовая семья · сохранено на этом устройстве</p><div role="status" className="v3-status">{notice||session.error}</div>
+ {tab===0&&<TodayPanel state={state} actor={actor} act={act} openTasks={()=>navigate(1)} openHero={()=>navigate(3)} openWallet={()=>setWallet(true)}/>}
+ {tab===1&&<TasksPanel key={actor} state={state} actor={actor} act={act}/>}
+ {tab===2&&<WorldPanel state={state} actor={actor} act={act} openTasks={()=>navigate(1)}/>}
+ {tab===3&&<><SectionTitle title="Мой герой" text={`${user.name} · ${user.xp} опыта · ${availableCoins(state,actor)} монет доступно`}/><Button variant="quiet" onClick={()=>setWallet(true)}>Мой кошелёк</Button><div className="v3-hero" aria-label="Надетый комплект"><div className="v3-hero-mirror"><Portrait role={user.avatar??actor} outfit={equipped}/></div><span className="v3-equipped-label">{OUTFITS.find(o=>o.id===equipped)?.title}</span></div><h2 className="v3-wardrobe-title">Гардероб</h2><div className="v3-filter"><Button variant="quiet" aria-pressed={!ownedOnly} onClick={()=>setOwnedOnly(false)}>Все комплекты</Button><Button variant="quiet" aria-pressed={ownedOnly} onClick={()=>setOwnedOnly(true)}>Мои комплекты</Button></div><div className="v3-catalog">{OUTFITS.filter(o=>!ownedOnly||owned.includes(o.id)).map(o=><button className="v3-outfit" aria-label={`${o.title}, ${equipped===o.id?'надет':owned.includes(o.id)?'ваш комплект':`${o.price} монет`}. Примерить`} key={o.id} onClick={()=>{setModalError('');setOutfit(o.id);}}><Portrait role={user.avatar??actor} outfit={o.id}/><strong>{o.title}</strong><span>{equipped===o.id?'Надет':owned.includes(o.id)?'Ваш комплект':`${o.price} монет`}</span></button>)}</div></>}
+ {tab===4&&<FamilyPanel key={actor} state={state} actor={actor} act={act}/>}
+ </main><nav aria-label="Основная навигация">{tabs.map((title,i)=><button key={title} aria-current={tab===i?'page':undefined} onClick={()=>navigate(i)}><span className="v3-nav-icon"><span style={{width:crops[i][4],height:crops[i][5]}}><img src="/assets/game/v3-ui/navigation.png" alt="" style={{left:crops[i][0],top:crops[i][1],width:crops[i][2],height:crops[i][3]}}/></span></span><span className="v3-nav-label">{title}</span></button>)}</nav>
+ {profiles&&<Modal title="Тестовые участники" onClose={()=>setProfiles(false)}><p>Это переключатель для проверки сценариев, не вход в реальный аккаунт. Новый тест заменяет текущий тестовый прогресс на этом устройстве.</p>{state.members.map(m=><Button key={m.id} variant="quiet" onClick={()=>{setActor(m.id);setProfiles(false);setNotice('');}}>{m.name}</Button>)}<Button variant="quiet" onClick={()=>{setProfiles(false);setResetChoice(true);setModalError('');}}>Начать новый тест с одним взрослым</Button><Button variant="quiet" onClick={()=>{setProfiles(false);setResetChoice(false);setModalError('');}}>Начать новую тестовую семью</Button></Modal>}
+ {wallet&&<Modal title="Мой кошелёк" onClose={()=>setWallet(false)}><WalletPanel key={actor} state={state} actor={actor}/><Button variant="quiet" onClick={()=>setWallet(false)}>Закрыть кошелёк</Button></Modal>}
+ {resetChoice!==null&&<Modal title="Начать новый тест?" onClose={()=>setResetChoice(null)}><p>Дела, покупки и обещания тестовой семьи на этом устройстве будут заменены начальным состоянием.</p>{modalError&&<p role="alert">{modalError}</p>}<Button onClick={()=>{try{setSession(resetSession(browserStorage,resetChoice));setActor(resetChoice?'father':'daughter');setTab(0);setNotice('Начата новая тестовая семья');setResetChoice(null);}catch{setModalError('Не удалось сохранить новую семью. Текущий прогресс не изменён.');}}}>Заменить тестовый прогресс</Button><Button variant="quiet" onClick={()=>setResetChoice(null)}>Сохранить текущий прогресс</Button></Modal>}
+ {selected&&<Modal title={selected.title} onClose={()=>setOutfit(null)}><div className="v3-fitting"><Portrait role={user.avatar??actor} outfit={selected.id}/></div><p>{owned.includes(selected.id)?'Этот комплект уже ваш.':`Стоимость: ${selected.price} монет. Доступно: ${availableCoins(state,actor)}.`}</p>{modalError&&<p role="alert">{modalError}</p>}{!owned.includes(selected.id)&&availableCoins(state,actor)<selected.price&&<p>Не хватает {selected.price-availableCoins(state,actor)} монет. Монеты в резерве обещаний недоступны для покупок.</p>}{owned.includes(selected.id)?<Button onClick={()=>{if(act({type:'outfit.equip',outfitId:selected.id}))setOutfit(null);}}>Надеть</Button>:<Button disabled={availableCoins(state,actor)<selected.price} onClick={()=>act({type:'outfit.buy',outfitId:selected.id})}>{availableCoins(state,actor)<selected.price?'Недостаточно монет':`Купить за ${selected.price} монет`}</Button>}</Modal>}
+ </div>;
+}

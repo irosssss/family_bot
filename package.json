@@ -39,7 +39,9 @@
     "target:test": "vitest run --config vitest.target.config.ts",
     "target:test:pg": "tsx scripts/target/test-environment.ts",
     "target:dev": "tsx scripts/target/dev.ts",
-    "target:preview": "tsx scripts/target/preview.ts"
+    "target:preview": "tsx scripts/target/preview.ts",
+    "content:v3:validate": "node --import tsx scripts/content/validate-v3.ts",
+    "prebuild": "npm run content:v3:validate"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1107.0",

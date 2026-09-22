@@ -1,0 +1,12 @@
+[
+  {
+    "id": "core:boss/yard",
+    "revision": 1,
+    "title": "Босс во дворе",
+    "locationId": "core:location/yard",
+    "assetId": "core:asset/first_boss",
+    "hp": 60,
+    "unlockLocationId": "core:location/park",
+    "status": "playable"
+  }
+]

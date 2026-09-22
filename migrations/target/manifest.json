@@ -28,6 +28,10 @@
     {
       "name": "0007_content_release.sql",
       "sha256": "0a1462fed1aa7e1e0638f94a9fa20b8fe9433e5bf875625ec51f6de05e31dd0f"
+    },
+    {
+      "name": "0008_consent_events.sql",
+      "sha256": "85fcb67e2f4d02df9f21a75486e84e3c3f34a1245b596fde04e85c544e8a91ef"
     }
   ]
 }

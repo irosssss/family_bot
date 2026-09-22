@@ -47,3 +47,9 @@ bun.lock
 /work/v3-import-audit/
 /work/v3-stage31/
 /work/v3-local/
+
+# Воспроизводимая сборка самостоятельной примерочной
+/dist-wardrobe-pilot/
+
+# Полный воспроизводимый аудит файлов (компактный итог находится в docs)
+/work/repository-audit/

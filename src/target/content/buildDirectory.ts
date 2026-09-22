@@ -5,10 +5,12 @@ import { assertCompilerResult } from './artifactAuthority';
 import { canonicalJson } from './canonical';
 import { ContentInputError } from './json';
 import { newEntityId } from '../contracts/ids';
+import { previewContentCandidate } from './preview';
 
 /** Writes a local candidate, never a release or activation. Existing destinations are refused. */
 export async function writeContentCandidate(build: ReturnType<typeof compileFrozenContent>, directory: string) {
   assertCompilerResult(build);
+  const preview = previewContentCandidate(build);
   try { await mkdir(directory); }
   catch { throw new ContentInputError('OUTPUT_DIRECTORY_UNAVAILABLE', ''); }
   try {
@@ -23,6 +25,8 @@ export async function writeContentCandidate(build: ReturnType<typeof compileFroz
     await writeFile(path.join(directory, 'private', 'lock.json'), canonicalJson(build.lock), { flag: 'wx', mode: 0o600 });
     await writeFile(path.join(directory, 'private', 'dependency-locks.json'), canonicalJson(build.packages), { flag: 'wx', mode: 0o600 });
     await writeFile(path.join(directory, 'private', 'report.json'), canonicalJson(build.report), { flag: 'wx', mode: 0o600 });
+    await writeFile(path.join(directory, 'private', 'preview.html'), preview.html, { flag: 'wx', mode: 0o600 });
+    await writeFile(path.join(directory, 'private', 'preview-report.json'), canonicalJson(preview.report), { flag: 'wx', mode: 0o600 });
     const candidate = { schema_version: 1, candidate_id: newEntityId(), planned_package_ref: build.root_package,
       build_fingerprint: build.build_fingerprint, manifest_digest: build.manifest_digest, lock_digest: build.lock_digest,
       status: 'local_candidate', created_at: new Date().toISOString(), previous_candidate_id: null, production_ready: false };

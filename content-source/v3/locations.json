@@ -1,0 +1,42 @@
+[
+  {
+    "id": "core:location/yard",
+    "revision": 1,
+    "title": "Двор",
+    "status": "playable",
+    "mapX": 43,
+    "mapY": 84
+  },
+  {
+    "id": "core:location/park",
+    "revision": 1,
+    "title": "Парк",
+    "status": "preview",
+    "mapX": 68,
+    "mapY": 72
+  },
+  {
+    "id": "core:location/forest",
+    "revision": 1,
+    "title": "Лес",
+    "status": "planned",
+    "mapX": 44,
+    "mapY": 58
+  },
+  {
+    "id": "core:location/village",
+    "revision": 1,
+    "title": "Деревня",
+    "status": "planned",
+    "mapX": 71,
+    "mapY": 44
+  },
+  {
+    "id": "core:location/snow_city",
+    "revision": 1,
+    "title": "Снежный город",
+    "status": "planned",
+    "mapX": 73,
+    "mapY": 16
+  }
+]
